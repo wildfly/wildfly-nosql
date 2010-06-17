@@ -35,6 +35,7 @@
 
     <modules>
         <module>jboss-as-parent</module>
+        <module>domain</module>
         <module>server-manager</module>
         <module>server</module>
         <module>domain-controller</module>
