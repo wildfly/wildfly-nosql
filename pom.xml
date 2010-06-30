@@ -39,6 +39,7 @@
         <module>server-manager</module>
         <module>server</module>
         <module>domain-controller</module>
+        <module>process-manager</module>
         <module>build</module>
     </modules>
 
