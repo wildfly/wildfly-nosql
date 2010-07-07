@@ -40,6 +40,7 @@
         <module>server</module>
         <module>domain-controller</module>
         <module>process-manager</module>
+        <module>remoting</module>
         <module>build</module>
     </modules>
 
