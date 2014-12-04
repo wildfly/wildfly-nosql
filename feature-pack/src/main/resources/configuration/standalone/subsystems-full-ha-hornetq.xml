@@ -8,19 +8,21 @@
         <subsystem>datasources.xml</subsystem>
         <subsystem>deployment-scanner.xml</subsystem>
         <subsystem supplement="full">ee.xml</subsystem>
-        <subsystem supplement="full">ejb3.xml</subsystem>
+        <subsystem supplement="full-ha">ejb3.xml</subsystem>
         <subsystem>io.xml</subsystem>
-        <subsystem>infinispan.xml</subsystem>
+        <subsystem supplement="ha">infinispan.xml</subsystem>
         <subsystem>iiop-openjdk.xml</subsystem>
         <subsystem>jaxrs.xml</subsystem>
         <subsystem>jca.xml</subsystem>
         <subsystem>jdr.xml</subsystem>
+        <subsystem>jgroups.xml</subsystem>
         <subsystem>jmx.xml</subsystem>
         <subsystem>jpa.xml</subsystem>
         <subsystem>jsf.xml</subsystem>
         <subsystem>jsr77.xml</subsystem>
         <subsystem>mail.xml</subsystem>
-        <subsystem>messaging-activemq.xml</subsystem>
+        <subsystem supplement="ha">messaging.xml</subsystem>
+        <subsystem>mod_cluster.xml</subsystem>
         <subsystem>naming.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>
@@ -30,7 +32,7 @@
         <subsystem>security-manager.xml</subsystem>
         <subsystem>security.xml</subsystem>
         <subsystem>transactions.xml</subsystem>
-        <subsystem>undertow.xml</subsystem>
+        <subsystem supplement="ha">undertow.xml</subsystem>
         <subsystem>webservices.xml</subsystem>
         <subsystem>weld.xml</subsystem>
     </subsystems>
