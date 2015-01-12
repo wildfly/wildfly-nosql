@@ -22,19 +22,20 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<module xmlns="urn:jboss:module:1.3" name="org.wildfly.clustering.spi">
+<module xmlns="urn:jboss:module:1.3" name="org.wildfly.clustering.marshalling">
     <properties>
         <property name="jboss.api" value="private"/>
     </properties>
 
     <resources>
-        <artifact name="${org.wildfly:wildfly-clustering-spi}"/>
+        <artifact name="${org.wildfly:wildfly-clustering-marshalling}"/>
     </resources>
 
     <dependencies>
+        <module name="javax.api"/>
+        <module name="org.jboss.logging"/>
+        <module name="org.jboss.marshalling"/>
         <module name="org.jboss.modules"/>
-        <module name="org.jboss.msc"/>
-        <module name="org.wildfly.clustering.server" services="import"/>
-        <module name="org.wildfly.clustering.service"/>
+        <module name="org.wildfly.security.manager"/>
     </dependencies>
 </module>
