@@ -21,19 +21,17 @@
   ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
-
-<module xmlns="urn:jboss:module:1.3" name="org.jacorb">
-    <properties>
-        <property name="jboss.api" value="private"/>
-    </properties>
-
+<module xmlns="urn:jboss:module:1.3" name="javax.orb.api">
     <resources>
-        <artifact name="${org.jacorb:jacorb}"/>
+        <artifact name="${org.jboss.openjdk-orb:openjdk-orb}"/>
     </resources>
-
+ 
     <dependencies>
-        <module name="org.slf4j"/>
-        <module name="javax.api"/>
-        <module name="javax.rmi.api"/>
+        <module name="sun.jdk"/>
+        <module name="org.wildfly.iiop-openjdk"/>
+        <module name="org.jboss.jts"/>
+        <module name="org.jboss.jts.integration"/>
+        <module name="javax.transaction.api"/>
+        <module name="org.jboss.iiop-client"/>
     </dependencies>
 </module>
