@@ -5,6 +5,7 @@
         <subsystem>logging.xml</subsystem>
         <subsystem>batch-jberet.xml</subsystem>
         <subsystem>bean-validation.xml</subsystem>
+        <subsystem>cassandra.xml</subsystem>
         <subsystem>datasources.xml</subsystem>
         <subsystem>deployment-scanner.xml</subsystem>
         <subsystem>ee.xml</subsystem>
@@ -19,7 +20,8 @@
         <subsystem>jpa.xml</subsystem>
         <subsystem>jsf.xml</subsystem>
         <subsystem>mail.xml</subsystem>
-        <subsystem supplement="${mod_cluster.supplement}">mod_cluster.xml</subsystem>
+        <subsystem>mod_cluster.xml</subsystem>
+        <subsystem>mongodb.xml</subsystem>        
         <subsystem>naming.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>

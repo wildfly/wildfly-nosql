@@ -6,6 +6,7 @@
         <subsystem>logging.xml</subsystem>
         <subsystem>batch-jberet.xml</subsystem>
         <subsystem>bean-validation.xml</subsystem>
+        <subsystem>cassandra.xml</subsystem>
         <subsystem>datasources.xml</subsystem>
         <subsystem>ee.xml</subsystem>
         <subsystem>ejb3.xml</subsystem>
@@ -18,6 +19,7 @@
         <subsystem>jpa.xml</subsystem>
         <subsystem>jsf.xml</subsystem>
         <subsystem>mail.xml</subsystem>
+        <subsystem>mongodb.xml</subsystem>      
         <subsystem>naming.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>
@@ -36,6 +38,7 @@
         <subsystem>logging.xml</subsystem>
         <subsystem>batch-jberet.xml</subsystem>
         <subsystem>bean-validation.xml</subsystem>
+        <subsystem>cassandra.xml</subsystem>
         <subsystem>datasources.xml</subsystem>
         <subsystem>ee.xml</subsystem>
         <subsystem supplement="ha">ejb3.xml</subsystem>
@@ -50,6 +53,7 @@
         <subsystem>jsf.xml</subsystem>
         <subsystem>mail.xml</subsystem>
         <subsystem>mod_cluster.xml</subsystem>
+        <subsystem>mongodb.xml</subsystem>      
         <subsystem>naming.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>
@@ -69,6 +73,7 @@
         <subsystem>logging.xml</subsystem>
         <subsystem>batch-jberet.xml</subsystem>
         <subsystem>bean-validation.xml</subsystem>
+        <subsystem>cassandra.xml</subsystem>
         <subsystem>datasources.xml</subsystem>
         <subsystem supplement="full">ee.xml</subsystem>
         <subsystem supplement="full">ejb3.xml</subsystem>
@@ -84,6 +89,7 @@
         <subsystem>jsr77.xml</subsystem>
         <subsystem>mail.xml</subsystem>
         <subsystem>messaging-activemq.xml</subsystem>
+        <subsystem>mongodb.xml</subsystem>      
         <subsystem>naming.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>
@@ -102,6 +108,7 @@
         <subsystem>logging.xml</subsystem>
         <subsystem>batch-jberet.xml</subsystem>
         <subsystem>bean-validation.xml</subsystem>
+        <subsystem>cassandra.xml</subsystem>
         <subsystem>datasources.xml</subsystem>
         <subsystem supplement="full">ee.xml</subsystem>
         <subsystem supplement="full-ha">ejb3.xml</subsystem>
@@ -119,6 +126,7 @@
         <subsystem>mail.xml</subsystem>
         <subsystem supplement="ha">messaging-activemq.xml</subsystem>
         <subsystem>mod_cluster.xml</subsystem>
+        <subsystem>mongodb.xml</subsystem>      
         <subsystem>naming.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>

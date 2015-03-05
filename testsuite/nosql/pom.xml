@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ JBoss, Home of Professional Open Source.
+  ~ Copyright 2011, Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags. See the copyright.txt file in the
+  ~ distribution for a full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <artifactId>wildfly-testsuite</artifactId>
+        <groupId>org.wildfly</groupId>
+        <version>10.1.0.Final-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>wildfly-testsuite-nosql</artifactId>
+    <name>WildFly Test Suite: NoSQL Tests</name>
+    <properties>
+
+        <!-- This project's testsuite dir. To be changed for every submodule (until we figure out how to do it automatically). -->
+        <jbossas.ts.dir>${basedir}/..</jbossas.ts.dir>
+
+        <!-- ${jbossas.project.dir} defined in /testsuite. But for separated runs runs, let's duplicate it here. -->
+        <jbossas.project.dir>${jbossas.ts.dir}/..</jbossas.project.dir>
+
+        <!-- Used to provide an absolute location for the distribution under test. -->
+        <!-- This value is overridden in modules with the correct relative pathname. -->
+        <jboss.dist>${jbossas.project.dir}/${wildfly.build.output.dir}</jboss.dist>
+        <jboss.home>${jboss.dist}</jboss.home>
+
+        <!-- Used to provide an absolute location for the XSLT scripts. -->
+        <!-- This value is overridden in submodules with the correct relative path. -->
+        <xslt.scripts.dir>${basedir}/../integration/src/test/xslt</xslt.scripts.dir>
+    </properties>
+
+    <!--
+    	Compile-time dependencies upon anything in the WildFly runtime are allowed in this section.
+    -->
+    <dependencies>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-simple</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- Setup standalone server IP and logging configuration -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>xml-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Prevent test and server output appearing in console. -->
+                    <redirectTestOutputToFile>${testLogToFile}</redirectTestOutputToFile>
+                    <enableAssertions>true</enableAssertions>
+                    <!--<basedir>${jbossas.ts.integ.dir}</basedir>  <!- - "The base directory of the project being tested." Sets ${basedir}. -->
+                    <workingDirectory>${basedir}/target/workdir</workingDirectory> <!-- Work in submodule's own dir. -->
+
+                    <!-- System properties to forked surefire JVM which runs clients. -->
+                    <argLine>${jvm.args.ip.client} ${jvm.args.timeouts}</argLine>
+
+                    <!-- System properties passed to test cases -->
+                    <systemPropertyVariables combine.children="append">
+                        <node0>${node0}</node0>
+                        <node1>${node1}</node1>
+                        <mcast>${mcast}</mcast>
+
+                        <jbossas.ts.submodule.dir>${basedir}</jbossas.ts.submodule.dir>
+                        <jbossas.ts.integ.dir>${jbossas.ts.integ.dir}</jbossas.ts.integ.dir>
+                        <jbossas.ts.dir>${jbossas.ts.dir}</jbossas.ts.dir>
+                        <jbossas.project.dir>${jbossas.project.dir}</jbossas.project.dir>
+                        <jboss.dist>${jboss.dist}</jboss.dist>
+
+                        <!--
+                            Used in arquillian.xml - arguments for all JBoss AS instances.
+                            System properties are duplicated here until ARQ-647 is implemented.
+                        -->
+                        <server.jvm.args>${surefire.system.args} ${jvm.args.ip.server} ${jvm.args.timeouts} -Dnode0=${node0} -Dnode1=${node1} -Dmcast=${mcast} -Declipselink.archive.factory=org.jipijapa.eclipselink.JBossArchiveFactoryImpl</server.jvm.args>
+                    </systemPropertyVariables>
+
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-managed</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>remote</id>
+            <activation>
+                <property>
+                    <name>remote</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.wildfly.arquillian</groupId>
+                    <artifactId>wildfly-arquillian-container-remote</artifactId>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
+  <repositories>
+
+    <repository>
+      <id>jboss-public-repository-group</id>
+      <name>JBoss Public Repository Group</name>
+      <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+      <layout>default</layout>
+      <releases>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+        <updatePolicy>never</updatePolicy>
+      </snapshots>
+    </repository>
+  </repositories>
+
+</project>

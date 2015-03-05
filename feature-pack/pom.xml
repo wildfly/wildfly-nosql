@@ -164,6 +164,27 @@
             <artifactId>cal10n-api</artifactId>
         </dependency>
 
+	<dependency>
+	    <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.fasterxml</groupId>
             <artifactId>classmate</artifactId>
@@ -869,6 +890,40 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <dependency>
+                <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-nosql-common</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+                <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-cassandrasubsystem</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+                <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-mongodbsubsystem</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
 
         <dependency>
             <groupId>org.jboss</groupId>

@@ -5,6 +5,7 @@
         <subsystem>logging.xml</subsystem>
         <subsystem>batch-jberet.xml</subsystem>
         <subsystem>bean-validation.xml</subsystem>
+        <subsystem>cassandra.xml</subsystem>
         <subsystem>datasources.xml</subsystem>
         <subsystem>deployment-scanner.xml</subsystem>
         <subsystem supplement="full">ee.xml</subsystem>
@@ -24,6 +25,7 @@
         <subsystem supplement="ha">messaging-activemq.xml</subsystem>
         <subsystem supplement="${mod_cluster.supplement}">mod_cluster.xml</subsystem>
         <subsystem>naming.xml</subsystem>
+        <subsystem>mongodb.xml</subsystem>        
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>
         <subsystem>resource-adapters.xml</subsystem>

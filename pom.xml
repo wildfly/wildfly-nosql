@@ -210,6 +210,8 @@
         <version.org.jgroups.azure>1.0.0.Final</version.org.jgroups.azure>
         <version.org.jipijapa>1.0.1.Final</version.org.jipijapa>
         <version.org.kohsuke.metainf-services>1.7</version.org.kohsuke.metainf-services>
+        <version.mongodb.driver>3.2.2</version.mongodb.driver>
+        <version.cassandra.driver>3.0.0</version.cassandra.driver>
         <version.org.opensaml.opensaml>3.1.1</version.org.opensaml.opensaml>
         <version.org.picketbox.picketbox-commons>1.0.0.final</version.org.picketbox.picketbox-commons>
         <version.org.picketlink>2.5.5.SP3</version.org.picketlink>
@@ -293,6 +295,7 @@
         <module>messaging-activemq</module>
         <module>mod_cluster</module>
         <module>naming</module>
+        <module>nosql</module>
         <module>picketlink</module>
         <module>pojo</module>
         <module>sar</module>
@@ -1172,6 +1175,24 @@
 
             <dependency>
                 <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-nosql-common</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+           <dependency>
+                <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-cassandrasubsystem</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+	        <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-mongodbsubsystem</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+ 
+            <dependency>
+                <groupId>org.wildfly</groupId>
                 <artifactId>wildfly-picketlink</artifactId>
                 <version>${project.version}</version>
                 <exclusions>
@@ -1334,6 +1355,12 @@
                 <artifactId>cal10n-api</artifactId>
                 <version>${version.ch.qos.cal10n}</version>
             </dependency>
+
+           <dependency>
+               <groupId>com.codahale.metrics</groupId>
+               <artifactId>metrics-core</artifactId>
+               <version>${version.com.codahale.metrics.metrics-core}</version>
+           </dependency>
 
             <dependency>
                 <groupId>com.fasterxml</groupId>
@@ -6118,6 +6145,27 @@
                 </exclusions>
             </dependency>
 
+	    <dependency>
+                <groupId>org.mongodb</groupId>
+                <artifactId>mongo-java-driver</artifactId>
+                <version>${version.mongodb.driver}</version>
+	    </dependency>
+
+	    <dependency>
+                <groupId>com.datastax.cassandra</groupId>
+	        <artifactId>cassandra-driver-core</artifactId>
+                <version>${version.cassandra.driver}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>io.netty</groupId>
+                        <artifactId>netty-handler</artifactId>
+                    </exclusion>
+                  <exclusion>
+                        <groupId>io.dropwizard.metrics</groupId>
+                        <artifactId>metrics-core</artifactId>
+                    </exclusion>
+                </exclusions>
+	    </dependency>
         </dependencies>
     </dependencyManagement>
 

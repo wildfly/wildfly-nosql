@@ -28,6 +28,7 @@
     integration - holds all integration tests for Wildfly.
     compat      - holds all compatibility management tests for Wildfly.
     domain      - holds all domain management tests for Wildfly.
+    nosql       - NoSQL tests for Wildfly.
 
     All tests should fit into one of these four categories.
 
@@ -177,6 +178,22 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
+	<dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <scope>test</scope>
+	</dependency>
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+           <groupId>com.codahale.metrics</groupId>
+           <artifactId>metrics-core</artifactId>
+           <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -407,6 +424,7 @@
                 <module>integration</module>
                 <module>compat</module>
                 <module>domain</module>
+                <module>nosql</module>
             </modules>
         </profile>
 
@@ -471,6 +489,17 @@
             <id>compat_.module.profile</id>
             <activation><property><name>ts.compat</name></property></activation>
             <modules><module>compat</module></modules>
+        </profile>
+
+        <profile>
+            <id>nosql.module.profile</id>
+            <activation><property><name>nosql.module</name></property></activation>
+            <modules><module>nosql</module></modules>
+        </profile>
+        <profile>
+            <id>nosql_.module.profile</id>
+            <activation><property><name>ts.nosql</name></property></activation>
+            <modules><module>nosql</module></modules>
         </profile>
 
         <profile>
