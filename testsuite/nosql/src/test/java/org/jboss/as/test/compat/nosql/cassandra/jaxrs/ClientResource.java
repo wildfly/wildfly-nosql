@@ -48,7 +48,7 @@ public class ClientResource {
     private Session session;
 
     @GET
-    @Produces({"application/xml","application/json"})
+    @Produces({"text/plain"})
     public String get() {
         openConnection();
         try {
