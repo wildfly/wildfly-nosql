@@ -105,6 +105,7 @@ public class StatefulTestBean {
     private void closeConnection() {
         session.execute("DROP KEYSPACE testspace");
         session.close();
+        session = null;
     }
 
 }
