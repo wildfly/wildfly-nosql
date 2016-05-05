@@ -85,11 +85,11 @@ public class MongoDriverService implements Service<MongoDriverService> {
         return this;
     }
 
-    public Object getClient() {
+    public MongoClient getClient() {
         return client;
     }
 
-    public Object getDatabase() {
+    public MongoDatabase getDatabase() {
         return database;
     }
 

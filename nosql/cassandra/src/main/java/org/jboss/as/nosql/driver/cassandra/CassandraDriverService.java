@@ -102,11 +102,11 @@ public class CassandraDriverService implements Service<CassandraDriverService> {
         return this;
     }
 
-    public Object getCluster() {
+    public Cluster getCluster() {
         return cluster;
     }
 
-    public Object getSession() {
+    public Session getSession() {
         return session;
     }
 
