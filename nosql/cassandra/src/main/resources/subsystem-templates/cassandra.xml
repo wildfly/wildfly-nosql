@@ -23,7 +23,7 @@
 
 <!--  See src/resources/configuration/ReadMe.txt for how the configuration assembly works -->
 <config>
-    <extension-module>org.jboss.as.nosql.cassandrasubsystem</extension-module>
+    <extension-module>org.wildfly.extension.nosql.cassandra</extension-module>
     <subsystem xmlns="urn:jboss:domain:cassandra:1.0">
         <cassandra name="default" id="cassandratestprofile" jndi-name="java:jboss/cassandradriver/test">
             <host name="default" outbound-socket-binding-ref="casstesthost"/>

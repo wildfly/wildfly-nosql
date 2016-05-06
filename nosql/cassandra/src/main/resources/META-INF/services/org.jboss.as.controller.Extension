@@ -1,2 +1,2 @@
-org.jboss.as.nosql.subsystem.cassandra.CassandraDriverExtension
+org.wildfly.extension.nosql.subsystem.cassandra.CassandraDriverExtension
 

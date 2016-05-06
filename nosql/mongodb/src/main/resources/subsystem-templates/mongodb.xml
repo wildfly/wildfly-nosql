@@ -23,7 +23,7 @@
 
 <!--  See src/resources/configuration/ReadMe.txt for how the configuration assembly works -->
 <config>
-    <extension-module>org.jboss.as.nosql.mongodbsubsystem</extension-module>
+    <extension-module>org.wildfly.extension.nosql.mongodb</extension-module>
     <subsystem xmlns="urn:jboss:domain:mongodb:1.0">
         <mongo name="default" id="mongodbtestprofile" jndi-name="java:jboss/mongodb/test" database="mongotestdb">
             <host name="default" outbound-socket-binding-ref="mongotesthost"/>

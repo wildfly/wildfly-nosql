@@ -1,2 +1,2 @@
-org.jboss.as.nosql.subsystem.mongodb.MongoDriverExtension
+org.wildfly.extension.nosql.subsystem.mongodb.MongoDriverExtension
 
