@@ -42,7 +42,8 @@ import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.naming.service.BinderService;
 import org.jboss.as.network.OutboundSocketBinding;
 import org.wildfly.extension.nosql.driver.mongodb.ConfigurationBuilder;
-import org.wildfly.extension.nosql.driver.mongodb.MongoDriverService;
+import org.wildfly.extension.nosql.driver.mongodb.MongoClientConnectionsService;
+import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.DriverDependencyProcessor;
 import org.wildfly.nosql.common.DriverScanDependencyProcessor;
 import org.jboss.as.server.AbstractDeploymentChainStep;
@@ -64,7 +65,6 @@ import org.jboss.msc.value.ImmediateValue;
 public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     public static final MongoDriverSubsystemAdd INSTANCE = new MongoDriverSubsystemAdd();
-    private static final ServiceName MONGODBSERVICE = ServiceName.JBOSS.append("mongodb");
 
     private final ParametersValidator runtimeValidator = new ParametersValidator();
 
@@ -132,8 +132,8 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     private void startMongoDriverService(OperationContext context, ConfigurationBuilder builder, Map jndiNameToModuleName, Set<String> outboundSocketBindings) {
         if (builder.getJNDIName() != null && builder.getJNDIName().length() > 0) {
-            final MongoDriverService mongoDriverService = new MongoDriverService(builder);
-            final ServiceName serviceName = MONGODBSERVICE.append(builder.getDescription());
+            final MongoClientConnectionsService mongoClientConnectionsService = new MongoClientConnectionsService(builder);
+            final ServiceName serviceName = ConnectionServiceAccess.serviceName(builder.getDescription());
             final ContextNames.BindInfo bindingInfo = ContextNames.bindInfoFor(builder.getJNDIName());
 
             if (builder.getModuleName() != null) {
@@ -146,9 +146,9 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
             context.getServiceTarget().addService(bindingInfo.getBinderServiceName(), binderService)
                     .addDependency(bindingInfo.getParentContextServiceName(), ServiceBasedNamingStore.class, binderService.getNamingStoreInjector())
                     .addDependency(MongoSubsystemService.serviceName())
-                    .addDependency(serviceName, MongoDriverService.class, new Injector<MongoDriverService>() {
+                    .addDependency(serviceName, MongoClientConnectionsService.class, new Injector<MongoClientConnectionsService>() {
                         @Override
-                        public void inject(final MongoDriverService value) throws
+                        public void inject(final MongoClientConnectionsService value) throws
                                 InjectionException {
                             binderService.getManagedObjectInjector().inject(new ValueManagedReferenceFactory(new ImmediateValue<>(value.getDatabase() != null ? value.getDatabase() : value.getClient())));
                         }
@@ -158,11 +158,11 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
                             binderService.getNamingStoreInjector().uninject();
                         }
                     }).install();
-            final ServiceBuilder<MongoDriverService> serviceBuilder = context.getServiceTarget().addService(serviceName, mongoDriverService);
+            final ServiceBuilder<MongoClientConnectionsService> serviceBuilder = context.getServiceTarget().addService(serviceName, mongoClientConnectionsService);
             // add service dependency on each separate hostname/port reference in standalone*.xml referenced from this driver profile definition.
             for (final String outboundSocketBinding : outboundSocketBindings) {
                 final ServiceName outboundSocketBindingDependency = context.getCapabilityServiceName(OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, outboundSocketBinding, OutboundSocketBinding.class);
-                serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingDependency, OutboundSocketBinding.class, mongoDriverService.getOutboundSocketBindingInjector(outboundSocketBinding));
+                serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingDependency, OutboundSocketBinding.class, mongoClientConnectionsService.getOutboundSocketBindingInjector(outboundSocketBinding));
             }
             serviceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
         }

@@ -23,11 +23,11 @@
 package org.wildfly.nosql.common;
 
 /**
- * DriverService is implemented by each NoSQL driver subsystem.
+ * One SubsystemService implementation for each NoSQL driver subsystem.
  *
  * @author Scott Marlow
  */
-public interface DriverService {
+public interface SubsystemService {
 
     /**
      * Convert JNDI name to module name for resolving the NoSQL module to inject into deployments.

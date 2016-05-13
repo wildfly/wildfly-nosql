@@ -20,15 +20,15 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.extension.nosql.driver.mongodb;
+package org.wildfly.extension.nosql.driver.cassandra;
 
 import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import org.jboss.as.network.OutboundSocketBinding;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.inject.MapInjector;
@@ -36,23 +36,25 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
+import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 /**
- * MongoDriverService represents the connections into a MongoDB server
+ * CassandraDriverService represents the connection into Cassandra
  *
  * @author Scott Marlow
  */
-public class MongoDriverService implements Service<MongoDriverService> {
-    final ConfigurationBuilder configurationBuilder;
+public class CassandraClientConnectionsService implements Service<CassandraClientConnectionsService>, NoSQLConnection {
+
+    private final ConfigurationBuilder configurationBuilder;
     // standard application server way to obtain target hostname + port for target NoSQL database server(s)
     private Map<String, OutboundSocketBinding> outboundSocketBindings = new HashMap<String, OutboundSocketBinding>();
-    private MongoClient client;
-    private MongoDatabase database;
-    private MongoInteraction mongoInteraction;
+    private final CassandraInteraction cassandraInteraction;
+    private Cluster cluster;  // represents connection into Cassandra
+    private Session session;  // only set if keyspaceName is specified
 
-    public MongoDriverService(ConfigurationBuilder configurationBuilder) {
+    public CassandraClientConnectionsService(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
-        mongoInteraction = new MongoInteraction(configurationBuilder);
+        cassandraInteraction = new CassandraInteraction();
     }
 
     public Injector<OutboundSocketBinding> getOutboundSocketBindingInjector(String name) {
@@ -61,36 +63,53 @@ public class MongoDriverService implements Service<MongoDriverService> {
 
     @Override
     public void start(StartContext startContext) throws StartException {
+
         for (OutboundSocketBinding target : outboundSocketBindings.values()) {
-            mongoInteraction.hostPort(target.getUnresolvedDestinationAddress(), target.getDestinationPort());
+            if (target.getDestinationPort() > 0) {
+                cassandraInteraction.withPort(target.getDestinationPort());
+            }
+            if (target.getUnresolvedDestinationAddress() != null) {
+                cassandraInteraction.addContactPoint(target.getUnresolvedDestinationAddress());
+            }
         }
-        client = mongoInteraction.mongoClient();
-        if (configurationBuilder.getDatabase() != null) {
-            database = mongoInteraction.getDB(client);
+
+        if (configurationBuilder.getDescription() != null) {
+            cassandraInteraction.withClusterName(configurationBuilder.getDescription());
+        }
+        cluster = cassandraInteraction.build();
+
+        String keySpace = configurationBuilder.getKeySpace();
+        if (keySpace != null) {
+            session = cassandraInteraction.connect(cluster, keySpace);
         }
     }
 
     @Override
     public void stop(StopContext stopContext) {
         try {
-            mongoInteraction.close(client);
+            if (session != null) {
+                cassandraInteraction.sessionClose(session);
+                session = null;
+            }
+            cassandraInteraction.clusterClose(cluster);
+            cluster = null;
         } catch (Throwable throwable) {
             ROOT_LOGGER.driverFailedToStop(throwable);
         }
-        client = null;
     }
 
     @Override
-    public MongoDriverService getValue() throws IllegalStateException, IllegalArgumentException {
+    public CassandraClientConnectionsService getValue() throws IllegalStateException, IllegalArgumentException {
         return this;
     }
 
-    public MongoClient getClient() {
-        return client;
+    public Cluster getCluster() {
+        return cluster;
     }
 
-    public MongoDatabase getDatabase() {
-        return database;
+    public Session getSession() {
+        return session;
     }
+
 
 }

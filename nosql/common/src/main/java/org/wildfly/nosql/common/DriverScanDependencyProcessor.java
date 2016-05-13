@@ -154,8 +154,8 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         }
     }
 
-    private DriverService getService() {
-        return (DriverService) CurrentServiceContainer.getServiceContainer().getService(serviceName).getValue();
+    private SubsystemService getService() {
+        return (SubsystemService) CurrentServiceContainer.getServiceContainer().getService(serviceName).getValue();
     }
 
 

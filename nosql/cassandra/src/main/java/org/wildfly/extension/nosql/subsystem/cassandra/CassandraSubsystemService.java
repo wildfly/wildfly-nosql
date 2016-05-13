@@ -24,7 +24,7 @@ package org.wildfly.extension.nosql.subsystem.cassandra;
 
 import java.util.Map;
 
-import org.wildfly.nosql.common.DriverService;
+import org.wildfly.nosql.common.SubsystemService;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.service.StartContext;
@@ -36,7 +36,7 @@ import org.jboss.msc.service.StopContext;
  *
  * @author Scott Marlow
  */
-public class CassandraSubsystemService implements Service<DriverService>, DriverService {
+public class CassandraSubsystemService implements Service<SubsystemService>, SubsystemService {
 
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("cassandrasubsystem");
 
@@ -66,7 +66,7 @@ public class CassandraSubsystemService implements Service<DriverService>, Driver
     }
 
     @Override
-    public DriverService getValue() throws IllegalStateException, IllegalArgumentException {
+    public SubsystemService getValue() throws IllegalStateException, IllegalArgumentException {
         return this;
     }
 

@@ -39,8 +39,9 @@ import org.jboss.as.naming.ValueManagedReferenceFactory;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.naming.service.BinderService;
 import org.jboss.as.network.OutboundSocketBinding;
-import org.wildfly.extension.nosql.driver.cassandra.CassandraDriverService;
+import org.wildfly.extension.nosql.driver.cassandra.CassandraClientConnectionsService;
 import org.wildfly.extension.nosql.driver.cassandra.ConfigurationBuilder;
+import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.DriverDependencyProcessor;
 import org.wildfly.nosql.common.DriverScanDependencyProcessor;
 import org.jboss.as.server.AbstractDeploymentChainStep;
@@ -62,7 +63,6 @@ import org.jboss.msc.value.ImmediateValue;
 public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     public static final CassandraDriverSubsystemAdd INSTANCE = new CassandraDriverSubsystemAdd();
-    private static final ServiceName CASSANDRADBSERVICE = ServiceName.JBOSS.append("cassandradriver");
     private final ParametersValidator runtimeValidator = new ParametersValidator();
 
     private CassandraDriverSubsystemAdd() {
@@ -128,8 +128,8 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
 
     private void startCassandraDriverService(OperationContext context, ConfigurationBuilder builder, Map<String, String> jndiNameToModuleName, final Set<String> outboundSocketBindings) throws OperationFailedException {
         if (builder.getJNDIName() != null && builder.getJNDIName().length() > 0) {
-            final CassandraDriverService cassandraDriverService = new CassandraDriverService(builder);
-            final ServiceName serviceName = CASSANDRADBSERVICE.append(builder.getDescription());
+            final CassandraClientConnectionsService cassandraClientConnectionsService = new CassandraClientConnectionsService(builder);
+            final ServiceName serviceName = ConnectionServiceAccess.serviceName(builder.getDescription());
             final ContextNames.BindInfo bindingInfo = ContextNames.bindInfoFor(builder.getJNDIName());
 
             if (builder.getModuleName() != null) {
@@ -141,9 +141,9 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
             context.getServiceTarget().addService(bindingInfo.getBinderServiceName(), binderService)
                     .addDependency(CassandraSubsystemService.serviceName())
                     .addDependency(bindingInfo.getParentContextServiceName(), ServiceBasedNamingStore.class, binderService.getNamingStoreInjector())
-                    .addDependency(serviceName, CassandraDriverService.class, new Injector<CassandraDriverService>() {
+                    .addDependency(serviceName, CassandraClientConnectionsService.class, new Injector<CassandraClientConnectionsService>() {
                         @Override
-                        public void inject(final CassandraDriverService value) throws
+                        public void inject(final CassandraClientConnectionsService value) throws
                                 InjectionException {
                             binderService.getManagedObjectInjector().inject(new ValueManagedReferenceFactory(new ImmediateValue<>(value.getSession() != null ? value.getSession() : value.getCluster())));
                         }
@@ -154,11 +154,11 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
                         }
                     }).install();
 
-            final ServiceBuilder<CassandraDriverService> serviceBuilder = context.getServiceTarget().addService(serviceName, cassandraDriverService);
+            final ServiceBuilder<CassandraClientConnectionsService> serviceBuilder = context.getServiceTarget().addService(serviceName, cassandraClientConnectionsService);
             // add service dependency on each separate hostname/port reference in standalone*.xml referenced from this driver profile definition.
             for (final String outboundSocketBinding : outboundSocketBindings) {
                 final ServiceName outboundSocketBindingDependency = context.getCapabilityServiceName(CassandraDriverDefinition.OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, outboundSocketBinding, OutboundSocketBinding.class);
-                serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingDependency, OutboundSocketBinding.class, cassandraDriverService.getOutboundSocketBindingInjector(outboundSocketBinding));
+                serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingDependency, OutboundSocketBinding.class, cassandraClientConnectionsService.getOutboundSocketBindingInjector(outboundSocketBinding));
             }
             serviceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
         }
