@@ -20,14 +20,22 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.nosql.common.spi;
+package org.wildfly.extension.nosql.cdi;
+
+import javax.enterprise.inject.Any;
+import javax.enterprise.util.AnnotationLiteral;
 
 /**
- * NoSQLConnection represents client connection for NoSQL store
+ * Helper class to instantiate <code>Any</code> qualifier
  *
- * @author Scott Marlow
+ * @author Antoine Sabot-Durand
  */
-public interface NoSQLConnection {
+final class AnyLiteral extends AnnotationLiteral<Any> implements Any {
 
-    <T> T unwrap(Class<T> t);
+    private static final long serialVersionUID = 1L;
+
+    static final Any INSTANCE = new AnyLiteral();
+
+    private AnyLiteral() {
+    }
 }

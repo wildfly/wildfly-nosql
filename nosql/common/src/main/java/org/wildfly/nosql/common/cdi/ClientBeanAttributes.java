@@ -20,14 +20,52 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.nosql.common.spi;
+package org.wildfly.nosql.common.cdi;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.util.Set;
+
+import javax.enterprise.inject.spi.BeanAttributes;
+
+import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 /**
- * NoSQLConnection represents client connection for NoSQL store
+ * ClientBeanAttributes
  *
  * @author Scott Marlow
  */
-public interface NoSQLConnection {
+public class ClientBeanAttributes implements BeanAttributes<NoSQLConnection> {
+    public ClientBeanAttributes(BeanAttributes<NoSQLConnection> beanAttributes) {
+    }
 
-    <T> T unwrap(Class<T> t);
+    @Override
+    public Set<Type> getTypes() {
+        return null;
+    }
+
+    @Override
+    public Set<Annotation> getQualifiers() {
+        return null;
+    }
+
+    @Override
+    public Class<? extends Annotation> getScope() {
+        return null;
+    }
+
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public Set<Class<? extends Annotation>> getStereotypes() {
+        return null;
+    }
+
+    @Override
+    public boolean isAlternative() {
+        return false;
+    }
 }

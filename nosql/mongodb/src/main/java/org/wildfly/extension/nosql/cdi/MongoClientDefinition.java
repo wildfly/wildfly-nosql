@@ -20,14 +20,38 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.nosql.common.spi;
+package org.wildfly.extension.nosql.cdi;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * NoSQLConnection represents client connection for NoSQL store
+ * Annotation Used to define a MongoDB data source
  *
- * @author Scott Marlow
+ * @author Antoine Sabot-Durand
  */
-public interface NoSQLConnection {
 
-    <T> T unwrap(Class<T> t);
+
+@Target(value = {TYPE})
+@Retention(value = RUNTIME)
+@Documented
+public @interface MongoClientDefinition {
+    /**
+     * @return name by which the data source will be registered.
+     */
+    String name();
+
+    /**
+     * @return description of this data source
+     */
+    String description() default "";
+
+    /**
+     * @return mongo db URL.
+     */
+    String url() default "";
 }

@@ -20,14 +20,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.nosql.common.spi;
+package org.jboss.as.test.compat.nosql.mongodb.jaxrs;
+
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 
 /**
- * NoSQLConnection represents client connection for NoSQL store
+ * Utility class that generates a web.xml file
  *
- * @author Scott Marlow
+ * TODO: replace with the SW descriptors project when it becomes available
+ * @author Stuart Douglas
  */
-public interface NoSQLConnection {
+public class WebXml {
 
-    <T> T unwrap(Class<T> t);
+    public static StringAsset get(String contents) {
+        return new StringAsset("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "\n" +
+                "<web-app version=\"3.0\"\n" +
+                "         xmlns=\"http://java.sun.com/xml/ns/javaee\"\n" +
+                "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                "         xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd\"\n" +
+                "         metadata-complete=\"false\">\n" +
+                contents +
+                "</web-app>");
+    }
+
 }

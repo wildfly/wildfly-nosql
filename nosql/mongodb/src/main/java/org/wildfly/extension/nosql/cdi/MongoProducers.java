@@ -20,14 +20,43 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.nosql.common.spi;
+package org.wildfly.extension.nosql.cdi;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.inject.Produces;
+import javax.enterprise.inject.spi.InjectionPoint;
+import javax.inject.Inject;
+
+import com.mongodb.DB;
+import com.mongodb.DBCollection;
+import com.mongodb.MongoClient;
 
 /**
- * NoSQLConnection represents client connection for NoSQL store
+ * Contains producers for <code>MongoDB</code> elements qualified with {@link Mongo}
  *
- * @author Scott Marlow
+ * @author Antoine Sabot-Durand
  */
-public interface NoSQLConnection {
+@ApplicationScoped
+public class MongoProducers {
+    @Inject
+    private MongoClient mongoClient;
 
-    <T> T unwrap(Class<T> t);
+    @Produces
+    @Mongo
+    protected DB produceDb(InjectionPoint ip) {
+        String id = getMongoAnnotation(ip).db();
+        return mongoClient.getDB(id);
+    }
+
+    @Produces
+    @Mongo
+    protected DBCollection produceCollection(InjectionPoint ip) {
+        DB db = produceDb(ip);
+        return db.getCollection(getMongoAnnotation(ip).collection());
+    }
+
+    protected Mongo getMongoAnnotation(InjectionPoint ip) {
+        return ip.getAnnotated().getAnnotation(Mongo.class);
+    }
+
 }

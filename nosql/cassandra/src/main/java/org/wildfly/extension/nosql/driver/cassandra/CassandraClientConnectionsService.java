@@ -111,5 +111,15 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
         return session;
     }
 
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        if ( Cluster.class.isAssignableFrom( clazz ) ) {
+            return (T) cluster;
+        }
+        if ( Session.class.isAssignableFrom( clazz)) {
+            return (T) session;
+        }
+        throw ROOT_LOGGER.unassignable(clazz);
+    }
 
 }

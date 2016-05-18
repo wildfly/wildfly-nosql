@@ -94,4 +94,14 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
         return database;
     }
 
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        if ( MongoClient.class.isAssignableFrom( clazz ) ) {
+            return (T) client;
+        }
+        if ( MongoDatabase.class.isAssignableFrom( clazz)) {
+            return (T) database;
+        }
+        throw ROOT_LOGGER.unassignable(clazz);
+    }
 }

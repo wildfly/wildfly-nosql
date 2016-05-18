@@ -87,4 +87,6 @@ public interface NoSQLLogger extends BasicLogger {
     @Message(id = 4, value = "%s annotations must provide a %s.")
     IllegalArgumentException annotationAttributeMissing(String annotation, String attribute);
 
+    @Message(id = 5, value = "Cannot unwrap class '%s'.")
+    IllegalArgumentException unassignable(Class clazz);
 }

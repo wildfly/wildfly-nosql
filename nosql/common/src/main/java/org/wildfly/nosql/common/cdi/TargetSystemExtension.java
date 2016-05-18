@@ -20,14 +20,27 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.nosql.common.spi;
+package org.wildfly.nosql.common.cdi;
+
+import javax.enterprise.event.Observes;
+import javax.enterprise.inject.spi.AfterBeanDiscovery;
+import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.Extension;
+
+import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 /**
- * NoSQLConnection represents client connection for NoSQL store
+ * TargetSystemExtension
  *
  * @author Scott Marlow
  */
-public interface NoSQLConnection {
+public class TargetSystemExtension implements Extension {
 
-    <T> T unwrap(Class<T> t);
+    void registerInjectionBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
+        String targetId="cassandratestprofile";
+        abd.addBean(bm.createBean(new ClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                (NoSQLConnection.class))), NoSQLConnection.class, new ClientProducerFactory(targetId)));
+
+    }
+
 }
