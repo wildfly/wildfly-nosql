@@ -43,16 +43,25 @@ public class CassandraSubsystemService implements Service<SubsystemService>, Sub
     // JNDI name to module name for resolving the Cassandra module to inject into deployments
     private final Map<String, String> jndiNameToModuleName;
 
-    public CassandraSubsystemService(final Map<String, String> jndiNameToModuleName) {
+    private final Map<String, String> profileNameToModuleName;
+
+    public CassandraSubsystemService(final Map<String, String> jndiNameToModuleName, final Map<String, String> profileNameToModuleName) {
         this.jndiNameToModuleName = jndiNameToModuleName;
+        this.profileNameToModuleName = profileNameToModuleName;
     }
 
     public static ServiceName serviceName() {
         return SERVICENAME;
     }
 
-    public String moduleName(String jndiName) {
+    @Override
+    public String moduleNameFromJndi(String jndiName) {
         return jndiNameToModuleName.get(jndiName);
+    }
+
+    @Override
+    public String moduleNameFromProfile(String profileName) {
+        return profileNameToModuleName.get(profileName);
     }
 
     @Override

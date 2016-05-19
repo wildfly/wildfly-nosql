@@ -28,7 +28,6 @@ import javax.inject.Inject;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
@@ -37,8 +36,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.wildfly.extension.nosql.cdi.Mongo;
-import org.wildfly.extension.nosql.cdi.MongoClientDefinition;
+import org.jboss.nosql.ClientProfile;
 
 /**
  * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>
@@ -46,11 +44,10 @@ import org.wildfly.extension.nosql.cdi.MongoClientDefinition;
  */
 
 
-@MongoClientDefinition(profile="mongodbtestprofile")
+@ClientProfile(profile="mongodbtestprofile")
 @Path("/client")
 @Stateless(name = "CustomName")
 public class ClientResource {
-
 
     @Inject
     MongoClient connection;

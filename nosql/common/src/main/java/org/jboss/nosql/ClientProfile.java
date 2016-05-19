@@ -20,7 +20,7 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.extension.nosql.cdi;
+package org.jboss.nosql;
 
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -30,32 +30,26 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Annotation Used to define a MongoDB data source
+ * Annotation Used to reference a NoSQL source profile from an application deployment.
+ * Identifies the NoSQL source profile via jndi (lookup) or profile name.
  *
  * @author Antoine Sabot-Durand
+ * @author Scott Marlow
  */
 
 
 @Target(value = {TYPE})
 @Retention(value = RUNTIME)
 @Documented
-public @interface MongoClientDefinition {
+public @interface ClientProfile {
 
-    String jndi() default "";
+    /**
+     * @return jndi lookup value
+     */
+    String lookup() default "";
 
+    /**
+     * @return return profile name.
+     */
     String profile() default "";
-    /**
-     * @return name by which the data source will be registered.
-     */
-    // String name();
-
-    /**
-     * @return description of this data source
-     */
-    // String description() default "";
-
-    /**
-     * @return mongo db URL.
-     */
-    // String url() default "";
 }

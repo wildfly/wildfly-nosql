@@ -36,6 +36,8 @@ public interface SubsystemService {
      * @param jndiName
      * @return
      */
-    String moduleName(String jndiName);
+    String moduleNameFromJndi(String jndiName);
+
+    String moduleNameFromProfile(String profileName);
 
 }

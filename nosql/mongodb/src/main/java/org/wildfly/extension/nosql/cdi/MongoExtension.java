@@ -47,13 +47,14 @@ import javax.enterprise.inject.spi.WithAnnotations;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
+import org.jboss.nosql.ClientProfile;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 
 /**
  * This CDI Extension registers a <code>Mongoclient</code>
- * defined by adding a {@link MongoClientDefinition} annotation to any class of the application
+ * defined by adding a {@link ClientProfile} annotation to any class of the application
  * Registration will be aborted if user defines her own <code>MongoClient</code> bean or producer
  *
  * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
@@ -64,19 +65,18 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
 public class MongoExtension implements Extension {
 
     private static final Logger log = Logger.getLogger(MongoExtension.class.getName());
-    private MongoClientDefinition mongoDef = null;
+    private ClientProfile mongoDef = null;
     private boolean moreThanOne = false;
 
     /**
-     * Looks for {@link MongoClientDefinition} annotation to capture it.
+     * Looks for {@link ClientProfile} annotation to capture it.
      * Also Checks if the application contains more than one of these definition
      */
     void detectMongoClientDefinition(
-            @Observes @WithAnnotations(MongoClientDefinition.class) ProcessAnnotatedType<?> pat) {
+            @Observes @WithAnnotations(ClientProfile.class) ProcessAnnotatedType<?> pat) {
         AnnotatedType at = pat.getAnnotatedType();
 
-        MongoClientDefinition md = at.getAnnotation(MongoClientDefinition.class);
-        String name = md.profile();
+        ClientProfile md = at.getAnnotation(ClientProfile.class);
 
         if (mongoDef != null) {
             moreThanOne = true;
@@ -86,7 +86,7 @@ public class MongoExtension implements Extension {
     }
 
     /**
-     * Warns user if there's none onr more than one {@link MongoClientDefinition} in the application
+     * Warns user if there's none onr more than one {@link ClientProfile} in the application
      */
     void checkMongoClientUniqueness(@Observes AfterTypeDiscovery atd) {
         if (mongoDef == null) {
@@ -100,7 +100,7 @@ public class MongoExtension implements Extension {
     }
 
     /**
-     * If the application has a {@link MongoClientDefinition} register the bean for it unless user has defined a bean or a
+     * If the application has a {@link ClientProfile} register the bean for it unless user has defined a bean or a
      * producer for a <code>MongoClient</code>
      */
     void registerDataSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
@@ -108,9 +108,9 @@ public class MongoExtension implements Extension {
             if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
                 log.log(Level.INFO, "Registering bean for MongoDB profile {0}", mongoDef.profile());
                 abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory(mongoDef.profile(), mongoDef.jndi())));
+                        (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory(mongoDef.profile(), mongoDef.lookup())));
                 abd.addBean(bm.createBean(new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (MongoDatabase.class))), MongoDatabase.class, new MongoDatabaseProducerFactory(mongoDef.profile(), mongoDef.jndi())));
+                        (MongoDatabase.class))), MongoDatabase.class, new MongoDatabaseProducerFactory(mongoDef.profile(), mongoDef.lookup())));
              } else {
                 log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
             }

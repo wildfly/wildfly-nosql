@@ -94,6 +94,7 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
         final ModelNode mongoSubsystem = Resource.Tools.readModel(context.readResource(PathAddress.EMPTY_ADDRESS));
         if (mongoSubsystem.hasDefined(CommonAttributes.PROFILE)) {
             Map<String, String> jndiNameToModuleName = new HashMap<>();
+            Map<String, String> profileNameToModuleName = new HashMap<>();
             for (ModelNode profiles : mongoSubsystem.get(CommonAttributes.PROFILE).asList()) {
                 final Set<String> outboundSocketBindings = new HashSet<>();
                 ConfigurationBuilder builder = new ConfigurationBuilder();
@@ -118,19 +119,19 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
                         }
                     }
                 }
-                startMongoDriverService(context, builder, jndiNameToModuleName, outboundSocketBindings);
+                startMongoDriverService(context, builder, jndiNameToModuleName, profileNameToModuleName, outboundSocketBindings);
             }
-            startMongoDriverSubsysteService(context, jndiNameToModuleName);
+            startMongoDriverSubsysteService(context, jndiNameToModuleName, profileNameToModuleName);
 
         }
     }
 
-    private void startMongoDriverSubsysteService(OperationContext context, Map<String, String> jndiNameToModuleName) {
-        MongoSubsystemService mongoSubsystemService = new MongoSubsystemService(jndiNameToModuleName);
+    private void startMongoDriverSubsysteService(OperationContext context, Map<String, String> jndiNameToModuleName, Map<String, String> profileNameToModuleName) {
+        MongoSubsystemService mongoSubsystemService = new MongoSubsystemService(jndiNameToModuleName, profileNameToModuleName);
         context.getServiceTarget().addService(MongoSubsystemService.serviceName(), mongoSubsystemService).setInitialMode(ServiceController.Mode.ACTIVE).install();
     }
 
-    private void startMongoDriverService(OperationContext context, ConfigurationBuilder builder, Map jndiNameToModuleName, Set<String> outboundSocketBindings) {
+    private void startMongoDriverService(OperationContext context, ConfigurationBuilder builder, Map jndiNameToModuleName, Map<String, String> profileNameToModuleName, Set<String> outboundSocketBindings) {
         if (builder.getJNDIName() != null && builder.getJNDIName().length() > 0) {
             final MongoClientConnectionsService mongoClientConnectionsService = new MongoClientConnectionsService(builder);
             final ServiceName serviceName = ConnectionServiceAccess.serviceName(builder.getDescription());
@@ -140,6 +141,7 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
                 // maintain a mapping from JNDI name to NoSQL module name, that we will use during deployment time to
                 // identify the static module name to add to the deployment.
                 jndiNameToModuleName.put(builder.getJNDIName(), builder.getModuleName());
+                profileNameToModuleName.put(builder.getDescription(), builder.getModuleName());
             }
 
             final BinderService binderService = new BinderService(bindingInfo.getBindName());

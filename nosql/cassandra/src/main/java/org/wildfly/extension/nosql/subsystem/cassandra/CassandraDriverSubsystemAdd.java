@@ -91,6 +91,7 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
         final ModelNode cassandraSubsystem = Resource.Tools.readModel(context.readResource(PathAddress.EMPTY_ADDRESS));
         if (cassandraSubsystem.hasDefined(CommonAttributes.PROFILE)) {
             Map<String, String> jndiNameToModuleName = new HashMap<>();
+            Map<String, String> profileNameToModuleName = new HashMap<>();
             for (ModelNode profiles : cassandraSubsystem.get(CommonAttributes.PROFILE).asList()) {
                 final Set<String> outboundSocketBindings = new HashSet<>();
                 ConfigurationBuilder builder = new ConfigurationBuilder();
@@ -115,18 +116,18 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
                         }
                     }
                 }
-                startCassandraDriverService(context, builder, jndiNameToModuleName, outboundSocketBindings);
+                startCassandraDriverService(context, builder, jndiNameToModuleName, profileNameToModuleName, outboundSocketBindings);
             }
-            startCassandraDriverSubsysteService(context, jndiNameToModuleName);
+            startCassandraDriverSubsysteService(context, jndiNameToModuleName, profileNameToModuleName);
         }
     }
 
-    private void startCassandraDriverSubsysteService(final OperationContext context, final Map<String, String> jndiNameToModuleName) {
-        CassandraSubsystemService cassandraSubsystemService = new CassandraSubsystemService(jndiNameToModuleName);
+    private void startCassandraDriverSubsysteService(final OperationContext context, final Map<String, String> jndiNameToModuleName, Map<String, String> profileNameToModuleName) {
+        CassandraSubsystemService cassandraSubsystemService = new CassandraSubsystemService(jndiNameToModuleName, profileNameToModuleName);
         context.getServiceTarget().addService(CassandraSubsystemService.serviceName(), cassandraSubsystemService).setInitialMode(ServiceController.Mode.ACTIVE).install();
     }
 
-    private void startCassandraDriverService(OperationContext context, ConfigurationBuilder builder, Map<String, String> jndiNameToModuleName, final Set<String> outboundSocketBindings) throws OperationFailedException {
+    private void startCassandraDriverService(OperationContext context, ConfigurationBuilder builder, Map<String, String> jndiNameToModuleName, Map<String, String> profileNameToModuleName, final Set<String> outboundSocketBindings) throws OperationFailedException {
         if (builder.getJNDIName() != null && builder.getJNDIName().length() > 0) {
             final CassandraClientConnectionsService cassandraClientConnectionsService = new CassandraClientConnectionsService(builder);
             final ServiceName serviceName = ConnectionServiceAccess.serviceName(builder.getDescription());
@@ -136,6 +137,7 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
                 // maintain a mapping from JNDI name to NoSQL module name, that we will use during deployment time to
                 // identify the static module name to add to the deployment.
                 jndiNameToModuleName.put(builder.getJNDIName(), builder.getModuleName());
+                profileNameToModuleName.put(builder.getDescription(), builder.getModuleName());
             }
             final BinderService binderService = new BinderService(bindingInfo.getBindName());
             context.getServiceTarget().addService(bindingInfo.getBinderServiceName(), binderService)
