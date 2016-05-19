@@ -27,9 +27,8 @@ import javax.enterprise.inject.Produces;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.inject.Inject;
 
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * Contains producers for <code>MongoDB</code> elements qualified with {@link Mongo}
@@ -43,17 +42,17 @@ public class MongoProducers {
 
     @Produces
     @Mongo
-    protected DB produceDb(InjectionPoint ip) {
+    protected MongoDatabase produceDb(InjectionPoint ip) {
         String id = getMongoAnnotation(ip).db();
-        return mongoClient.getDB(id);
+        return mongoClient.getDatabase(id);
     }
 
-    @Produces
-    @Mongo
-    protected DBCollection produceCollection(InjectionPoint ip) {
-        DB db = produceDb(ip);
-        return db.getCollection(getMongoAnnotation(ip).collection());
-    }
+//    @Produces
+//    @Mongo
+//    protected DBCollection produceCollection(InjectionPoint ip) {
+//        MongoDatabase db = produceDb(ip);
+//        return db.getCollection(getMongoAnnotation(ip).collection());
+//    }
 
     protected Mongo getMongoAnnotation(InjectionPoint ip) {
         return ip.getAnnotated().getAnnotation(Mongo.class);

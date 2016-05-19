@@ -48,7 +48,7 @@ import org.wildfly.extension.nosql.cdi.Mongo;
 public class ClientResource {
 
     @Inject
-    @Mongo(profile="mongodbtestprofile")
+    // @Mongo(profile="mongodbtestprofile")
     MongoClient database;
 
     // can only use @Resource in EE components, which is why this is a stateless session bean.

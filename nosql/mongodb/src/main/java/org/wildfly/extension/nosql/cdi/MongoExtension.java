@@ -46,7 +46,6 @@ import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientURI;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
@@ -61,7 +60,6 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
 public class MongoExtension implements Extension {
 
     private static final Logger log = Logger.getLogger(MongoExtension.class.getName());
-    private MongoClientDefinition mongoDef = null;
     private boolean moreThanOne = false;
 
     /**
@@ -75,24 +73,24 @@ public class MongoExtension implements Extension {
         MongoClientDefinition md = at.getAnnotation(MongoClientDefinition.class);
         String name = md.name();
 
-        if (mongoDef != null) {
-            moreThanOne = true;
-        } else {
-            mongoDef = md;
-        }
+//        if (mongoDef != null) {
+//            moreThanOne = true;
+//        } else {
+//            mongoDef = md;
+//        }
     }
 
     /**
      * Warns user if there's none onr more than one {@link MongoClientDefinition} in the application
      */
     void checkMongoClientUniqueness(@Observes AfterTypeDiscovery atd) {
-        if (mongoDef == null) {
+//        if (mongoDef == null) {
             log.warning("No MongoDB data sources found, mongo CDI extension will do nothing");
-        } else if (moreThanOne) {
-            log.log(Level.WARNING, "You defined more than one MongoDB data source. Only the one with name {0} will be "
-                    + "created", mongoDef
-                    .name());
-        }
+//        } else if (moreThanOne) {
+//            log.log(Level.WARNING, "You defined more than one MongoDB data source. Only the one with name {0} will be "
+//                    + "created", mongoDef
+//                    .name());
+//        }
 
     }
 
@@ -101,16 +99,13 @@ public class MongoExtension implements Extension {
      * producer for a <code>MongoClient</code>
      */
     void registerDataSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
+        if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
+//            log.log(Level.INFO, "Registering bean for MongoDB datasource {0}", mongoDef.name());
 
-        if (mongoDef != null) {
-            if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
-                log.log(Level.INFO, "Registering bean for MongoDB datasource {0}", mongoDef.name());
-                MongoClientURI uri = new MongoClientURI(mongoDef.url());
-                abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory(uri)));
-            } else {
-                log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
-            }
+            abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                    (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory()));
+        } else {
+            log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
         }
     }
 
@@ -158,10 +153,7 @@ public class MongoExtension implements Extension {
     private static class MongoClientProducerFactory
             implements InjectionTargetFactory<MongoClient> {
 
-        MongoClientURI uri;
-
-        MongoClientProducerFactory(MongoClientURI uri) {
-            this.uri = uri;
+        MongoClientProducerFactory() {
         }
 
         @Override
@@ -182,9 +174,7 @@ public class MongoExtension implements Extension {
                 @Override
                 public MongoClient produce(CreationalContext<MongoClient> ctx) {
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection("mongodbtestprofile");
-Thread.dumpStack();
                     return noSQLConnection.unwrap(MongoClient.class);
-                    // return new MongoClient(uri);
                 }
 
                 @Override

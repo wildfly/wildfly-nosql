@@ -40,7 +40,7 @@ public class ConnectionServiceAccess {
     }
 
     public static NoSQLConnection connection(String id) {
-        return (NoSQLConnection) CurrentServiceContainer.getServiceContainer().getRequiredService(SERVICENAME.append(id));
+        return (NoSQLConnection) CurrentServiceContainer.getServiceContainer().getRequiredService(SERVICENAME.append(id)).getValue();
     }
 
 }

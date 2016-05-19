@@ -58,6 +58,8 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create(moduleName));
+            if ("org.mongodb.driver".equals(moduleName)) // temp hack for cdi extension loading
+                addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb"));
         }
 
     }
