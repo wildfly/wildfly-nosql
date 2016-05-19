@@ -58,14 +58,13 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create(moduleName));
-            // TODO: remove temp hack:
-            // (1) in place of hack, need to inject NoSQL driver module for @Inject
-            // (2) also need to inject module containing CDI injection, so app classloader sees CDI extension
+            // TODO: need to inject module containing (per NoSQL type) CDI extension classes
             if ("org.mongodb.driver".equals(moduleName)) { // temp hack for cdi extension loading
                 addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb"));
-                // TODO: move ClientProfile into isolated (api) module and change the following addDependency
-                addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.common"));
             }
+            // TODO: move ClientProfile into isolated (api) module and change the following addDependency
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.common"));
+
         }
 
     }
