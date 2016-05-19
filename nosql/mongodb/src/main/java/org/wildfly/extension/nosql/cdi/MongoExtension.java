@@ -56,7 +56,10 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
  * defined by adding a {@link MongoClientDefinition} annotation to any class of the application
  * Registration will be aborted if user defines her own <code>MongoClient</code> bean or producer
  *
+ * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
+ *
  * @author Anttoine Sabot-Durand
+ * @author Scott Marlow
  */
 public class MongoExtension implements Extension {
 

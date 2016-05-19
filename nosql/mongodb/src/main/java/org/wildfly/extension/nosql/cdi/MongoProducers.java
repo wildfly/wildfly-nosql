@@ -32,6 +32,7 @@ import com.mongodb.client.MongoDatabase;
 
 /**
  * Contains producers for <code>MongoDB</code> elements qualified with {@link Mongo}
+ * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
  *
  * @author Antoine Sabot-Durand
  */
