@@ -61,6 +61,7 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
 public class MongoExtension implements Extension {
 
     private static final Logger log = Logger.getLogger(MongoExtension.class.getName());
+    private MongoClientDefinition mongoDef = null;
     private boolean moreThanOne = false;
 
     /**
@@ -72,26 +73,26 @@ public class MongoExtension implements Extension {
         AnnotatedType at = pat.getAnnotatedType();
 
         MongoClientDefinition md = at.getAnnotation(MongoClientDefinition.class);
-        String name = md.name();
+        String name = md.profile();
 
-//        if (mongoDef != null) {
-//            moreThanOne = true;
-//        } else {
-//            mongoDef = md;
-//        }
+        if (mongoDef != null) {
+            moreThanOne = true;
+        } else {
+            mongoDef = md;
+        }
     }
 
     /**
      * Warns user if there's none onr more than one {@link MongoClientDefinition} in the application
      */
     void checkMongoClientUniqueness(@Observes AfterTypeDiscovery atd) {
-//        if (mongoDef == null) {
+        if (mongoDef == null) {
             log.warning("No MongoDB data sources found, mongo CDI extension will do nothing");
-//        } else if (moreThanOne) {
-//            log.log(Level.WARNING, "You defined more than one MongoDB data source. Only the one with name {0} will be "
-//                    + "created", mongoDef
-//                    .name());
-//        }
+        } else if (moreThanOne) {
+            log.log(Level.WARNING, "You defined more than one MongoDB data source. Only the one with profile {0} will be "
+                    + "created", mongoDef
+                    .profile());
+        }
 
     }
 
@@ -100,16 +101,16 @@ public class MongoExtension implements Extension {
      * producer for a <code>MongoClient</code>
      */
     void registerDataSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
-        if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
-//            log.log(Level.INFO, "Registering bean for MongoDB datasource {0}", mongoDef.name());
-
-            abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                    (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory()));
-
-            abd.addBean(bm.createBean(new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                                (MongoDatabase.class))), MongoDatabase.class, new MongoDatabaseProducerFactory()));
-        } else {
-            log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
+        if (mongoDef != null) {
+            if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
+                log.log(Level.INFO, "Registering bean for MongoDB profile {0}", mongoDef.profile());
+                abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                        (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory(mongoDef.profile(), mongoDef.jndi())));
+                abd.addBean(bm.createBean(new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                        (MongoDatabase.class))), MongoDatabase.class, new MongoDatabaseProducerFactory(mongoDef.profile(), mongoDef.jndi())));
+             } else {
+                log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
+            }
         }
     }
 
@@ -154,8 +155,11 @@ public class MongoExtension implements Extension {
 
     private static class MongoClientProducerFactory
             implements InjectionTargetFactory<MongoClient> {
+        String profile, jndi;
 
-        MongoClientProducerFactory() {
+        MongoClientProducerFactory(String profile, String jndi) {
+            this.profile = profile;
+            this.jndi = jndi;
         }
 
         @Override
@@ -175,8 +179,8 @@ public class MongoExtension implements Extension {
 
                 @Override
                 public MongoClient produce(CreationalContext<MongoClient> ctx) {
-                    // TODO: remove hard coded profile name
-                    NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection("mongodbtestprofile");
+                    // TODO: use jndi if profile is null
+                    NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
                     return noSQLConnection.unwrap(MongoClient.class);
                 }
 
@@ -234,8 +238,11 @@ public class MongoExtension implements Extension {
 
     private static class MongoDatabaseProducerFactory
             implements InjectionTargetFactory<MongoDatabase> {
+        String profile, jndi;
 
-        MongoDatabaseProducerFactory() {
+        MongoDatabaseProducerFactory(String profile, String jndi) {
+            this.profile = profile;
+            this.jndi = jndi;
         }
 
         @Override
@@ -255,8 +262,8 @@ public class MongoExtension implements Extension {
 
                 @Override
                 public MongoDatabase produce(CreationalContext<MongoDatabase> ctx) {
-                    // TODO: remove hard coded profile name
-                    NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection("mongodbtestprofile");
+                    // TODO: use jndi if profile is null
+                    NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
                     return noSQLConnection.unwrap(MongoDatabase.class);
                 }
 

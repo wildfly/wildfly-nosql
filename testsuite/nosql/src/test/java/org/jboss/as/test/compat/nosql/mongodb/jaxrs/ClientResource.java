@@ -38,21 +38,24 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 import org.wildfly.extension.nosql.cdi.Mongo;
+import org.wildfly.extension.nosql.cdi.MongoClientDefinition;
 
 /**
  * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>
  * @author Scott Marlow
  */
+
+
+@MongoClientDefinition(profile="mongodbtestprofile")
 @Path("/client")
 @Stateless(name = "CustomName")
 public class ClientResource {
 
+
     @Inject
-    // @Mongo(profile="mongodbtestprofile")
     MongoClient connection;
 
     @Inject
-    // @Mongo(profile="mongodbtestprofile")
     MongoDatabase database;
 
     // can only use @Resource in EE components, which is why this is a stateless session bean.
@@ -66,7 +69,6 @@ public class ClientResource {
         MongoCollection collection = null;
         Document query = null;
         try {
-            // collection = database.getDatabase("mongotestdb").getCollection("company");
             collection = database.getCollection("company");
             String companyName = "Acme products";
             JsonObject object = Json.createObjectBuilder()

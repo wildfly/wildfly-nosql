@@ -40,18 +40,22 @@ import java.lang.annotation.Target;
 @Retention(value = RUNTIME)
 @Documented
 public @interface MongoClientDefinition {
+
+    String jndi() default "";
+
+    String profile() default "";
     /**
      * @return name by which the data source will be registered.
      */
-    String name();
+    // String name();
 
     /**
      * @return description of this data source
      */
-    String description() default "";
+    // String description() default "";
 
     /**
      * @return mongo db URL.
      */
-    String url() default "";
+    // String url() default "";
 }
