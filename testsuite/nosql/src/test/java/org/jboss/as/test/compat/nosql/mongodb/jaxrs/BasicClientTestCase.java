@@ -85,7 +85,8 @@ public class BasicClientTestCase {
     public void testGet() throws Exception {
         String result = client.target(url.toExternalForm() + "myjaxrs/client")
                 .request("text/plain").get(String.class);
-        Assert.assertEquals("{\"name\": \"Scott Marlow\", \"comment\": \"some NoSQL code cleanup\", \"when\": \"2016-05-05\"}", result);
+        Assert.assertTrue("result does not contain '_id=Acme products, companyName=Acme products, street=999 Flow Lane, city=Indiville'",
+                result.contains("_id=Acme products, companyName=Acme products, street=999 Flow Lane, city=Indiville"));
     }
 
 }

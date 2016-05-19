@@ -46,6 +46,7 @@ import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 
 import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
@@ -104,6 +105,9 @@ public class MongoExtension implements Extension {
 
             abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
                     (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory()));
+
+            abd.addBean(bm.createBean(new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                                (MongoDatabase.class))), MongoDatabase.class, new MongoDatabaseProducerFactory()));
         } else {
             log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
         }
@@ -188,4 +192,85 @@ public class MongoExtension implements Extension {
             };
         }
     }
+
+    private static class MongoDatabaseBeanAttributes implements BeanAttributes<MongoDatabase> {
+
+        private BeanAttributes<MongoDatabase> delegate;
+
+        MongoDatabaseBeanAttributes(BeanAttributes<MongoDatabase> beanAttributes) {
+            delegate = beanAttributes;
+        }
+
+        @Override
+        public String getName() {
+            return delegate.getName();
+        }
+
+        @Override
+        public Set<Annotation> getQualifiers() {
+            return delegate.getQualifiers();
+        }
+
+        @Override
+        public Class<? extends Annotation> getScope() {
+            return ApplicationScoped.class;
+        }
+
+        @Override
+        public Set<Class<? extends Annotation>> getStereotypes() {
+            return delegate.getStereotypes();
+        }
+
+        @Override
+        public Set<Type> getTypes() {
+            return delegate.getTypes();
+        }
+
+        @Override
+        public boolean isAlternative() {
+            return delegate.isAlternative();
+        }
+    }
+
+    private static class MongoDatabaseProducerFactory
+            implements InjectionTargetFactory<MongoDatabase> {
+
+        MongoDatabaseProducerFactory() {
+        }
+
+        @Override
+        public InjectionTarget<MongoDatabase> createInjectionTarget(Bean<MongoDatabase> bean) {
+            return new InjectionTarget<MongoDatabase>() {
+                @Override
+                public void inject(MongoDatabase instance, CreationalContext<MongoDatabase> ctx) {
+                }
+
+                @Override
+                public void postConstruct(MongoDatabase instance) {
+                }
+
+                @Override
+                public void preDestroy(MongoDatabase instance) {
+                }
+
+                @Override
+                public MongoDatabase produce(CreationalContext<MongoDatabase> ctx) {
+                    // TODO: remove hard coded profile name
+                    NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection("mongodbtestprofile");
+                    return noSQLConnection.unwrap(MongoDatabase.class);
+                }
+
+                @Override
+                public void dispose(MongoDatabase database) {
+
+                }
+
+                @Override
+                public Set<InjectionPoint> getInjectionPoints() {
+                    return Collections.EMPTY_SET;
+                }
+            };
+        }
+    }
+
 }

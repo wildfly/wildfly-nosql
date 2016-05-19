@@ -49,7 +49,11 @@ public class ClientResource {
 
     @Inject
     // @Mongo(profile="mongodbtestprofile")
-    MongoClient database;
+    MongoClient connection;
+
+    @Inject
+    // @Mongo(profile="mongodbtestprofile")
+    MongoDatabase database;
 
     // can only use @Resource in EE components, which is why this is a stateless session bean.
     @Resource(lookup = "java:jboss/mongodb/test")
@@ -62,7 +66,8 @@ public class ClientResource {
         MongoCollection collection = null;
         Document query = null;
         try {
-            collection = database.getDatabase("mongotestdb").getCollection("company");
+            // collection = database.getDatabase("mongotestdb").getCollection("company");
+            collection = database.getCollection("company");
             String companyName = "Acme products";
             JsonObject object = Json.createObjectBuilder()
                     .add("companyName", companyName)
