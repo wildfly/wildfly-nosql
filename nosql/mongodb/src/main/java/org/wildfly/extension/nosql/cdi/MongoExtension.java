@@ -109,7 +109,6 @@ public class MongoExtension implements Extension {
         }
     }
 
-
     private static class MongoClientBeanAttributes implements BeanAttributes<MongoClient> {
 
         private BeanAttributes<MongoClient> delegate;
@@ -149,7 +148,6 @@ public class MongoExtension implements Extension {
         }
     }
 
-
     private static class MongoClientProducerFactory
             implements InjectionTargetFactory<MongoClient> {
 
@@ -173,13 +171,14 @@ public class MongoExtension implements Extension {
 
                 @Override
                 public MongoClient produce(CreationalContext<MongoClient> ctx) {
+                    // TODO: remove hard coded profile name
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection("mongodbtestprofile");
                     return noSQLConnection.unwrap(MongoClient.class);
                 }
 
                 @Override
-                public void dispose(MongoClient instance) {
-                    instance.close();
+                public void dispose(MongoClient connection) {
+                    // connection.close();
                 }
 
                 @Override
