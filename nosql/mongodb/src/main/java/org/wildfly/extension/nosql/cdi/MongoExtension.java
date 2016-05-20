@@ -47,7 +47,7 @@ import javax.enterprise.inject.spi.WithAnnotations;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
-import org.jboss.nosql.ClientProfile;
+import org.wildfly.nosql.ClientProfile;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 

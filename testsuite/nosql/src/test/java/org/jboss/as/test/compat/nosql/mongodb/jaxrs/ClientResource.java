@@ -36,7 +36,7 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.jboss.nosql.ClientProfile;
+import org.wildfly.nosql.ClientProfile;
 
 /**
  * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>

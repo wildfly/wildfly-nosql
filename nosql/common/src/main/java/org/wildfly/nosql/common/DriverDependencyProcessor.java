@@ -58,15 +58,27 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create(moduleName));
-            // TODO: need to inject module containing (per NoSQL type) CDI extension classes
-            if ("org.mongodb.driver".equals(moduleName)) { // temp hack for cdi extension loading
-                addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb"));
-            }
+            addMongoCDIDependency(moduleSpecification, moduleLoader, moduleName);
+            addCassandraCDIDependency(moduleSpecification, moduleLoader, moduleName);
             // TODO: move ClientProfile into isolated (api) module and change the following addDependency
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.common"));
 
         }
 
+    }
+
+    private void addMongoCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
+        if ("org.mongodb.driver".equals(moduleName)) { // temp hack for cdi extension loading
+                                                       // TODO: instead try loading a MongoDB class from modululeName
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb"));
+        }
+    }
+
+    private void addCassandraCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
+        if ("com.datastax.cassandra.driver-core".equals(moduleName)) { // temp hack for cdi extension loading
+                                                                       // TODO: instead try loading a Cassandra class from modululeName
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.cassandra"));
+        }
     }
 
     private void addDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader,

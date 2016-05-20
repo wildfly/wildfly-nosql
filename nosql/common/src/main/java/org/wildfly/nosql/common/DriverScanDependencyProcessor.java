@@ -45,7 +45,7 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.msc.service.ServiceName;
-import org.jboss.nosql.ClientProfile;
+import org.wildfly.nosql.ClientProfile;
 
 /**
  * DriverScanDependencyProcessor
