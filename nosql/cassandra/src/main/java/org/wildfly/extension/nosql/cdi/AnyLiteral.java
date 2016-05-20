@@ -22,41 +22,20 @@
 
 package org.wildfly.extension.nosql.cdi;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
-import javax.enterprise.inject.spi.InjectionPoint;
-import javax.inject.Inject;
-
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import javax.enterprise.inject.Any;
+import javax.enterprise.util.AnnotationLiteral;
 
 /**
- * Contains producers for <code>MongoDB</code> elements qualified with {@link Mongo}
- * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
+ * Helper class to instantiate <code>Any</code> qualifier
  *
  * @author Antoine Sabot-Durand
  */
-@ApplicationScoped
-public class MongoProducers {
-    @Inject
-    private MongoClient mongoClient;
+final class AnyLiteral extends AnnotationLiteral<Any> implements Any {
 
-    @Produces
-    @Mongo
-    protected MongoDatabase produceDb(InjectionPoint ip) {
-        String id = getMongoAnnotation(ip).db();
-        return mongoClient.getDatabase(id);
+    private static final long serialVersionUID = 1L;
+
+    static final Any INSTANCE = new AnyLiteral();
+
+    private AnyLiteral() {
     }
-
-//    @Produces
-//    @Mongo
-//    protected DBCollection produceCollection(InjectionPoint ip) {
-//        MongoDatabase db = produceDb(ip);
-//        return db.getCollection(getMongoAnnotation(ip).collection());
-//    }
-
-    protected Mongo getMongoAnnotation(InjectionPoint ip) {
-        return ip.getAnnotated().getAnnotation(Mongo.class);
-    }
-
 }

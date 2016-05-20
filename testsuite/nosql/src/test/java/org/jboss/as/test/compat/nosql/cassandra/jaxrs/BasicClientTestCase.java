@@ -86,12 +86,4 @@ public class BasicClientTestCase {
                 .request("text/plain").get(String.class);
         Assert.assertEquals("{\"name\": \"Scott Marlow\", \"comment\": \"some NoSQL code cleanup\", \"when\": \"2016-05-05\"}", result);
     }
-
-    @Test
-    public void testPost() throws Exception {
-        String result = client.target(url.toExternalForm() + "myjaxrs/client")
-                .request("text/plain").post(Entity.text("ignored"), String.class);
-        Assert.assertEquals("{\"name\": \"Scott Marlow\", \"comment\": \"try injected connection\", \"when\": \"2016-05-09\"}", result);
-    }
-
 }

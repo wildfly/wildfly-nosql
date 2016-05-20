@@ -29,7 +29,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.context.Dependent;  // TODO: verify if Dependent scope is okay, instead of ApplicationScoped (which got below error)
+                                            // WELD-001435: Normal scoped bean class com.datastax.driver.core.Cluster is not proxyable because it has no no-args constructor...
+                                            // unit test passes with Dependent scope.
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
@@ -45,26 +47,26 @@ import javax.enterprise.inject.spi.InjectionTargetFactory;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.Session;
 import org.wildfly.nosql.ClientProfile;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 
 /**
- * This CDI Extension registers a <code>Mongoclient</code>
+ * This CDI Extension registers a <code>Session,Cluster</code>
  * defined by adding a {@link ClientProfile} annotation to any class of the application
- * Registration will be aborted if user defines her own <code>MongoClient</code> bean or producer
+ * Registration will be aborted if user defines her own <code>Session,Cluster</code> bean or producer
  *
- * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
+ * TODO: eliminate dependency on Cassandra client classes so different Cassandra driver modules can be used.
  *
  * @author Anttoine Sabot-Durand
  * @author Scott Marlow
  */
-public class MongoExtension implements Extension {
+public class CassandraExtension implements Extension {
 
-    private static final Logger log = Logger.getLogger(MongoExtension.class.getName());
+    private static final Logger log = Logger.getLogger(CassandraExtension.class.getName());
     private ClientProfile clientProfileDef = null;
     private boolean moreThanOne = false;
 
@@ -88,7 +90,7 @@ public class MongoExtension implements Extension {
     /**
      * Warns user if there's none onr more than one {@link ClientProfile} in the application
      */
-    void checkMongoClientUniqueness(@Observes AfterTypeDiscovery atd) {
+    void checkCassandraClientUniqueness(@Observes AfterTypeDiscovery atd) {
         if (clientProfileDef == null) {
             log.warning("No @ClientProfile found, extension will do nothing");
         } else if (moreThanOne) {
@@ -101,27 +103,27 @@ public class MongoExtension implements Extension {
 
     /**
      * If the application has a {@link ClientProfile} register the bean for it unless user has defined a bean or a
-     * producer for a <code>MongoClient</code>
+     * producer for a <code>Cluster</code>
      */
     void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
         if (clientProfileDef != null) {
-            if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
+            if (bm.getBeans(Cluster.class, DefaultLiteral.INSTANCE).isEmpty()) {
                 log.log(Level.INFO, "Registering bean for ClientProfile profile {0}", clientProfileDef.profile());
-                abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
-                abd.addBean(bm.createBean(new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (MongoDatabase.class))), MongoDatabase.class, new MongoDatabaseProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
+                abd.addBean(bm.createBean(new ClusterBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                        (Cluster.class))), Cluster.class, new ClusterProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
+                abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                        (Session.class))), Session.class, new SessionProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
              } else {
-                log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
+                log.log(Level.INFO, "Application contains a default Cluster Bean, automatic registration will be disabled");
             }
         }
     }
 
-    private static class MongoClientBeanAttributes implements BeanAttributes<MongoClient> {
+    private static class ClusterBeanAttributes implements BeanAttributes<Cluster> {
 
-        private BeanAttributes<MongoClient> delegate;
+        private BeanAttributes<Cluster> delegate;
 
-        MongoClientBeanAttributes(BeanAttributes<MongoClient> beanAttributes) {
+        ClusterBeanAttributes(BeanAttributes<Cluster> beanAttributes) {
             delegate = beanAttributes;
         }
 
@@ -137,7 +139,7 @@ public class MongoExtension implements Extension {
 
         @Override
         public Class<? extends Annotation> getScope() {
-            return ApplicationScoped.class;
+            return Dependent.class;
         }
 
         @Override
@@ -156,39 +158,39 @@ public class MongoExtension implements Extension {
         }
     }
 
-    private static class MongoClientProducerFactory
-            implements InjectionTargetFactory<MongoClient> {
+    private static class ClusterProducerFactory
+            implements InjectionTargetFactory<Cluster> {
         String profile, jndi;
 
-        MongoClientProducerFactory(String profile, String jndi) {
+        ClusterProducerFactory(String profile, String jndi) {
             this.profile = profile;
             this.jndi = jndi;
         }
 
         @Override
-        public InjectionTarget<MongoClient> createInjectionTarget(Bean<MongoClient> bean) {
-            return new InjectionTarget<MongoClient>() {
+        public InjectionTarget<Cluster> createInjectionTarget(Bean<Cluster> bean) {
+            return new InjectionTarget<Cluster>() {
                 @Override
-                public void inject(MongoClient instance, CreationalContext<MongoClient> ctx) {
+                public void inject(Cluster instance, CreationalContext<Cluster> ctx) {
                 }
 
                 @Override
-                public void postConstruct(MongoClient instance) {
+                public void postConstruct(Cluster instance) {
                 }
 
                 @Override
-                public void preDestroy(MongoClient instance) {
+                public void preDestroy(Cluster instance) {
                 }
 
                 @Override
-                public MongoClient produce(CreationalContext<MongoClient> ctx) {
+                public Cluster produce(CreationalContext<Cluster> ctx) {
                     // TODO: use jndi if profile is null
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
-                    return noSQLConnection.unwrap(MongoClient.class);
+                    return noSQLConnection.unwrap(Cluster.class);
                 }
 
                 @Override
-                public void dispose(MongoClient connection) {
+                public void dispose(Cluster connection) {
                     // connection.close();
                 }
 
@@ -200,11 +202,11 @@ public class MongoExtension implements Extension {
         }
     }
 
-    private static class MongoDatabaseBeanAttributes implements BeanAttributes<MongoDatabase> {
+    private static class SessionBeanAttributes implements BeanAttributes<Session> {
 
-        private BeanAttributes<MongoDatabase> delegate;
+        private BeanAttributes<Session> delegate;
 
-        MongoDatabaseBeanAttributes(BeanAttributes<MongoDatabase> beanAttributes) {
+        SessionBeanAttributes(BeanAttributes<Session> beanAttributes) {
             delegate = beanAttributes;
         }
 
@@ -220,7 +222,7 @@ public class MongoExtension implements Extension {
 
         @Override
         public Class<? extends Annotation> getScope() {
-            return ApplicationScoped.class;
+            return Dependent.class;
         }
 
         @Override
@@ -239,39 +241,39 @@ public class MongoExtension implements Extension {
         }
     }
 
-    private static class MongoDatabaseProducerFactory
-            implements InjectionTargetFactory<MongoDatabase> {
+    private static class SessionProducerFactory
+            implements InjectionTargetFactory<Session> {
         String profile, jndi;
 
-        MongoDatabaseProducerFactory(String profile, String jndi) {
+        SessionProducerFactory(String profile, String jndi) {
             this.profile = profile;
             this.jndi = jndi;
         }
 
         @Override
-        public InjectionTarget<MongoDatabase> createInjectionTarget(Bean<MongoDatabase> bean) {
-            return new InjectionTarget<MongoDatabase>() {
+        public InjectionTarget<Session> createInjectionTarget(Bean<Session> bean) {
+            return new InjectionTarget<Session>() {
                 @Override
-                public void inject(MongoDatabase instance, CreationalContext<MongoDatabase> ctx) {
+                public void inject(Session instance, CreationalContext<Session> ctx) {
                 }
 
                 @Override
-                public void postConstruct(MongoDatabase instance) {
+                public void postConstruct(Session instance) {
                 }
 
                 @Override
-                public void preDestroy(MongoDatabase instance) {
+                public void preDestroy(Session instance) {
                 }
 
                 @Override
-                public MongoDatabase produce(CreationalContext<MongoDatabase> ctx) {
+                public Session produce(CreationalContext<Session> ctx) {
                     // TODO: use jndi if profile is null
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
-                    return noSQLConnection.unwrap(MongoDatabase.class);
+                    return noSQLConnection.unwrap(Session.class);
                 }
 
                 @Override
-                public void dispose(MongoDatabase database) {
+                public void dispose(Session database) {
 
                 }
 
