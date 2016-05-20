@@ -39,6 +39,10 @@ import javax.inject.Qualifier;
  * This Qualifier is used to qualify an injected MongoDB element and to contain meta-data about the requested element used by
  * the corresponding producer in {@link MongoProducers}
  *
+ * TODO: This class has mostly been replaced by ClientProfile.  Should MongoProducers reference ClientProfile?
+ * We likely will add some MongoDB specific extensions (e.g. customize read/write concern), which this interface might be a
+ * good placeholder example for.
+ *
  * @author Antoine Sabot-Durand
  */
 

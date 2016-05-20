@@ -49,15 +49,15 @@ import org.wildfly.nosql.ClientProfile;
 @Stateless(name = "CustomName")
 public class ClientResource {
 
-    @Inject
-    MongoClient connection;
+    // @Inject
+    // MongoClient connection;
 
     @Inject
     MongoDatabase database;
 
     // can only use @Resource in EE components, which is why this is a stateless session bean.
-    @Resource(lookup = "java:jboss/mongodb/test")
-    MongoDatabase other;
+    // @Resource(lookup = "java:jboss/mongodb/test")
+    // MongoDatabase other;
 
     @GET
     @Produces({"text/plain"})
