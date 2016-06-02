@@ -30,9 +30,8 @@ package org.wildfly.extension.nosql.driver.neo4j;
 public class ConfigurationBuilder {
     private String description; //
     private String JNDIName;    // required global jndi name
-    private String keyspace;    // optional Cassandra keyspace
 
-    private static final String defaultModuleName = "com.datastax.neo4j.driver-core";
+    private static final String defaultModuleName = "org.neo4j.driver";
     private String moduleName = // name of Cassandra static module
             defaultModuleName;
 
@@ -44,20 +43,12 @@ public class ConfigurationBuilder {
         this.JNDIName = JNDIName;
     }
 
-    public void setKeyspace(String keyspace) {
-        this.keyspace = keyspace;
-    }
-
     public String getJNDIName() {
         return JNDIName;
     }
 
     public String getDescription() {
         return description;
-    }
-
-    public String getKeySpace() {
-        return keyspace;
     }
 
     public void setModuleName(String moduleName) {

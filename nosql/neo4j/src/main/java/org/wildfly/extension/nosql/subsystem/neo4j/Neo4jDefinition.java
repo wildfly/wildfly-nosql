@@ -69,12 +69,6 @@ public class Neo4jDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .build();
 
-    protected static final SimpleAttributeDefinition DATABASE =
-            new SimpleAttributeDefinitionBuilder(CommonAttributes.DATABASE, ModelType.STRING, true)
-                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
-                    .setAllowExpression(true)
-                    .build();
-
     protected static final SimpleAttributeDefinition MODULE =
             new SimpleAttributeDefinitionBuilder(CommonAttributes.MODULE_NAME, ModelType.STRING, true)
                     .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
@@ -85,7 +79,6 @@ public class Neo4jDefinition extends PersistentResourceDefinition {
     protected static List<SimpleAttributeDefinition> ATTRIBUTES = Arrays.asList(
             ID_NAME,
             JNDI_NAME,
-            DATABASE,
             MODULE);
 
     static final Map<String, AttributeDefinition> ATTRIBUTES_MAP = new HashMap<>();

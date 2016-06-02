@@ -81,10 +81,10 @@ public class Neo4jDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
         runtimeValidator.validate(operation.resolve());
         context.addStep(new AbstractDeploymentChainStep() {
             protected void execute(DeploymentProcessorTarget processorTarget) {
-                // TODO: create Phase.PARSE_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 1 hack
-                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, Phase.PARSE_PERSISTENCE_UNIT + 1, new DriverScanDependencyProcessor("neo4jsubsystem"));
-                // TODO: create Phase.DEPENDENCIES_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 1 hack
-                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, Phase.DEPENDENCIES_PERSISTENCE_ANNOTATION + 1, DriverDependencyProcessor.getInstance());
+                // TODO: create Phase.PARSE_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
+                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, Phase.PARSE_PERSISTENCE_UNIT + 4, new DriverScanDependencyProcessor("neo4jsubsystem"));
+                // TODO: create Phase.DEPENDENCIES_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
+                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, Phase.DEPENDENCIES_PERSISTENCE_ANNOTATION + 4, DriverDependencyProcessor.getInstance());
             }
         }, OperationContext.Stage.RUNTIME);
 
@@ -102,8 +102,6 @@ public class Neo4jDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
                         builder.setJNDIName(profileEntry.get(CommonAttributes.JNDI_NAME).asString());
                     } else if (profileEntry.hasDefined(CommonAttributes.MODULE_NAME)) {
                         builder.setModuleName(profileEntry.get(CommonAttributes.MODULE_NAME).asString());
-                    } else if (profileEntry.hasDefined(CommonAttributes.DATABASE)) {
-                        builder.setKeyspace(profileEntry.get(CommonAttributes.DATABASE).asString());
                     } else if (profileEntry.hasDefined(CommonAttributes.HOST_DEF)) {
                         ModelNode hostModels = profileEntry.get(CommonAttributes.HOST_DEF);
                         for (ModelNode host : hostModels.asList()) {

@@ -22,6 +22,7 @@
         <subsystem>mail.xml</subsystem>
         <subsystem>mod_cluster.xml</subsystem>
         <subsystem>mongodb.xml</subsystem>        
+        <subsystem>neo4j.xml</subsystem> 
         <subsystem>naming.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>

@@ -63,12 +63,13 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
     public void start(StartContext startContext) throws StartException {
 
         for (OutboundSocketBinding target : outboundSocketBindings.values()) {
-            if (target.getDestinationPort() > 0) {
-                neo4jInteraction.withPort(target.getDestinationPort());
-            }
             if (target.getUnresolvedDestinationAddress() != null) {
                 neo4jInteraction.addContactPoint(target.getUnresolvedDestinationAddress());
             }
+            if (target.getDestinationPort() > 0) {
+                neo4jInteraction.withPort(target.getDestinationPort());
+            }
+
         }
 
         //if (configurationBuilder.getDescription() != null) {

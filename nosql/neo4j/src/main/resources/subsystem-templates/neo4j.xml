@@ -25,11 +25,11 @@
 <config>
     <extension-module>org.wildfly.extension.nosql.neo4j</extension-module>
     <subsystem xmlns="urn:jboss:domain:neo4j:1.0">
-        <cassandra name="default" id="neo4jtesttprofile" jndi-name="java:jboss/neo4jdriver/test">
+        <neo4j name="default" id="neo4jtesttprofile" jndi-name="java:jboss/neo4jdriver/test">
             <host name="default" outbound-socket-binding-ref="neo4jtesthost"/>
-        </cassandra>
+        </neo4j>
     </subsystem>
     <outbound-socket-binding name="neo4jtesthost">
-        <remote-destination host="localhost" port="5001"/>
+        <remote-destination host="localhost" port="7687"/>
     </outbound-socket-binding>
 </config>

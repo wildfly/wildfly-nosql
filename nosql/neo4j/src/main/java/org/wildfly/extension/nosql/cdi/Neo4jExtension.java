@@ -26,12 +26,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.enterprise.context.Dependent;  // TODO: verify if Dependent scope is okay, instead of ApplicationScoped (which got below error)
-                                            // WELD-001435: Normal scoped bean class com.datastax.driver.core.Cluster is not proxyable because it has no no-args constructor...
-                                            // unit test passes with Dependent scope.
+import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
@@ -47,6 +43,8 @@ import javax.enterprise.inject.spi.InjectionTargetFactory;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 
+import org.jboss.logmanager.Level;
+import org.jboss.logmanager.Logger;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
 import org.wildfly.nosql.ClientProfile;
@@ -114,7 +112,7 @@ public class Neo4jExtension implements Extension {
                 abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
                         (Session.class))), Session.class, new SessionProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
              } else {
-                log.log(Level.INFO, "Application contains a default Cluster Bean, automatic registration will be disabled");
+                log.log(Level.INFO, "Application contains a default Driver Bean, automatic registration will be disabled");
             }
         }
     }
@@ -139,7 +137,7 @@ public class Neo4jExtension implements Extension {
 
         @Override
         public Class<? extends Annotation> getScope() {
-            return Dependent.class;
+            return ApplicationScoped.class;
         }
 
         @Override
@@ -190,8 +188,8 @@ public class Neo4jExtension implements Extension {
                 }
 
                 @Override
-                public void dispose(Driver connection) {
-                    // connection.close();
+                public void dispose(Driver driver) {
+                    // no need to close the shared driver, its thread safe and shared by all application deployments.
                 }
 
                 @Override
@@ -222,7 +220,7 @@ public class Neo4jExtension implements Extension {
 
         @Override
         public Class<? extends Annotation> getScope() {
-            return Dependent.class;
+            return ApplicationScoped.class;
         }
 
         @Override
@@ -272,6 +270,12 @@ public class Neo4jExtension implements Extension {
                     return noSQLConnection.unwrap(Session.class);
                 }
 
+                /**
+                 * Injected session should be closed as soon as RequestScoped request completes,
+                 * to ensure that the (not thread safe) session can then be used for another request.
+                 *
+                 * @param session
+                 */
                 @Override
                 public void dispose(Session session) {
                     session.close();

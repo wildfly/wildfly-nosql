@@ -43,7 +43,6 @@ final class Neo4jDriverSubsystemParser extends PersistentResourceXMLParser {
                                 .addAttributes(
                                         Neo4jDefinition.ID_NAME,
                                         Neo4jDefinition.JNDI_NAME,
-                                        Neo4jDefinition.DATABASE,
                                         Neo4jDefinition.MODULE
                                 )
                                 .addChild(builder(HostDefinition.INSTANCE)

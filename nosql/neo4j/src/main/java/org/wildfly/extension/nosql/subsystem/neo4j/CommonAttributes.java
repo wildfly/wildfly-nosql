@@ -29,7 +29,6 @@ package org.wildfly.extension.nosql.subsystem.neo4j;
  */
 public interface CommonAttributes {
     String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
-    String DATABASE = "database";
     String HOST_DEF = "host";
     String ID_NAME = "id";
     String JNDI_NAME = "jndi-name";

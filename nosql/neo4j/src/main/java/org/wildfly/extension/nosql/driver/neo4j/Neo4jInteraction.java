@@ -25,7 +25,6 @@ package org.wildfly.extension.nosql.driver.neo4j;
 import org.jboss.msc.service.StartException;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
-import org.neo4j.driver.v1.Session;
 
 /**
  * Neo4jInteraction is for interacting with Neo4j without static references to Neo4j classes.
@@ -41,20 +40,23 @@ public class Neo4jInteraction {
     }
 
     protected void withPort(int port) throws StartException {
-        // todo: add port
-        // getBuilder().withPort(port);
+        add(":");
+        add(Integer.toString(port));
     }
 
     protected void addContactPoint(String host) throws StartException {
+        add(host);
+    }
 
-        // todo: add host
+    private void add(String value) {
+        if(builder.length() == 0) {
+            builder.append("bolt://");
+        }
+        builder.append(value);
     }
 
     protected void driverClose(Driver driver) throws Throwable {
         driver.close();
     }
 
-    protected void sessionClose(Session session) throws Throwable {
-        session.close();
-    }
 }
