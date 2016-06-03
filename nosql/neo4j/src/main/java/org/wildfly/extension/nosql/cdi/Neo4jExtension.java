@@ -107,7 +107,7 @@ public class Neo4jExtension implements Extension {
         if (clientProfileDef != null) {
             if (bm.getBeans(Driver.class, DefaultLiteral.INSTANCE).isEmpty()) {
                 log.log(Level.INFO, "Registering bean for ClientProfile profile {0}", clientProfileDef.profile());
-                abd.addBean(bm.createBean(new ClusterBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
+                abd.addBean(bm.createBean(new DriverBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
                         (Driver.class))), Driver.class, new DriverProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
                 abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
                         (Session.class))), Session.class, new SessionProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
@@ -117,11 +117,11 @@ public class Neo4jExtension implements Extension {
         }
     }
 
-    private static class ClusterBeanAttributes implements BeanAttributes<Driver> {
+    private static class DriverBeanAttributes implements BeanAttributes<Driver> {
 
         private BeanAttributes<Driver> delegate;
 
-        ClusterBeanAttributes(BeanAttributes<Driver> beanAttributes) {
+        DriverBeanAttributes(BeanAttributes<Driver> beanAttributes) {
             delegate = beanAttributes;
         }
 
