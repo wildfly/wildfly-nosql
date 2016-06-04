@@ -35,7 +35,7 @@ import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 
 /**
- * Cassandra client driver subsystem ResourceDefinition
+ * Neo4J client driver subsystem ResourceDefinition
  */
 public class Neo4jDriverDefinition extends PersistentResourceDefinition {
 

@@ -59,7 +59,7 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
  *
  * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
  *
- * @author Anttoine Sabot-Durand
+ * @author Antoine Sabot-Durand
  * @author Scott Marlow
  */
 public class MongoExtension implements Extension {

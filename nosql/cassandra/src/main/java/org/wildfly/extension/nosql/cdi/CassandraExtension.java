@@ -61,7 +61,7 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
  *
  * TODO: eliminate dependency on Cassandra client classes so different Cassandra driver modules can be used.
  *
- * @author Anttoine Sabot-Durand
+ * @author Antoine Sabot-Durand
  * @author Scott Marlow
  */
 public class CassandraExtension implements Extension {

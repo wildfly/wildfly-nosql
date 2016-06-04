@@ -20,42 +20,28 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.extension.nosql.driver.neo4j;
+package org.jboss.as.test.compat.nosql.neo4j.jaxrs;
+
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 
 /**
- * ConfigurationBuilder
+ * Utility class that generates a web.xml file
  *
- * @author Scott Marlow
+ * TODO: replace with the SW descriptors project when it becomes available
+ * @author Stuart Douglas
  */
-public class ConfigurationBuilder {
-    private String description; //
-    private String JNDIName;    // required global jndi name
+public class WebXml {
 
-    private static final String defaultModuleName = "org.neo4j.driver";
-    private String moduleName = // name of static module
-            defaultModuleName;
-
-    public void setDescription(String description) {
-        this.description = description;
+    public static StringAsset get(String contents) {
+        return new StringAsset("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                "\n" +
+                "<web-app version=\"3.0\"\n" +
+                "         xmlns=\"http://java.sun.com/xml/ns/javaee\"\n" +
+                "         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
+                "         xsi:schemaLocation=\"http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd\"\n" +
+                "         metadata-complete=\"false\">\n" +
+                contents +
+                "</web-app>");
     }
 
-    public void setJNDIName(String JNDIName) {
-        this.JNDIName = JNDIName;
-    }
-
-    public String getJNDIName() {
-        return JNDIName;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setModuleName(String moduleName) {
-        this.moduleName = moduleName;
-    }
-
-    public String getModuleName() {
-        return moduleName;
-    }
 }

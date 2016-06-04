@@ -28,7 +28,7 @@ import org.jboss.as.controller.PersistentResourceXMLDescription;
 import org.jboss.as.controller.PersistentResourceXMLParser;
 
 /**
- * CassandraDriverSubsystemParser
+ * Neo4jDriverSubsystemParser
  *
  * @author Scott Marlow
  */

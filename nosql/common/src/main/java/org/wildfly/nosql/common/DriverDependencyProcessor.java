@@ -60,6 +60,7 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create(moduleName));
             addMongoCDIDependency(moduleSpecification, moduleLoader, moduleName);
             addCassandraCDIDependency(moduleSpecification, moduleLoader, moduleName);
+            addNeo4jCDIDependency(moduleSpecification, moduleLoader, moduleName);
             // TODO: move ClientProfile into isolated (api) module and change the following addDependency
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.common"));
 
@@ -71,6 +72,13 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
         if ("org.mongodb.driver".equals(moduleName)) { // temp hack for cdi extension loading
                                                        // TODO: instead try loading a MongoDB class from modululeName
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb"));
+        }
+    }
+
+    private void addNeo4jCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
+        if ("org.mongodb.driver".equals(moduleName)) { // temp hack for cdi extension loading
+                                                       // TODO: instead try loading a MongoDB class from modululeName
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.neo4j"));
         }
     }
 

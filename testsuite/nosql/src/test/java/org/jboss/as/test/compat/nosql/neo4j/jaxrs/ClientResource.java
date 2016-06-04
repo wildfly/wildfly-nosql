@@ -20,10 +20,13 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.as.test.compat.nosql.neo4j;
+package org.jboss.as.test.compat.nosql.neo4j.jaxrs;
 
-import javax.annotation.Resource;
-import javax.ejb.Stateful;
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
@@ -32,23 +35,27 @@ import org.neo4j.driver.v1.StatementResult;
 import org.wildfly.nosql.ClientProfile;
 
 /**
- * StatefulTestBean for the Neo4J database
- *
+ * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>
  * @author Scott Marlow
  */
-@ClientProfile(profile = "neo4jtesttprofile")
-@Stateful
-public class StatefulTestBean {
 
-    @Resource(lookup = "java:jboss/neo4jdriver/test")
+
+@ClientProfile(profile = "neo4jtesttprofile")
+@Path("/client")
+@Stateless(name = "CustomName")
+public class ClientResource {
+
+    @Inject
+    //private Session session;
     private Driver driver;
 
-    public String addPerson() {
+    @GET
+    @Produces({"text/plain"})
+    public String get() {
         Session session = driver.session();
         try {
             session.run("CREATE (a:Person {name:'Arthur', title:'King'})");
             StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title");
-
 
             Record record = result.next();
             return record.toString();
@@ -56,5 +63,6 @@ public class StatefulTestBean {
             session.run("MATCH (a:Person) delete a");
             session.close();
         }
+
     }
 }

@@ -26,6 +26,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.spi.CreationalContext;
@@ -43,8 +45,6 @@ import javax.enterprise.inject.spi.InjectionTargetFactory;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 import javax.enterprise.inject.spi.WithAnnotations;
 
-import org.jboss.logmanager.Level;
-import org.jboss.logmanager.Logger;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
 import org.wildfly.nosql.ClientProfile;
@@ -59,7 +59,7 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
  *
  * TODO: eliminate dependency on client classes so different driver modules can be used.
  *
- * @author Anttoine Sabot-Durand
+ * @author Antoine Sabot-Durand
  * @author Scott Marlow
  */
 public class Neo4jExtension implements Extension {
@@ -101,7 +101,7 @@ public class Neo4jExtension implements Extension {
 
     /**
      * If the application has a {@link ClientProfile} register the bean for it unless user has defined a bean or a
-     * producer for a <code>Cluster</code>
+     * producer for a <code>Driver</code>
      */
     void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
         if (clientProfileDef != null) {

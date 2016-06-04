@@ -81,9 +81,9 @@ public class Neo4jDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
         runtimeValidator.validate(operation.resolve());
         context.addStep(new AbstractDeploymentChainStep() {
             protected void execute(DeploymentProcessorTarget processorTarget) {
-                // TODO: create Phase.PARSE_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
+                // TODO: create Phase.PARSE_NEO4J_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
                 processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, Phase.PARSE_PERSISTENCE_UNIT + 4, new DriverScanDependencyProcessor("neo4jsubsystem"));
-                // TODO: create Phase.DEPENDENCIES_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
+                // TODO: create Phase.DEPENDENCIES_NEO4J_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
                 processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, Phase.DEPENDENCIES_PERSISTENCE_ANNOTATION + 4, DriverDependencyProcessor.getInstance());
             }
         }, OperationContext.Stage.RUNTIME);

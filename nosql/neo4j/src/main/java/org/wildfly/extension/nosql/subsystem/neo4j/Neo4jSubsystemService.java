@@ -32,7 +32,7 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 
 /**
- * Neo4jSubsystemService represents the runtime aspects of the Cassandra client driver subsystem
+ * Neo4jSubsystemService represents the runtime aspects of the Neo4J client driver subsystem
  *
  * @author Scott Marlow
  */
@@ -40,7 +40,7 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
 
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("neo4jsubsystem");
 
-    // JNDI name to module name for resolving the Cassandra module to inject into deployments
+    // JNDI name to module name for resolving the Ne04J module to inject into deployments
     private final Map<String, String> jndiNameToModuleName;
 
     private final Map<String, String> profileNameToModuleName;

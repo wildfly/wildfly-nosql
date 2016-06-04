@@ -20,64 +20,71 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.jboss.as.test.compat.nosql.neo4j;
+package org.jboss.as.test.compat.nosql.neo4j.jaxrs;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.naming.InitialContext;
-import javax.naming.NamingException;
+import java.net.URL;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 
 import org.jboss.arquillian.container.test.api.Deployment;
+import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
-import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
-import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+
 /**
- * Neo4jDBTestCase
+ * Use jaxrs client to send http requests to the server.
  *
+ * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>
  * @author Scott Marlow
  */
 @RunWith(Arquillian.class)
-public class Neo4jDBTestCase {
-    private static final String ARCHIVE_NAME = "Neo4jDBTestCase_test";
-
-    @ArquillianResource
-    private static InitialContext iniCtx;
-
-    @BeforeClass
-    public static void beforeClass() throws NamingException {
-        iniCtx = new InitialContext();
-    }
+@RunAsClient
+public class BasicClientTestCase {
 
     @Deployment
-    public static Archive<?> deploy() throws Exception {
-
-        EnterpriseArchive ear = ShrinkWrap.create(EnterpriseArchive.class, ARCHIVE_NAME + ".ear");
-        // addTestJarsToEar(ear);
-        JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "beans.jar");
-        lib.addClasses(StatefulTestBean.class);
-        ear.addAsModule(lib);
-        final WebArchive main = ShrinkWrap.create(WebArchive.class, "main.war");
-        main.addClasses(Neo4jDBTestCase.class);
-        ear.addAsModule(main);
-        return ear;
+    public static Archive<?> deploy() {
+        WebArchive war = ShrinkWrap.create(WebArchive.class, "jaxrsapp.war");
+        war.addClasses(BasicClientTestCase.class, ClientResource.class);
+        war.addAsWebInfResource(WebXml.get("<servlet-mapping>\n" +
+                "        <servlet-name>javax.ws.rs.core.Application</servlet-name>\n" +
+                "        <url-pattern>/myjaxrs/*</url-pattern>\n" +
+                "    </servlet-mapping>\n" +
+                "\n"), "web.xml");
+        war.addAsManifestResource(BasicClientTestCase.class.getPackage(), "beans.xml", "beans.xml");
+        return war;
     }
 
-    protected static <T> T lookup(String beanName, Class<T> interfaceType) throws NamingException {
-        return interfaceType.cast(iniCtx.lookup("java:global/" + ARCHIVE_NAME + "/" + "beans/" + beanName + "!" + interfaceType.getName()));
+    @ArquillianResource
+    private URL url;
+
+    static Client client;
+
+    @BeforeClass
+    public static void setUpClient() {
+        client = ClientBuilder.newClient();
+    }
+
+    @AfterClass
+    public static void close()
+    {
+        client.close();
     }
 
     @Test
-    public void testSimpleCreateAndLoadEntities() throws Exception {
-        StatefulTestBean statefulTestBean = lookup("StatefulTestBean", StatefulTestBean.class);
-        String result = statefulTestBean.addPerson();
+    public void testGet() throws Exception {
+        String result = client.target(url.toExternalForm() + "myjaxrs/client")
+                .request("text/plain").get(String.class);
         assertEquals("Record<{name: \"Arthur\", title: \"King\"}>", result);
     }
 
