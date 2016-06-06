@@ -24,6 +24,7 @@ package org.jboss.as.test.compat.nosql.neo4j;
 
 import javax.annotation.Resource;
 import javax.ejb.Stateful;
+import javax.inject.Inject;
 
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
@@ -43,11 +44,30 @@ public class StatefulTestBean {
     @Resource(lookup = "java:jboss/neo4jdriver/test")
     private Driver driver;
 
+    @Inject
+    private Driver injectedDriver;
+
+
     public String addPerson() {
         Session session = driver.session();
         try {
             session.run("CREATE (a:Person {name:'Arthur', title:'King'})");
             StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title");
+
+
+            Record record = result.next();
+            return record.toString();
+        } finally {
+            session.run("MATCH (a:Person) delete a");
+            session.close();
+        }
+    }
+
+    public String addPersonClassInstanceInjection() {
+        Session session = injectedDriver.session();
+        try {
+            session.run("CREATE (a:Person {name:'CDI', title:'King'})");
+            StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'CDI' RETURN a.name AS name, a.title AS title");
 
 
             Record record = result.next();

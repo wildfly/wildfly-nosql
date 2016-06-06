@@ -81,4 +81,11 @@ public class Neo4jDBTestCase {
         assertEquals("Record<{name: \"Arthur\", title: \"King\"}>", result);
     }
 
+    @Test
+    public void testInjectedClassInstance() throws Exception {
+        StatefulTestBean statefulTestBean = lookup("StatefulTestBean", StatefulTestBean.class);
+        String result = statefulTestBean.addPersonClassInstanceInjection();
+        assertEquals("Record<{name: \"CDI\", title: \"King\"}>", result);
+    }
+
 }
