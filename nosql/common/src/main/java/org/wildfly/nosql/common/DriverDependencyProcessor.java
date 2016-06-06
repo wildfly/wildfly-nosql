@@ -76,8 +76,8 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
     }
 
     private void addNeo4jCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
-        if ("org.mongodb.driver".equals(moduleName)) { // temp hack for cdi extension loading
-                                                       // TODO: instead try loading a MongoDB class from modululeName
+        if ("org.neo4j.driver".equals(moduleName)) {   // temp hack for cdi extension loading
+                                                       // TODO: instead try loading a Neo4J class from modululeName
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.neo4j"));
         }
     }
