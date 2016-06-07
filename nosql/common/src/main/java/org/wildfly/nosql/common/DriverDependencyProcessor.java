@@ -57,7 +57,7 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             final ModuleSpecification moduleSpecification = deploymentUnit.getAttachment(Attachments.MODULE_SPECIFICATION);
             final ModuleLoader moduleLoader = Module.getBootModuleLoader();
 
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create(moduleName));
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(moduleName));
             addMongoCDIDependency(moduleSpecification, moduleLoader, moduleName);
             addCassandraCDIDependency(moduleSpecification, moduleLoader, moduleName);
             addNeo4jCDIDependency(moduleSpecification, moduleLoader, moduleName);

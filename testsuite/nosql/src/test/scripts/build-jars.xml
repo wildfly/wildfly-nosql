@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ JBoss, Home of Professional Open Source.
+  ~ Copyright 2011, Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags. See the copyright.txt file in the
+  ~ distribution for a full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<project>
+    <target name="copy-jars" description="Copy jars to be tested.">
+
+    <!-- add mongo module -->
+    <copy file="${org.mongodb:mongo-java-driver:jar}"                tofile="${tests.output.dir}/modules/org/mongodb/driver/test/mongo.jar"/>
+    <echo file="${tests.output.dir}/modules/org/mongodb/driver/test/module.xml" append="false">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;module xmlns="urn:jboss:module:1.1" name="org.mongodb.driver" slot="test"&gt;
+&lt;resources&gt;
+
+&lt;resource-root path="mongo.jar"&gt;
+&lt;filter&gt;
+&lt;exclude path="javax/**" /&gt;
+&lt;/filter&gt;
+&lt;/resource-root&gt;
+&lt;/resources&gt;
+
+&lt;dependencies&gt;
+&lt;module name="javax.api"/&gt;
+&lt;/dependencies&gt;
+&lt;/module&gt;
+    </echo>
+
+    <!-- add Neo4J module -->
+    <copy file="${org.neo4j.driver:neo4j-java-driver:jar}"         tofile="${tests.output.dir}/modules/org/neo4j/driver/test/neo4j.jar"/>
+    <echo file="${tests.output.dir}/modules/org/neo4j/driver/test/module.xml" append="false">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;module xmlns="urn:jboss:module:1.1" name="org.neo4j.driver" slot="test"&gt;
+&lt;resources&gt;
+
+&lt;resource-root path="neo4j.jar"&gt;
+&lt;filter&gt;
+&lt;exclude path="javax/**" /&gt;
+&lt;/filter&gt;
+&lt;/resource-root&gt;
+&lt;/resources&gt;
+
+&lt;dependencies&gt;
+&lt;module name="javax.api"/&gt;
+&lt;/dependencies&gt;
+&lt;/module&gt;
+    </echo>
+    
+    <!-- add Cassandra module -->
+    <copy file="${com.datastax.cassandra:cassandra-driver-core:jar}"    tofile="${tests.output.dir}/modules/com/datastax/cassandra/driver-core/test/cassandra.jar"/>
+    <echo file="${tests.output.dir}/modules/com/datastax/cassandra/driver-core/test/module.xml" append="false">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;module xmlns="urn:jboss:module:1.1" name="com.datastax.cassandra.driver-core" slot="test"&gt;
+&lt;resources&gt;
+
+&lt;resource-root path="cassandra.jar"&gt;
+&lt;filter&gt;
+&lt;exclude path="javax/**" /&gt;
+&lt;/filter&gt;
+&lt;/resource-root&gt;
+&lt;/resources&gt;
+
+&lt;dependencies&gt;
+&lt;module name="javax.api"/&gt;
+&lt;/dependencies&gt;
+&lt;/module&gt;
+    </echo>
+    
+    </target>
+</project>

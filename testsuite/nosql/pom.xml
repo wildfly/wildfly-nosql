@@ -61,7 +61,92 @@
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>${version.mongodb.driver}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        
+       <dependency>
+           <groupId>org.neo4j.driver</groupId>
+           <artifactId>neo4j-java-driver</artifactId>
+           <version>${version.neo4j.driver}</version>
+           <scope>test</scope>
+           <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+           </exclusions>
+        </dependency>
+<!--         
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>${version.cassandra.driver}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+-->
     </dependencies>
+
+    <dependencyManagement>
+        <dependencies>
+        <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongo-java-driver</artifactId>
+            <version>${version.mongodb.driver}</version>            
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+           </exclusions>
+        </dependency>
+        
+       <dependency>
+           <groupId>org.neo4j.driver</groupId>
+           <artifactId>neo4j-java-driver</artifactId>
+           <version>${version.neo4j.driver}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+           </exclusions>
+        </dependency>
+<!--         
+        <dependency>
+            <groupId>com.datastax.cassandra</groupId>
+            <artifactId>cassandra-driver-core</artifactId>
+            <version>${version.cassandra.driver}</version>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+           </exclusions>
+        </dependency>
+-->
+
+        </dependencies>
+    </dependencyManagement>
 
     <build>
         <plugins>
@@ -69,6 +154,27 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>xml-maven-plugin</artifactId>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <inherited>false</inherited>
+                <executions>
+                    <execution>
+                        <id>ts.compat.copy-jars</id> <goals><goal>run</goal></goals>
+                        <phase>test-compile</phase>
+                        <configuration>
+                            <target>
+                                <property name="tests.resources.dir" value="${basedir}/src/test/resources"/>
+                                <property name="tests.output.dir"    value="${project.build.directory}"/>
+                                <ant antfile="src/test/scripts/build-jars.xml">
+                                    <target name="copy-jars"/>
+                                </ant>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
@@ -86,10 +192,6 @@
 
                     <!-- System properties passed to test cases -->
                     <systemPropertyVariables combine.children="append">
-                        <node0>${node0}</node0>
-                        <node1>${node1}</node1>
-                        <mcast>${mcast}</mcast>
-
                         <jbossas.ts.submodule.dir>${basedir}</jbossas.ts.submodule.dir>
                         <jbossas.ts.integ.dir>${jbossas.ts.integ.dir}</jbossas.ts.integ.dir>
                         <jbossas.ts.dir>${jbossas.ts.dir}</jbossas.ts.dir>
@@ -100,7 +202,7 @@
                             Used in arquillian.xml - arguments for all JBoss AS instances.
                             System properties are duplicated here until ARQ-647 is implemented.
                         -->
-                        <server.jvm.args>${surefire.system.args} ${jvm.args.ip.server} ${jvm.args.timeouts} -Dnode0=${node0} -Dnode1=${node1} -Dmcast=${mcast} -Declipselink.archive.factory=org.jipijapa.eclipselink.JBossArchiveFactoryImpl</server.jvm.args>
+                        <server.jvm.args>${surefire.system.args} ${jvm.args.ip.server} ${jvm.args.timeouts}</server.jvm.args>
                     </systemPropertyVariables>
 
                 </configuration>
