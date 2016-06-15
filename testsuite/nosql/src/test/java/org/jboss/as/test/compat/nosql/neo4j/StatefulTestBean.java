@@ -25,19 +25,18 @@ package org.jboss.as.test.compat.nosql.neo4j;
 import javax.annotation.Resource;
 import javax.ejb.Stateful;
 import javax.inject.Inject;
+import javax.inject.Named;
 
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-import org.wildfly.nosql.ClientProfile;
 
 /**
  * StatefulTestBean for the Neo4J database
  *
  * @author Scott Marlow
  */
-@ClientProfile(profile = "neo4jtesttprofile")
 @Stateful
 public class StatefulTestBean {
 
@@ -45,6 +44,7 @@ public class StatefulTestBean {
     private Driver driver;
 
     @Inject
+    @Named("neo4jtesttprofile")
     private Driver injectedDriver;
 
 

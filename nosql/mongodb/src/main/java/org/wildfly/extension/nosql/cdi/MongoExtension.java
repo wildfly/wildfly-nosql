@@ -25,6 +25,7 @@ package org.wildfly.extension.nosql.cdi;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,8 +34,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.AfterTypeDiscovery;
-import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanAttributes;
 import javax.enterprise.inject.spi.BeanManager;
@@ -42,19 +41,19 @@ import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.InjectionTarget;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.WithAnnotations;
 
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
-import org.wildfly.nosql.ClientProfile;
+import org.jboss.as.server.CurrentServiceContainer;
+import org.wildfly.extension.nosql.subsystem.mongodb.MongoSubsystemService;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
+import org.wildfly.nosql.common.SubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 
 /**
  * This CDI Extension registers a <code>Mongoclient</code>
- * defined by adding a {@link ClientProfile} annotation to any class of the application
+ * defined by @Inject in application beans
  * Registration will be aborted if user defines her own <code>MongoClient</code> bean or producer
  *
  * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
@@ -65,64 +64,36 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
 public class MongoExtension implements Extension {
 
     private static final Logger log = Logger.getLogger(MongoExtension.class.getName());
-    private ClientProfile clientProfileDef = null;
-    private boolean moreThanOne = false;
 
-    /**
-     * Looks for {@link ClientProfile} annotation to capture it.
-     * Also Checks if the application contains more than one of these definition
-     */
-    void detectClientProfileDefinition(
-            @Observes @WithAnnotations(ClientProfile.class) ProcessAnnotatedType<?> pat) {
-        AnnotatedType at = pat.getAnnotatedType();
-
-        ClientProfile md = at.getAnnotation(ClientProfile.class);
-
-        if (clientProfileDef != null) {
-            moreThanOne = true;
-        } else {
-            clientProfileDef = md;
-        }
-    }
-
-    /**
-     * Warns user if there's none onr more than one {@link ClientProfile} in the application
-     */
-    void checkMongoClientUniqueness(@Observes AfterTypeDiscovery atd) {
-        if (clientProfileDef == null) {
-            log.warning("No @ClientProfile found, extension will do nothing");
-        } else if (moreThanOne) {
-            log.log(Level.WARNING, "You defined more than one @ClientProfile. Only the one with profile {0} will be "
-                    + "created", clientProfileDef
-                    .profile());
-        }
-
-    }
-
-    /**
-     * If the application has a {@link ClientProfile} register the bean for it unless user has defined a bean or a
-     * producer for a <code>MongoClient</code>
-     */
     void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
-        if (clientProfileDef != null) {
-            if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
-                log.log(Level.INFO, "Registering bean for ClientProfile profile {0}", clientProfileDef.profile());
-                abd.addBean(bm.createBean(new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (MongoClient.class))), MongoClient.class, new MongoClientProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
-                abd.addBean(bm.createBean(new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (MongoDatabase.class))), MongoDatabase.class, new MongoDatabaseProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
-             } else {
-                log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
+        if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
+            // Iterate profiles and create Cluster/Session bean for each profile, that application code can @Inject
+            for(String profile: getService().profileNames()) {
+                log.log(Level.INFO, "Registering bean for profile {0}", profile);
+                abd.addBean(bm.createBean(
+                        new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(MongoClient.class)), profile),
+                        MongoClient.class, new MongoClientProducerFactory(profile)));
+                abd.addBean(bm.createBean(
+                        new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(MongoDatabase.class)), profile),
+                        MongoDatabase.class, new MongoDatabaseProducerFactory(profile)));
             }
+         } else {
+            log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
         }
+    }
+
+    private SubsystemService getService() {
+        return (SubsystemService) CurrentServiceContainer.getServiceContainer().getService(MongoSubsystemService.serviceName()).getValue();
     }
 
     private static class MongoClientBeanAttributes implements BeanAttributes<MongoClient> {
 
         private BeanAttributes<MongoClient> delegate;
+        private final String profile;
 
-        MongoClientBeanAttributes(BeanAttributes<MongoClient> beanAttributes) {
+        MongoClientBeanAttributes(BeanAttributes<MongoClient> beanAttributes, String profile) {
             delegate = beanAttributes;
+            this.profile = profile;
         }
 
         @Override
@@ -132,7 +103,10 @@ public class MongoExtension implements Extension {
 
         @Override
         public Set<Annotation> getQualifiers() {
-            return delegate.getQualifiers();
+            Set<Annotation> qualifiers = new HashSet<>(delegate.getQualifiers());
+            NamedLiteral namedLiteral = new NamedLiteral(profile);  // name the bean for @Inject @Named lookup
+            qualifiers.add(namedLiteral);
+            return qualifiers;
         }
 
         @Override
@@ -158,11 +132,10 @@ public class MongoExtension implements Extension {
 
     private static class MongoClientProducerFactory
             implements InjectionTargetFactory<MongoClient> {
-        String profile, jndi;
+        final String profile;
 
-        MongoClientProducerFactory(String profile, String jndi) {
+        MongoClientProducerFactory(String profile) {
             this.profile = profile;
-            this.jndi = jndi;
         }
 
         @Override
@@ -182,7 +155,6 @@ public class MongoExtension implements Extension {
 
                 @Override
                 public MongoClient produce(CreationalContext<MongoClient> ctx) {
-                    // TODO: use jndi if profile is null
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
                     return noSQLConnection.unwrap(MongoClient.class);
                 }
@@ -203,9 +175,11 @@ public class MongoExtension implements Extension {
     private static class MongoDatabaseBeanAttributes implements BeanAttributes<MongoDatabase> {
 
         private BeanAttributes<MongoDatabase> delegate;
+        private final String profile;
 
-        MongoDatabaseBeanAttributes(BeanAttributes<MongoDatabase> beanAttributes) {
+        MongoDatabaseBeanAttributes(BeanAttributes<MongoDatabase> beanAttributes, String profile) {
             delegate = beanAttributes;
+            this.profile = profile;
         }
 
         @Override
@@ -215,7 +189,10 @@ public class MongoExtension implements Extension {
 
         @Override
         public Set<Annotation> getQualifiers() {
-            return delegate.getQualifiers();
+            Set<Annotation> qualifiers = new HashSet<>(delegate.getQualifiers());
+            NamedLiteral namedLiteral = new NamedLiteral(profile);  // name the bean for @Inject @Named lookup
+            qualifiers.add(namedLiteral);
+            return qualifiers;
         }
 
         @Override
@@ -241,11 +218,10 @@ public class MongoExtension implements Extension {
 
     private static class MongoDatabaseProducerFactory
             implements InjectionTargetFactory<MongoDatabase> {
-        String profile, jndi;
+        private final String profile;
 
-        MongoDatabaseProducerFactory(String profile, String jndi) {
+        MongoDatabaseProducerFactory(String profile) {
             this.profile = profile;
-            this.jndi = jndi;
         }
 
         @Override
@@ -265,7 +241,6 @@ public class MongoExtension implements Extension {
 
                 @Override
                 public MongoDatabase produce(CreationalContext<MongoDatabase> ctx) {
-                    // TODO: use jndi if profile is null
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
                     return noSQLConnection.unwrap(MongoDatabase.class);
                 }

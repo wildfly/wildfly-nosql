@@ -22,6 +22,7 @@
 
 package org.wildfly.extension.nosql.subsystem.neo4j;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.wildfly.nosql.common.SubsystemService;
@@ -63,6 +64,11 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
     public String moduleNameFromProfile(String profileName) {
         return profileNameToModuleName.get(profileName);
     }
+
+    public Collection<String> profileNames() {
+        return profileNameToModuleName.keySet();
+    }
+
 
     @Override
     public void start(StartContext context) throws StartException {

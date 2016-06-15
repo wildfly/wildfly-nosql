@@ -19,15 +19,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+package org.wildfly.extension.nosql.cdi;
 
-package org.wildfly.nosql.common.spi;
+import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Named;
 
 /**
- * NoSQLSource represents client reference source for NoSQL store
+ * Annotation literal for {@link Named}
  *
- * @author Scott Marlow
+ * @author Pete Muir
+ * @author Jozef Hartinger
  */
-public interface NoSQLSource {
+@SuppressWarnings("all")
+public class NamedLiteral extends AnnotationLiteral<Named> implements Named {
 
-    NoSQLConnection getConnection();
+    private static final long serialVersionUID = 5089199348756765779L;
+
+    private final String value;
+
+    public String value() {
+        return value;
+    }
+
+    public NamedLiteral(String value) {
+        this.value = value;
+    }
+
+    public static final Named DEFAULT = new NamedLiteral("");
+
 }

@@ -22,6 +22,7 @@
 
 package org.wildfly.extension.nosql.subsystem.cassandra;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.wildfly.nosql.common.SubsystemService;
@@ -62,6 +63,11 @@ public class CassandraSubsystemService implements Service<SubsystemService>, Sub
     @Override
     public String moduleNameFromProfile(String profileName) {
         return profileNameToModuleName.get(profileName);
+    }
+
+    @Override
+    public Collection<String> profileNames() {
+        return profileNameToModuleName.keySet();
     }
 
     @Override

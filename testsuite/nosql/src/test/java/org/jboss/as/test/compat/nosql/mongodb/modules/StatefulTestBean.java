@@ -25,6 +25,7 @@ package org.jboss.as.test.compat.nosql.mongodb.modules;
 import javax.annotation.Resource;
 import javax.ejb.Stateful;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.json.Json;
 import javax.json.JsonObject;
 
@@ -33,7 +34,6 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.wildfly.nosql.ClientProfile;
 
 /**
  * StatefulTestBean for the MongoDB document database
@@ -41,13 +41,13 @@ import org.wildfly.nosql.ClientProfile;
  * @author Scott Marlow
  */
 @Stateful
-@ClientProfile(profile = "mongodbtestprofile")
 public class StatefulTestBean {
 
     @Resource(lookup = "java:jboss/mongodb/test")
     MongoDatabase database;
 
     @Inject
+    @Named("mongodbtestprofile")
     MongoDatabase injectedDatabase;
 
     public void addUserComment() {

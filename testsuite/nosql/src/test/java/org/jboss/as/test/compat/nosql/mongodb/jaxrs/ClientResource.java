@@ -22,21 +22,19 @@
 
 package org.jboss.as.test.compat.nosql.mongodb.jaxrs;
 
-import javax.annotation.Resource;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
-import com.mongodb.MongoClient;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import org.wildfly.nosql.ClientProfile;
 
 /**
  * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>
@@ -44,7 +42,6 @@ import org.wildfly.nosql.ClientProfile;
  */
 
 
-@ClientProfile(profile="mongodbtestprofile")
 @Path("/client")
 @Stateless(name = "CustomName")
 public class ClientResource {
@@ -53,6 +50,7 @@ public class ClientResource {
     // MongoClient connection;
 
     @Inject
+    @Named("mongodbtestprofile")
     MongoDatabase database;
 
     // can only use @Resource in EE components, which is why this is a stateless session bean.

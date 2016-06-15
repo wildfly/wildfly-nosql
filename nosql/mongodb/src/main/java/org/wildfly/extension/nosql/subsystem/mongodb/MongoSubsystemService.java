@@ -22,6 +22,7 @@
 
 package org.wildfly.extension.nosql.subsystem.mongodb;
 
+import java.util.Collection;
 import java.util.Map;
 
 import org.wildfly.nosql.common.SubsystemService;
@@ -62,6 +63,10 @@ public class MongoSubsystemService implements Service<SubsystemService>, Subsyst
     @Override
     public String moduleNameFromProfile(String profileName) {
         return profileNameToModuleName.get(profileName);
+    }
+
+    public Collection<String> profileNames() {
+        return profileNameToModuleName.keySet();
     }
 
     @Override

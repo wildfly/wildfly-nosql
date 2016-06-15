@@ -28,6 +28,7 @@ import java.util.List;
 
 import javax.annotation.Resource;
 import javax.annotation.Resources;
+import javax.inject.Named;
 
 import org.jboss.as.server.CurrentServiceContainer;
 import org.jboss.as.server.deployment.AttachmentKey;
@@ -45,7 +46,6 @@ import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.msc.service.ServiceName;
-import org.wildfly.nosql.ClientProfile;
 
 /**
  * DriverScanDependencyProcessor
@@ -56,7 +56,7 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
 
     private static final DotName RESOURCE_ANNOTATION_NAME = DotName.createSimple(Resource.class.getName());
     private static final DotName RESOURCES_ANNOTATION_NAME = DotName.createSimple(Resources.class.getName());
-    private static final DotName NOSQLCLIENTPROFILE_ANNOTATION_NAME = DotName.createSimple(ClientProfile.class.getName());
+    private static final DotName NAMED_ANNOTATION_NAME = DotName.createSimple(Named.class.getName());
     // there should be no more than one NoSQL module referenced (there can be many references to that module but only
     // one version of NoSQL should be included per application deployment).
     private static final AttachmentKey<String> perModuleNameKey = AttachmentKey.create(String.class);
@@ -105,64 +105,53 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
             }
         }
 
-        // handle @ClientProfile
-        final List<AnnotationInstance> clientProfileAnnotations = index.getAnnotations(NOSQLCLIENTPROFILE_ANNOTATION_NAME);
-        for (AnnotationInstance annotation : clientProfileAnnotations) {
+        // handle CDI @Named for @Inject, look for any @Named value that matches a NoSQL profile name
+        final List<AnnotationInstance> namedAnnotations = index.getAnnotations(NAMED_ANNOTATION_NAME);
+        for (AnnotationInstance annotation : namedAnnotations) {
             final AnnotationTarget annotationTarget = annotation.target();
-            final AnnotationValue lookupValue = annotation.value("lookup");
-            final AnnotationValue profileValue = annotation.value("profile");
-            final String lookup = lookupValue != null ? lookupValue.asString() : null;
+            final AnnotationValue profileValue = annotation.value("value");
             final String profile = profileValue != null ? profileValue.asString() : null;
 
             if (annotationTarget instanceof FieldInfo) {
-                processFieldClientProfile(deploymentUnit, lookup, profile);
+                processFieldNamedQualifier(deploymentUnit, profile);
             } else if (annotationTarget instanceof MethodInfo) {
                 final MethodInfo methodInfo = (MethodInfo) annotationTarget;
-                processMethodClientProfile(deploymentUnit, methodInfo, lookup, profile);
+                processMethodNamedQualifier(deploymentUnit, methodInfo, profile);
             } else if (annotationTarget instanceof ClassInfo) {
-                processClassClientProfile(deploymentUnit, lookup, profile);
+                processClassNamedQualifier(deploymentUnit, profile);
             }
         }
     }
 
-    private void processClassClientProfile(DeploymentUnit deploymentUnit, String lookup, String profile) {
-        if (isEmpty(lookup) && isEmpty(profile)) {
-            throw ROOT_LOGGER.annotationAttributeMissing("@ClientProfile", "profile");
+    private void processClassNamedQualifier(DeploymentUnit deploymentUnit, String profile) {
+        if (isEmpty(profile)) {
+            throw ROOT_LOGGER.annotationAttributeMissing("@Named", "value");
         }
-        String moduleName = getService().moduleNameFromJndi(lookup);
-        if (moduleName == null) {
-            moduleName = getService().moduleNameFromProfile(profile);
-        }
+        String moduleName = getService().moduleNameFromProfile(profile);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName);
         }
     }
 
-    private void processMethodClientProfile(DeploymentUnit deploymentUnit, MethodInfo methodInfo, String lookup, String profile) {
+    private void processMethodNamedQualifier(DeploymentUnit deploymentUnit, MethodInfo methodInfo, String profile) {
         final String methodName = methodInfo.name();
         if (!methodName.startsWith("set") || methodInfo.args().length != 1) {
-            throw ROOT_LOGGER.setterMethodOnly("@ClientProfile", methodInfo);
+            throw ROOT_LOGGER.setterMethodOnly("@Named", methodInfo);
         }
-        String moduleName = getService().moduleNameFromJndi(lookup);
-        if (moduleName == null) {
-            moduleName = getService().moduleNameFromProfile(profile);
-        }
+        String moduleName = getService().moduleNameFromProfile(profile);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName);
         }
     }
 
-    private void processFieldClientProfile(DeploymentUnit deploymentUnit, String lookup, String profile) {
-        String moduleName = getService().moduleNameFromJndi(lookup);
-        if (moduleName == null) {
-            moduleName = getService().moduleNameFromProfile(profile);
-        }
+    private void processFieldNamedQualifier(DeploymentUnit deploymentUnit, String profile) {
+        String moduleName = getService().moduleNameFromProfile(profile);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName);
         }
     }
 
-    protected void processFieldResource(final DeploymentUnit deploymentUnit, final String lookup) throws DeploymentUnitProcessingException {
+    protected void processFieldResource(final DeploymentUnit deploymentUnit, String lookup) throws DeploymentUnitProcessingException {
 
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {

@@ -25,6 +25,7 @@ package org.wildfly.extension.nosql.cdi;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,8 +34,6 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.event.Observes;
 import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.AfterTypeDiscovery;
-import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanAttributes;
 import javax.enterprise.inject.spi.BeanManager;
@@ -42,19 +41,19 @@ import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.InjectionTarget;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.WithAnnotations;
 
+import org.jboss.as.server.CurrentServiceContainer;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Session;
-import org.wildfly.nosql.ClientProfile;
+import org.wildfly.extension.nosql.subsystem.neo4j.Neo4jSubsystemService;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
+import org.wildfly.nosql.common.SubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 
 /**
  * This CDI Extension registers a <code>Driver</code>
- * defined by adding a {@link ClientProfile} annotation to any class of the application
+ * defined by CDI Inject in application beans
  * Registration will be aborted if user defines her own <code>Driver</code> bean or producer
  *
  * TODO: eliminate dependency on client classes so different driver modules can be used.
@@ -65,64 +64,34 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
 public class Neo4jExtension implements Extension {
 
     private static final Logger log = Logger.getLogger(Neo4jExtension.class.getName());
-    private ClientProfile clientProfileDef = null;
-    private boolean moreThanOne = false;
 
-    /**
-     * Looks for {@link ClientProfile} annotation to capture it.
-     * Also Checks if the application contains more than one of these definition
-     */
-    void detectClientProfileDefinition(
-            @Observes @WithAnnotations(ClientProfile.class) ProcessAnnotatedType<?> pat) {
-        AnnotatedType at = pat.getAnnotatedType();
-
-        ClientProfile md = at.getAnnotation(ClientProfile.class);
-
-        if (clientProfileDef != null) {
-            moreThanOne = true;
-        } else {
-            clientProfileDef = md;
-        }
-    }
-
-    /**
-     * Warns user if there's none onr more than one {@link ClientProfile} in the application
-     */
-    void checkClientUniqueness(@Observes AfterTypeDiscovery atd) {
-        if (clientProfileDef == null) {
-            log.warning("No @ClientProfile found, extension will do nothing");
-        } else if (moreThanOne) {
-            log.log(Level.WARNING, "You defined more than one @ClientProfile. Only the one with profile {0} will be "
-                    + "created", clientProfileDef
-                    .profile());
-        }
-
-    }
-
-    /**
-     * If the application has a {@link ClientProfile} register the bean for it unless user has defined a bean or a
-     * producer for a <code>Driver</code>
-     */
     void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
-        if (clientProfileDef != null) {
-            if (bm.getBeans(Driver.class, DefaultLiteral.INSTANCE).isEmpty()) {
-                log.log(Level.INFO, "Registering bean for ClientProfile profile {0}", clientProfileDef.profile());
-                abd.addBean(bm.createBean(new DriverBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (Driver.class))), Driver.class, new DriverProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
-                abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType
-                        (Session.class))), Session.class, new SessionProducerFactory(clientProfileDef.profile(), clientProfileDef.lookup())));
-             } else {
-                log.log(Level.INFO, "Application contains a default Driver Bean, automatic registration will be disabled");
+        if (bm.getBeans(Driver.class, DefaultLiteral.INSTANCE).isEmpty()) {
+            for(String profile: getService().profileNames()) {
+                log.log(Level.INFO, "Registering bean for profile {0}", profile);
+                abd.addBean(bm.createBean(
+                        new DriverBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Driver.class)), profile),
+                        Driver.class, new DriverProducerFactory(profile)));
+                abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Session.class)),profile),
+                        Session.class, new SessionProducerFactory(profile)));
             }
+         } else {
+            log.log(Level.INFO, "Application contains a default Driver Bean, automatic registration will be disabled");
         }
+    }
+
+    private SubsystemService getService() {
+        return (SubsystemService) CurrentServiceContainer.getServiceContainer().getService(Neo4jSubsystemService.serviceName()).getValue();
     }
 
     private static class DriverBeanAttributes implements BeanAttributes<Driver> {
 
         private BeanAttributes<Driver> delegate;
+        private final String profile;
 
-        DriverBeanAttributes(BeanAttributes<Driver> beanAttributes) {
+        DriverBeanAttributes(BeanAttributes<Driver> beanAttributes, String profile) {
             delegate = beanAttributes;
+            this.profile = profile;
         }
 
         @Override
@@ -132,7 +101,10 @@ public class Neo4jExtension implements Extension {
 
         @Override
         public Set<Annotation> getQualifiers() {
-            return delegate.getQualifiers();
+            Set<Annotation> qualifiers = new HashSet<>(delegate.getQualifiers());
+            NamedLiteral namedLiteral = new NamedLiteral(profile);
+            qualifiers.add(namedLiteral);
+            return qualifiers;
         }
 
         @Override
@@ -158,11 +130,10 @@ public class Neo4jExtension implements Extension {
 
     private static class DriverProducerFactory
             implements InjectionTargetFactory<Driver> {
-        String profile, jndi;
+        private final String profile;
 
-        DriverProducerFactory(String profile, String jndi) {
+        DriverProducerFactory(String profile) {
             this.profile = profile;
-            this.jndi = jndi;
         }
 
         @Override
@@ -182,7 +153,6 @@ public class Neo4jExtension implements Extension {
 
                 @Override
                 public Driver produce(CreationalContext<Driver> ctx) {
-                    // TODO: use jndi if profile is null
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
                     return noSQLConnection.unwrap(Driver.class);
                 }
@@ -203,9 +173,11 @@ public class Neo4jExtension implements Extension {
     private static class SessionBeanAttributes implements BeanAttributes<Session> {
 
         private BeanAttributes<Session> delegate;
+        private final String profile;
 
-        SessionBeanAttributes(BeanAttributes<Session> beanAttributes) {
+        SessionBeanAttributes(BeanAttributes<Session> beanAttributes, String profile) {
             delegate = beanAttributes;
+            this.profile = profile;
         }
 
         @Override
@@ -215,7 +187,10 @@ public class Neo4jExtension implements Extension {
 
         @Override
         public Set<Annotation> getQualifiers() {
-            return delegate.getQualifiers();
+            Set<Annotation> qualifiers = new HashSet<>(delegate.getQualifiers());
+            NamedLiteral namedLiteral = new NamedLiteral(profile);
+            qualifiers.add(namedLiteral);
+            return qualifiers;
         }
 
         @Override
@@ -241,11 +216,10 @@ public class Neo4jExtension implements Extension {
 
     private static class SessionProducerFactory
             implements InjectionTargetFactory<Session> {
-        String profile, jndi;
+        private final String profile;
 
-        SessionProducerFactory(String profile, String jndi) {
+        SessionProducerFactory(String profile) {
             this.profile = profile;
-            this.jndi = jndi;
         }
 
         @Override
@@ -265,7 +239,6 @@ public class Neo4jExtension implements Extension {
 
                 @Override
                 public Session produce(CreationalContext<Session> ctx) {
-                    // TODO: use jndi if profile is null
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
                     return noSQLConnection.unwrap(Session.class);
                 }

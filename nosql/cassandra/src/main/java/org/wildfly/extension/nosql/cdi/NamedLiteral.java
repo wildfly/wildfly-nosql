@@ -19,37 +19,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+package org.wildfly.extension.nosql.cdi;
 
-package org.wildfly.nosql;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
+import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Named;
 
 /**
- * Annotation Used to reference a NoSQL source profile from an application deployment.
- * Identifies the NoSQL source profile via jndi (lookup) or profile name.
+ * Annotation literal for {@link Named}
  *
- * @author Antoine Sabot-Durand
- * @author Scott Marlow
+ * @author Pete Muir
+ * @author Jozef Hartinger
  */
+@SuppressWarnings("all")
+public class NamedLiteral extends AnnotationLiteral<Named> implements Named {
 
+    private static final long serialVersionUID = 5089199348756765779L;
 
-@Target(value = {TYPE})
-@Retention(value = RUNTIME)
-@Documented
-public @interface ClientProfile {
+    private final String value;
 
-    /**
-     * @return jndi lookup value
-     */
-    String lookup() default "";
+    public String value() {
+        return value;
+    }
 
-    /**
-     * @return return profile name.
-     */
-    String profile() default "";
+    public NamedLiteral(String value) {
+        this.value = value;
+    }
+
+    public static final Named DEFAULT = new NamedLiteral("");
+
 }

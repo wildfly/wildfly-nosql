@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutionException;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -34,18 +35,17 @@ import javax.ws.rs.Produces;
 import com.datastax.driver.core.Cluster;
 import com.datastax.driver.core.ResultSetFuture;
 import com.datastax.driver.core.Session;
-import org.wildfly.nosql.ClientProfile;
 
 /**
  * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>
  * @author Scott Marlow
  */
-@ClientProfile(profile="cassandratestprofile")
 @Path("/client")
 @Stateless(name = "CustomName")
 public class ClientResource {
 
     @Inject
+    @Named("cassandratestprofile")
     private Cluster cluster;
 
     private Session session;

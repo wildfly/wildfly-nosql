@@ -24,6 +24,7 @@ package org.jboss.as.test.compat.nosql.neo4j.jaxrs;
 
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -32,7 +33,6 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
-import org.wildfly.nosql.ClientProfile;
 
 /**
  * @author <a href="mailto:kanovotn@redhat.com">Katerina Novotna</a>
@@ -40,13 +40,12 @@ import org.wildfly.nosql.ClientProfile;
  */
 
 
-@ClientProfile(profile = "neo4jtesttprofile")
 @Path("/client")
 @Stateless(name = "CustomName")
 public class ClientResource {
 
     @Inject
-    //private Session session;
+    @Named("neo4jtesttprofile")
     private Driver driver;
 
     @GET

@@ -19,33 +19,32 @@
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
+package org.wildfly.extension.nosql.cdi;
 
-package org.wildfly.nosql.common;
-
-import java.util.Collection;
+import javax.enterprise.util.AnnotationLiteral;
+import javax.inject.Named;
 
 /**
- * One SubsystemService implementation for each NoSQL driver subsystem.
+ * Annotation literal for {@link Named}
  *
- * @author Scott Marlow
+ * @author Pete Muir
+ * @author Jozef Hartinger
  */
-public interface SubsystemService {
+@SuppressWarnings("all")
+public class NamedLiteral extends AnnotationLiteral<Named> implements Named {
 
-    /**
-     * Convert JNDI name to module name for resolving the NoSQL module to inject into deployments.
-     * Each NoSQL subsystem knows the NoSQL (driver) module that is mapped to the JNDI name.
-     *
-     * @param jndiName
-     * @return
-     */
-    String moduleNameFromJndi(String jndiName);
+    private static final long serialVersionUID = 5089199348756765779L;
 
-    String moduleNameFromProfile(String profileName);
+    private final String value;
 
-    /**
-     * get profile names.
-     * @return collection of NoSQL profile names
-     */
-    Collection<String> profileNames();
+    public String value() {
+        return value;
+    }
+
+    public NamedLiteral(String value) {
+        this.value = value;
+    }
+
+    public static final Named DEFAULT = new NamedLiteral("");
 
 }
