@@ -61,9 +61,6 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             addMongoCDIDependency(moduleSpecification, moduleLoader, moduleName);
             addCassandraCDIDependency(moduleSpecification, moduleLoader, moduleName);
             addNeo4jCDIDependency(moduleSpecification, moduleLoader, moduleName);
-            // TODO: remove the following addDependency as we shouldn't need it anymore
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.common"));
-
         }
 
     }
