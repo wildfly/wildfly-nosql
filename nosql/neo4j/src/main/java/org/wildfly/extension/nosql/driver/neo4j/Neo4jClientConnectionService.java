@@ -34,7 +34,9 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
+import org.jboss.msc.value.InjectedValue;
 import org.neo4j.driver.v1.Driver;
+import org.wildfly.extension.nosql.subsystem.neo4j.Neo4jSubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 /**
@@ -49,6 +51,11 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
     private Map<String, OutboundSocketBinding> outboundSocketBindings = new HashMap<String, OutboundSocketBinding>();
     private final Neo4jInteraction neo4jInteraction;
     private Driver driver;  // Driver is thread safe but Session is not
+    private final InjectedValue<Neo4jSubsystemService> neo4jSubsystemServiceInjectedValue = new InjectedValue<>();
+
+    public InjectedValue<Neo4jSubsystemService> getNeo4jSubsystemServiceInjectedValue() {
+        return neo4jSubsystemServiceInjectedValue;
+    }
 
     public Neo4jClientConnectionService(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
@@ -61,6 +68,11 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
 
     @Override
     public void start(StartContext startContext) throws StartException {
+
+        // maintain a mapping from JNDI name to NoSQL module name, that we will use during deployment time to
+        // identify the static module name to add to the deployment.
+        neo4jSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configurationBuilder.getJNDIName(), configurationBuilder.getModuleName());
+        neo4jSubsystemServiceInjectedValue.getValue().addModuleNameFromProfile(configurationBuilder.getDescription(), configurationBuilder.getModuleName());
 
         for (OutboundSocketBinding target : outboundSocketBindings.values()) {
             if (target.getUnresolvedDestinationAddress() != null) {
@@ -82,6 +94,9 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
     @Override
     public void stop(StopContext stopContext) {
         try {
+            neo4jSubsystemServiceInjectedValue.getValue().removeModuleNameFromJndi(configurationBuilder.getJNDIName());
+            neo4jSubsystemServiceInjectedValue.getValue().removeModuleNameFromProfile(configurationBuilder.getDescription());
+
             neo4jInteraction.driverClose(driver);
             driver = null;
         } catch (Throwable throwable) {

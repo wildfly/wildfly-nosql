@@ -27,20 +27,39 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
+import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.registry.AttributeAccess;
+import org.jboss.as.controller.registry.Resource;
+import org.jboss.as.naming.ServiceBasedNamingStore;
+import org.jboss.as.naming.ValueManagedReferenceFactory;
+import org.jboss.as.naming.deployment.ContextNames;
+import org.jboss.as.naming.service.BinderService;
+import org.jboss.as.network.OutboundSocketBinding;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
+import org.jboss.msc.inject.CastingInjector;
+import org.jboss.msc.inject.InjectionException;
+import org.jboss.msc.inject.Injector;
+import org.jboss.msc.service.ServiceBuilder;
+import org.jboss.msc.service.ServiceController;
+import org.jboss.msc.service.ServiceName;
+import org.jboss.msc.value.ImmediateValue;
+import org.wildfly.extension.nosql.driver.neo4j.ConfigurationBuilder;
+import org.wildfly.extension.nosql.driver.neo4j.Neo4jClientConnectionService;
+import org.wildfly.nosql.common.ConnectionServiceAccess;
 
 /**
  * Neo4jDefinition represents a target database.
@@ -119,6 +138,67 @@ public class Neo4jDefinition extends PersistentResourceDefinition {
 
         @Override
         protected void performRuntime(OperationContext context, ModelNode operation, ModelNode model) throws OperationFailedException {
+
+            final ModelNode profileEntry = Resource.Tools.readModel(context.readResource(PathAddress.EMPTY_ADDRESS));
+            final Set<String> outboundSocketBindings = new HashSet<>();
+            ConfigurationBuilder builder = new ConfigurationBuilder();
+            if (profileEntry.hasDefined(CommonAttributes.ID_NAME)) {
+                builder.setDescription(profileEntry.get(CommonAttributes.ID_NAME).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.JNDI_NAME)) {
+                builder.setJNDIName(profileEntry.get(CommonAttributes.JNDI_NAME).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.MODULE_NAME)) {
+                builder.setModuleName(profileEntry.get(CommonAttributes.MODULE_NAME).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.HOST_DEF)) {
+                ModelNode hostModels = profileEntry.get(CommonAttributes.HOST_DEF);
+                for (ModelNode host : hostModels.asList()) {
+                    for (ModelNode hostEntry : host.get(0).asList()) {
+                        if (hostEntry.hasDefined(CommonAttributes.OUTBOUND_SOCKET_BINDING_REF)) {
+                            String outboundSocketBindingRef = hostEntry.get(CommonAttributes.OUTBOUND_SOCKET_BINDING_REF).asString();
+                            outboundSocketBindings.add(outboundSocketBindingRef);
+                        }
+                    }
+                }
+            }
+            startNeo4jDriverService(context, builder, outboundSocketBindings);
+        }
+
+        private void startNeo4jDriverService(OperationContext context, ConfigurationBuilder builder, final Set<String> outboundSocketBindings) throws OperationFailedException {
+            if (builder.getJNDIName() != null && builder.getJNDIName().length() > 0) {
+                final Neo4jClientConnectionService neo4jClientConnectionService = new Neo4jClientConnectionService(builder);
+                final ServiceName serviceName = ConnectionServiceAccess.serviceName(builder.getDescription());
+                final ContextNames.BindInfo bindingInfo = ContextNames.bindInfoFor(builder.getJNDIName());
+
+                if (builder.getModuleName() != null) {
+                }
+                final BinderService binderService = new BinderService(bindingInfo.getBindName());
+                context.getServiceTarget().addService(bindingInfo.getBinderServiceName(), binderService)
+                        .addDependency(Neo4jSubsystemService.serviceName())
+                        .addDependency(bindingInfo.getParentContextServiceName(), ServiceBasedNamingStore.class, binderService.getNamingStoreInjector())
+                        .addDependency(serviceName, Neo4jClientConnectionService.class, new Injector<Neo4jClientConnectionService>() {
+                            @Override
+                            public void inject(final Neo4jClientConnectionService value) throws
+                                    InjectionException {
+                                binderService.getManagedObjectInjector().inject(new ValueManagedReferenceFactory(new ImmediateValue<>(value.getDriver())));
+                            }
+
+                            @Override
+                            public void uninject() {
+                                binderService.getNamingStoreInjector().uninject();
+                            }
+                        }).install();
+
+                final ServiceBuilder<Neo4jClientConnectionService> serviceBuilder = context.getServiceTarget().addService(serviceName, neo4jClientConnectionService);
+                serviceBuilder.addDependency(Neo4jSubsystemService.serviceName(), new CastingInjector<>(neo4jClientConnectionService.getNeo4jSubsystemServiceInjectedValue(), Neo4jSubsystemService.class));
+                // add service dependency on each separate hostname/port reference in standalone*.xml referenced from this driver profile definition.
+                for (final String outboundSocketBinding : outboundSocketBindings) {
+                    final ServiceName outboundSocketBindingDependency = context.getCapabilityServiceName(Neo4jDriverDefinition.OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, outboundSocketBinding, OutboundSocketBinding.class);
+                    serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingDependency, OutboundSocketBinding.class, neo4jClientConnectionService.getOutboundSocketBindingInjector(outboundSocketBinding));
+                }
+                serviceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
+            }
         }
     }
 

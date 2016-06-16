@@ -24,6 +24,7 @@ package org.wildfly.extension.nosql.subsystem.neo4j;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.wildfly.nosql.common.SubsystemService;
 import org.jboss.msc.service.Service;
@@ -42,13 +43,11 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("neo4jsubsystem");
 
     // JNDI name to module name for resolving the Ne04J module to inject into deployments
-    private final Map<String, String> jndiNameToModuleName;
+    private final Map<String, String> jndiNameToModuleName = new ConcurrentHashMap<>();
 
-    private final Map<String, String> profileNameToModuleName;
+    private final Map<String, String> profileNameToModuleName = new ConcurrentHashMap<>();
 
-    public Neo4jSubsystemService(final Map<String, String> jndiNameToModuleName, final Map<String, String> profileNameToModuleName) {
-        this.jndiNameToModuleName = jndiNameToModuleName;
-        this.profileNameToModuleName = profileNameToModuleName;
+    public Neo4jSubsystemService() {
     }
 
     public static ServiceName serviceName() {
@@ -65,6 +64,23 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
         return profileNameToModuleName.get(profileName);
     }
 
+    public void addModuleNameFromJndi(String jndiName, String module) {
+        jndiNameToModuleName.put(jndiName, module);
+    }
+
+    public void removeModuleNameFromJndi(String jndiName) {
+        jndiNameToModuleName.remove(jndiName);
+    }
+
+    public void addModuleNameFromProfile(String profile, String moduleName) {
+        profileNameToModuleName.put(profile, moduleName);
+    }
+
+    public void removeModuleNameFromProfile(String profile) {
+        profileNameToModuleName.remove(profile);
+    }
+
+    @Override
     public Collection<String> profileNames() {
         return profileNameToModuleName.keySet();
     }
