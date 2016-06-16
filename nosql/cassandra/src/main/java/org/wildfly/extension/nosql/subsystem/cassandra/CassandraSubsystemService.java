@@ -24,6 +24,7 @@ package org.wildfly.extension.nosql.subsystem.cassandra;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.wildfly.nosql.common.SubsystemService;
 import org.jboss.msc.service.Service;
@@ -42,13 +43,11 @@ public class CassandraSubsystemService implements Service<SubsystemService>, Sub
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("cassandrasubsystem");
 
     // JNDI name to module name for resolving the Cassandra module to inject into deployments
-    private final Map<String, String> jndiNameToModuleName;
+    private final Map<String, String> jndiNameToModuleName = new ConcurrentHashMap<>();
 
-    private final Map<String, String> profileNameToModuleName;
+    private final Map<String, String> profileNameToModuleName = new ConcurrentHashMap<>();
 
-    public CassandraSubsystemService(final Map<String, String> jndiNameToModuleName, final Map<String, String> profileNameToModuleName) {
-        this.jndiNameToModuleName = jndiNameToModuleName;
-        this.profileNameToModuleName = profileNameToModuleName;
+    public CassandraSubsystemService() {
     }
 
     public static ServiceName serviceName() {
@@ -58,6 +57,22 @@ public class CassandraSubsystemService implements Service<SubsystemService>, Sub
     @Override
     public String moduleNameFromJndi(String jndiName) {
         return jndiNameToModuleName.get(jndiName);
+    }
+
+    public void addModuleNameFromJndi(String jndiName, String module) {
+        jndiNameToModuleName.put(jndiName, module);
+    }
+
+    public void removeModuleNameFromJndi(String jndiName) {
+        jndiNameToModuleName.remove(jndiName);
+    }
+
+    public void addModuleNameFromProfile(String profile, String moduleName) {
+        profileNameToModuleName.put(profile, moduleName);
+    }
+
+    public void removeModuleNameFromProfile(String profile) {
+        profileNameToModuleName.remove(profile);
     }
 
     @Override

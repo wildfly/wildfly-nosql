@@ -36,6 +36,8 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.extension.nosql.subsystem.cassandra.CassandraSubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 /**
@@ -51,6 +53,7 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
     private final CassandraInteraction cassandraInteraction;
     private Cluster cluster;  // represents connection into Cassandra
     private Session session;  // only set if keyspaceName is specified
+    private final InjectedValue<CassandraSubsystemService> cassandraSubsystemServiceInjectedValue = new InjectedValue<>();
 
     public CassandraClientConnectionsService(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
@@ -61,8 +64,18 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
         return new MapInjector<String, OutboundSocketBinding>(outboundSocketBindings, name);
     }
 
+    public InjectedValue<CassandraSubsystemService> getCassandraSubsystemServiceInjectedValue() {
+        return cassandraSubsystemServiceInjectedValue;
+    }
+
     @Override
     public void start(StartContext startContext) throws StartException {
+
+
+        // maintain a mapping from JNDI name to NoSQL module name, that we will use during deployment time to
+        // identify the static module name to add to the deployment.
+        cassandraSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configurationBuilder.getJNDIName(), configurationBuilder.getModuleName());
+        cassandraSubsystemServiceInjectedValue.getValue().addModuleNameFromProfile(configurationBuilder.getDescription(), configurationBuilder.getModuleName());
 
         for (OutboundSocketBinding target : outboundSocketBindings.values()) {
             if (target.getDestinationPort() > 0) {
@@ -87,6 +100,8 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
     @Override
     public void stop(StopContext stopContext) {
         try {
+            cassandraSubsystemServiceInjectedValue.getValue().removeModuleNameFromJndi(configurationBuilder.getJNDIName());
+            cassandraSubsystemServiceInjectedValue.getValue().removeModuleNameFromProfile(configurationBuilder.getDescription());
             if (session != null) {
                 cassandraInteraction.sessionClose(session);
                 session = null;
@@ -121,5 +136,6 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
         }
         throw ROOT_LOGGER.unassignable(clazz);
     }
+
 
 }
