@@ -22,6 +22,8 @@
 
 package org.wildfly.extension.nosql.driver.mongodb;
 
+import com.mongodb.WriteConcern;
+
 /**
  * ConfigurationBuilder
  *
@@ -35,6 +37,7 @@ public class ConfigurationBuilder {
     private static final String defaultModuleName = "org.mongodb.driver";
     private String moduleName = // name of MongoDB module
             defaultModuleName;
+    private WriteConcern writeConcern;
 
     public ConfigurationBuilder setDescription(String description) {
         this.description = description;
@@ -67,5 +70,14 @@ public class ConfigurationBuilder {
 
     public String getModuleName() {
         return moduleName;
+    }
+
+    public WriteConcern getWriteConcern() {
+        return writeConcern;
+    }
+
+    public ConfigurationBuilder setWriteConcern(WriteConcern writeConcern) {
+        this.writeConcern = writeConcern;
+        return this;
     }
 }

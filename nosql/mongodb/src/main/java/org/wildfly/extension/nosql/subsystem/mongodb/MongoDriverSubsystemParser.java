@@ -24,6 +24,8 @@ package org.wildfly.extension.nosql.subsystem.mongodb;
 
 import static org.jboss.as.controller.PersistentResourceXMLDescription.builder;
 
+import org.jboss.as.controller.AttributeMarshaller;
+import org.jboss.as.controller.AttributeParser;
 import org.jboss.as.controller.PersistentResourceXMLDescription;
 import org.jboss.as.controller.PersistentResourceXMLParser;
 
@@ -50,6 +52,11 @@ final class MongoDriverSubsystemParser extends PersistentResourceXMLParser {
                                         .addAttributes(
                                                 HostDefinition.OUTBOUND_SOCKET_BINDING_REF
                                         )
+                                )
+                                .addChild(builder(PropertiesDescription.INSTANCE)
+                                        .addAttribute(PropertiesDescription.PROPERTIES,
+                                                AttributeParser.PROPERTIES_PARSER_UNWRAPPED,
+                                                AttributeMarshaller.PROPERTIES_MARSHALLER_UNWRAPPED)
                                 )
                 )
                 .build();

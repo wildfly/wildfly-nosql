@@ -41,8 +41,10 @@ import org.jboss.as.naming.ValueManagedReferenceFactory;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.naming.service.BinderService;
 import org.jboss.as.network.OutboundSocketBinding;
+import org.jboss.dmr.Property;
 import org.wildfly.extension.nosql.driver.mongodb.ConfigurationBuilder;
 import org.wildfly.extension.nosql.driver.mongodb.MongoClientConnectionsService;
+import org.wildfly.extension.nosql.driver.mongodb.WriteConcernType;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.DriverDependencyProcessor;
 import org.wildfly.nosql.common.DriverScanDependencyProcessor;
@@ -114,6 +116,19 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
                                 if (hostEntry.hasDefined(CommonAttributes.OUTBOUND_SOCKET_BINDING_REF)) {
                                     String outboundSocketBindingRef = hostEntry.get(CommonAttributes.OUTBOUND_SOCKET_BINDING_REF).asString();
                                     outboundSocketBindings.add(outboundSocketBindingRef);
+                                }
+                            }
+                        }
+                    } else if (profileEntry.hasDefined(CommonAttributes.PROPERTIES)) {
+                        for (ModelNode propertyProfiles : profileEntry.get(CommonAttributes.PROPERTIES).asList()) {
+                            for (ModelNode propertyModels : propertyProfiles.get(0).asList()) {
+                                if (propertyModels.hasDefined(CommonAttributes.PROPERTY)) {
+                                    for (Property property : propertyModels.get(CommonAttributes.PROPERTY).asPropertyList()) {
+                                        if (property.getName().equals(CommonAttributes.WRITE_CONCERN)) {
+                                            builder.setWriteConcern(
+                                                    WriteConcernType.valueOf(property.getValue().asString()).getWriteConcern());
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -54,6 +54,7 @@ public class MongoDefinition extends PersistentResourceDefinition {
     static {
         List<PersistentResourceDefinition> children = new ArrayList<>();
         children.add(HostDefinition.INSTANCE);
+        children.add(PropertiesDescription.INSTANCE);
         CHILDREN = Collections.unmodifiableList(children);
     }
 

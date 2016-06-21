@@ -43,6 +43,7 @@ public class MongoDriverExtension implements Extension {
     public static final String SUBSYSTEM_NAME = "mongodb";
     protected static final PathElement PROFILE_PATH = PathElement.pathElement(CommonAttributes.PROFILE);
     protected static final PathElement HOST_PATH = PathElement.pathElement(CommonAttributes.HOST_DEF);
+    protected static final PathElement PROPERTIES_PATH = PathElement.pathElement(CommonAttributes.PROPERTIES);
 
     public static final String NAMESPACE = "urn:jboss:domain:mongodb:1.0";
     public static final Namespace CURRENT = Namespace.MONGODB_1_0;

@@ -55,6 +55,9 @@ public class MongoInteraction {
     public MongoClient mongoClient() throws StartException {
         MongoClientOptions.Builder builder = new MongoClientOptions.Builder();
         builder.description(configurationBuilder.getDescription());
+        if (configurationBuilder.getWriteConcern() != null) {
+            builder.writeConcern(configurationBuilder.getWriteConcern());
+        }
         MongoClientOptions mongoClientOptions = builder.build();
         return new MongoClient(serverAddressArrayList, mongoClientOptions);
     }

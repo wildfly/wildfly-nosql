@@ -25,8 +25,12 @@
 <config>
     <extension-module>org.wildfly.extension.nosql.mongodb</extension-module>
     <subsystem xmlns="urn:jboss:domain:mongodb:1.0">
+        <!-- TODO: remove mongodbtestprofile before releasing final -->
         <mongo name="default" id="mongodbtestprofile" jndi-name="java:jboss/mongodb/test" database="mongotestdb">
             <host name="default" outbound-socket-binding-ref="mongotesthost"/>
+            <properties name="default">
+                <property name="writeConcern" value="ACKNOWLEDGED"/>
+            </properties>
         </mongo>
     </subsystem>
     <outbound-socket-binding name="mongotesthost">

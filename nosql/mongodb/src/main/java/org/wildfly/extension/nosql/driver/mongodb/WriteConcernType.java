@@ -1,6 +1,6 @@
 /*
  * JBoss, Home of Professional Open Source.
- * Copyright 2016, Red Hat, Inc., and individual contributors
+ * Copyright 2013, Red Hat, Inc., and individual contributors
  * as indicated by the @author tags. See the copyright.txt file in the
  * distribution for a full listing of individual contributors.
  *
@@ -20,22 +20,33 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.extension.nosql.subsystem.mongodb;
+package org.wildfly.extension.nosql.driver.mongodb;
+
+import com.mongodb.WriteConcern;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * CommonAttributes
- *
- * @author Scott Marlow
+ * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
-public interface CommonAttributes {
-    String DATABASE = "database";
-    String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
-    String HOST_DEF = "host";
-    String ID_NAME = "id";
-    String JNDI_NAME = "jndi-name";
-    String MODULE_NAME = "module";
-    String PROFILE = "mongo";
-    String PROPERTIES = "properties";
-    String PROPERTY = "property";
-    String WRITE_CONCERN = "writeConcern";
+public enum WriteConcernType {
+
+    ACKNOWLEDGED(WriteConcern.ACKNOWLEDGED),
+    UNACKNOWLEDGED(WriteConcern.UNACKNOWLEDGED),
+    JOURNALED(WriteConcern.JOURNALED),
+    MAJORITY(WriteConcern.MAJORITY);
+
+    public static final List<String> NAMES = Arrays.asList("ACKNOWLEDGED", "UNACKNOWLEDGED", "JOURNALED", "MAJORITY");
+
+    private final WriteConcern writeConcern;
+
+    WriteConcernType(WriteConcern writeConcern) {
+        this.writeConcern = writeConcern;
+    }
+
+    public WriteConcern getWriteConcern() {
+        return writeConcern;
+    }
+
 }

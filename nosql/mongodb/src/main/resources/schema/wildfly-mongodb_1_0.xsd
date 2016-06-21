@@ -43,6 +43,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element ref="host"/>
+                <xs:element name="properties" type="propertiesType" maxOccurs="1" minOccurs="0"/>
             </xs:sequence>
             <xs:attribute name="database" type="xs:string" use="required"/>
             <xs:attribute name="id" type="xs:string" use="required"/>
@@ -50,6 +51,15 @@
             <xs:attribute name="name" type="xs:string" use="required"/>
         </xs:complexType>
     </xs:element>
+    <xs:complexType name="propertiesType">
+        <xs:sequence>
+            <xs:element name="property" type="propertyType" maxOccurs="unbounded" minOccurs="0"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="propertyType">
+        <xs:attribute name="name" use="required" type="xs:string"/>
+        <xs:attribute name="value" use="required" type="xs:string"/>
+    </xs:complexType>
     <xs:element name="host">
         <xs:complexType>
             <xs:attribute name="name" type="xs:string" use="required"/>
