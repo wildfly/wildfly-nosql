@@ -28,7 +28,6 @@ import org.jboss.msc.service.StartException;
 
 /**
  * CassandraInteraction is for interacting with Cassandra without static references to Cassandra classes.
- * TODO: switch to MethodHandle.invokeExact(...) for better performance
  *
  * @author Scott Marlow
  */
