@@ -24,6 +24,7 @@ package org.wildfly.extension.nosql.subsystem.mongodb;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.wildfly.nosql.common.SubsystemService;
 import org.jboss.msc.service.Service;
@@ -42,17 +43,31 @@ public class MongoSubsystemService implements Service<SubsystemService>, Subsyst
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("mongodbsubsystem");
 
     // JNDI name to module name for resolving the MongoDB module to inject into deployments
-    private final Map<String, String> jndiNameToModuleName;
+    private final Map<String, String> jndiNameToModuleName = new ConcurrentHashMap<>();
 
-    private final Map<String, String> profileNameToModuleName;
+    private final Map<String, String> profileNameToModuleName = new ConcurrentHashMap<>();
 
-    public MongoSubsystemService(final Map<String, String> jndiNameToModuleName, Map<String, String> profileNameToModuleName) {
-        this.jndiNameToModuleName = jndiNameToModuleName;
-        this.profileNameToModuleName = profileNameToModuleName;
+    public MongoSubsystemService() {
     }
 
     public static ServiceName serviceName() {
         return SERVICENAME;
+    }
+
+    public void addModuleNameFromJndi(String jndiName, String module) {
+        jndiNameToModuleName.put(jndiName, module);
+    }
+
+    public void removeModuleNameFromJndi(String jndiName) {
+        jndiNameToModuleName.remove(jndiName);
+    }
+
+    public void addModuleNameFromProfile(String profile, String moduleName) {
+        profileNameToModuleName.put(profile, moduleName);
+    }
+
+    public void removeModuleNameFromProfile(String profile) {
+        profileNameToModuleName.remove(profile);
     }
 
     @Override

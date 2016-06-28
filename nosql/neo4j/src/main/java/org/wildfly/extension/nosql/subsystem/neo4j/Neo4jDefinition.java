@@ -171,8 +171,6 @@ public class Neo4jDefinition extends PersistentResourceDefinition {
                 final ServiceName serviceName = ConnectionServiceAccess.serviceName(builder.getDescription());
                 final ContextNames.BindInfo bindingInfo = ContextNames.bindInfoFor(builder.getJNDIName());
 
-                if (builder.getModuleName() != null) {
-                }
                 final BinderService binderService = new BinderService(bindingInfo.getBindName());
                 context.getServiceTarget().addService(bindingInfo.getBinderServiceName(), binderService)
                         .addDependency(Neo4jSubsystemService.serviceName())

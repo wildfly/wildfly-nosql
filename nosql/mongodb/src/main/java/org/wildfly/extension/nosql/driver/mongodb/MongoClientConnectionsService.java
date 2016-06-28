@@ -36,6 +36,8 @@ import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
+import org.jboss.msc.value.InjectedValue;
+import org.wildfly.extension.nosql.subsystem.mongodb.MongoSubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 /**
@@ -51,6 +53,12 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
     private MongoDatabase database;
     private MongoInteraction mongoInteraction;
 
+    public InjectedValue<MongoSubsystemService> getMongoSubsystemServiceInjectedValue() {
+        return mongoSubsystemServiceInjectedValue;
+    }
+
+    private final InjectedValue<MongoSubsystemService> mongoSubsystemServiceInjectedValue = new InjectedValue<>();
+
     public MongoClientConnectionsService(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
         mongoInteraction = new MongoInteraction(configurationBuilder);
@@ -62,6 +70,10 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
 
     @Override
     public void start(StartContext startContext) throws StartException {
+        // maintain a mapping from JNDI name to NoSQL module name, that we will use during deployment time to
+        // identify the static module name to add to the deployment.
+        mongoSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configurationBuilder.getJNDIName(), configurationBuilder.getModuleName());
+        mongoSubsystemServiceInjectedValue.getValue().addModuleNameFromProfile(configurationBuilder.getDescription(), configurationBuilder.getModuleName());
         for (OutboundSocketBinding target : outboundSocketBindings.values()) {
             mongoInteraction.hostPort(target.getUnresolvedDestinationAddress(), target.getDestinationPort());
         }
@@ -74,6 +86,8 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
     @Override
     public void stop(StopContext stopContext) {
         try {
+            mongoSubsystemServiceInjectedValue.getValue().removeModuleNameFromJndi(configurationBuilder.getJNDIName());
+            mongoSubsystemServiceInjectedValue.getValue().removeModuleNameFromProfile(configurationBuilder.getDescription());
             mongoInteraction.close(client);
         } catch (Throwable throwable) {
             ROOT_LOGGER.driverFailedToStop(throwable);
