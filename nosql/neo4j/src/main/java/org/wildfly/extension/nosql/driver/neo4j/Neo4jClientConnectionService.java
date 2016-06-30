@@ -27,6 +27,9 @@ import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.transaction.TransactionManager;
+import javax.transaction.TransactionSynchronizationRegistry;
+
 import org.jboss.as.network.OutboundSocketBinding;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.inject.MapInjector;
@@ -36,6 +39,8 @@ import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.neo4j.driver.v1.Driver;
+import org.wildfly.extension.nosql.driver.neo4j.transaction.Neo4jOnePhaseCommitDriver;
+import org.wildfly.extension.nosql.driver.neo4j.transaction.TransactionEnlistmentType;
 import org.wildfly.extension.nosql.subsystem.neo4j.Neo4jSubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
@@ -73,7 +78,6 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
         // identify the static module name to add to the deployment.
         neo4jSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configurationBuilder.getJNDIName(), configurationBuilder.getModuleName());
         neo4jSubsystemServiceInjectedValue.getValue().addModuleNameFromProfile(configurationBuilder.getDescription(), configurationBuilder.getModuleName());
-
         for (OutboundSocketBinding target : outboundSocketBindings.values()) {
             if (target.getUnresolvedDestinationAddress() != null) {
                 neo4jInteraction.addContactPoint(target.getUnresolvedDestinationAddress());
@@ -89,6 +93,17 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
         // }
         driver = neo4jInteraction.build();
 
+        if (TransactionEnlistmentType.ONEPHASECOMMIT.equals(configurationBuilder.getTransactionEnlistment())) {
+            driver = onePhaseCommitWrapper(
+                driver,
+                neo4jSubsystemServiceInjectedValue.getValue().transactionManager(),
+                neo4jSubsystemServiceInjectedValue.getValue().transactionSynchronizationRegistry());
+        }
+
+    }
+
+    private Driver onePhaseCommitWrapper(Driver driver, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+        return Neo4jOnePhaseCommitDriver.wrap(driver, transactionManager, transactionSynchronizationRegistry, configurationBuilder.getDescription(), configurationBuilder.getJNDIName());
     }
 
     @Override

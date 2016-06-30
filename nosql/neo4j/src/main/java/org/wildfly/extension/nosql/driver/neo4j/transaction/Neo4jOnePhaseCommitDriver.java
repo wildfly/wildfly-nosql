@@ -20,19 +20,31 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.extension.nosql.subsystem.neo4j;
+package org.wildfly.extension.nosql.driver.neo4j.transaction;
+
+import java.lang.reflect.Proxy;
+
+import javax.transaction.TransactionManager;
+import javax.transaction.TransactionSynchronizationRegistry;
+
+import org.neo4j.driver.v1.Driver;
 
 /**
- * CommonAttributes
+ * Neo4jOnePhaseCommitDriver
  *
  * @author Scott Marlow
  */
-public interface CommonAttributes {
-    String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
-    String HOST_DEF = "host";
-    String ID_NAME = "id";
-    String JNDI_NAME = "jndi-name";
-    String MODULE_NAME = "module";
-    String PROFILE = "neo4j";
-    String TRANSACTION = "transaction";
+public class Neo4jOnePhaseCommitDriver {
+
+    public Neo4jOnePhaseCommitDriver() {
+    }
+
+    public static Driver wrap(Driver driver, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
+        return (Driver) Proxy.newProxyInstance(
+                driver.getClass().getClassLoader(),
+                driver.getClass().getInterfaces(),
+                new DriverProxy(driver, transactionManager, transactionSynchronizationRegistry, profileName, jndiName));
+    }
+
+
 }

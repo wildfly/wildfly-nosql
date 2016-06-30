@@ -20,19 +20,36 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.extension.nosql.subsystem.neo4j;
+package org.wildfly.extension.nosql.driver.neo4j.transaction;
 
 /**
- * CommonAttributes
+ * TransactionControl is a private api for controlling the Neo4j inte
  *
  * @author Scott Marlow
  */
-public interface CommonAttributes {
-    String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
-    String HOST_DEF = "host";
-    String ID_NAME = "id";
-    String JNDI_NAME = "jndi-name";
-    String MODULE_NAME = "module";
-    String PROFILE = "neo4j";
-    String TRANSACTION = "transaction";
+public interface TransactionControl {
+
+    /**
+     * beginTransaction is expected to be called when the transaction manager enlists the XAResource into the
+     * transaction, in the XAResource.start(Xid xid, int flags) call.
+     *
+     * @return underlying transaction to the XAResource.start(Xid xid, int flag) implementation.
+     */
+    Object beginTransaction();
+
+    /**
+     * Expected to be called when transaction manager calls XAResource.commit(Xid xid, boolean onePhase).
+     */
+    void success();
+
+    /**
+     * Expected to be called when transaction manager calls XAResource.rollback(Xid xid).
+     */
+    void failure();
+
+    /**
+     * Expected to be called from both XAResource.rollback(Xid xid) + XAResource.commit(Xid xid, boolean onePhase).
+     */
+    void close();
+
 }

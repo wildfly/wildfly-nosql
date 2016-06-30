@@ -23,6 +23,8 @@
 package org.jboss.as.test.compat.nosql.neo4j;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.fail;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -62,7 +64,7 @@ public class Neo4jDBTestCase {
         EnterpriseArchive ear = ShrinkWrap.create(EnterpriseArchive.class, ARCHIVE_NAME + ".ear");
         // addTestJarsToEar(ear);
         JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "beans.jar");
-        lib.addClasses(StatefulTestBean.class);
+        lib.addClasses(StatefulTestBean.class, NestedBean.class);
         ear.addAsModule(lib);
         final WebArchive main = ShrinkWrap.create(WebArchive.class, "main.war");
         main.addClasses(Neo4jDBTestCase.class);
@@ -86,6 +88,28 @@ public class Neo4jDBTestCase {
         StatefulTestBean statefulTestBean = lookup("StatefulTestBean", StatefulTestBean.class);
         String result = statefulTestBean.addPersonClassInstanceInjection();
         assertEquals("Record<{name: \"CDI\", title: \"King\"}>", result);
+    }
+
+    /**
+     * Verify that calling a session bean method that starts a JTA transaction, adds a database value and then calls nested bean method that
+     * requires a new transaction, the nested bean method should not be able to read the database value as the controlling JTA transaction did
+     * not get committed yet.
+     */
+    @Test
+    public void testTransactionEnlistmentReadAfterTransactionClose() throws Exception {
+        StatefulTestBean statefulTestBean = lookup("StatefulTestBean", StatefulTestBean.class);
+        String result = statefulTestBean.transactionEnlistmentReadAfterCallingTransactionClose();
+        if (result.equals("Record<{name: \"TRANSACTION\", title: \"King\"}>")) {
+            fail("Should not be able to read 'TRANSACTION' value from database as the JTA transaction did not end yet.");
+        }
+        else if (result.equals("TRANSACTION not found")) {
+            // success!
+            // we expect that the database add of "TRANSACTION" will not occur yet, since the JTA transaction has
+            // not ended when we attempt to read the "TRANSACTION" value.  "TRANSACTION not found" is the expected response.
+        }
+        else {
+            fail("unexpected result = " + result);
+        }
     }
 
 }

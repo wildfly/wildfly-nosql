@@ -26,6 +26,11 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.transaction.TransactionManager;
+import javax.transaction.TransactionSynchronizationRegistry;
+
+import org.jboss.msc.inject.Injector;
+import org.jboss.msc.value.InjectedValue;
 import org.wildfly.nosql.common.SubsystemService;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.ServiceName;
@@ -47,6 +52,9 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
 
     private final Map<String, String> profileNameToModuleName = new ConcurrentHashMap<>();
 
+    private final InjectedValue<TransactionManager> txManager = new InjectedValue<>();
+    private final InjectedValue<TransactionSynchronizationRegistry> txSyncRegistry = new InjectedValue<>();
+
     public Neo4jSubsystemService() {
     }
 
@@ -62,6 +70,22 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
     @Override
     public String moduleNameFromProfile(String profileName) {
         return profileNameToModuleName.get(profileName);
+    }
+
+    public Injector<TransactionManager> getTransactionManagerInjector() {
+        return this.txManager;
+    }
+
+    public TransactionManager transactionManager() {
+        return txManager.getValue();
+    }
+
+    public Injector<TransactionSynchronizationRegistry> getTxSyncRegistryInjector() {
+        return this.txSyncRegistry;
+    }
+
+    public TransactionSynchronizationRegistry transactionSynchronizationRegistry() {
+        return txSyncRegistry.getValue();
     }
 
     public void addModuleNameFromJndi(String jndiName, String module) {

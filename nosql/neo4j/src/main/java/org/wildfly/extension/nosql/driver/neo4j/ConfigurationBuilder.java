@@ -22,6 +22,8 @@
 
 package org.wildfly.extension.nosql.driver.neo4j;
 
+import org.wildfly.extension.nosql.driver.neo4j.transaction.TransactionEnlistmentType;
+
 /**
  * ConfigurationBuilder
  *
@@ -34,6 +36,7 @@ public class ConfigurationBuilder {
     private static final String defaultModuleName = "org.neo4j.driver";
     private String moduleName = // name of static module
             defaultModuleName;
+    private TransactionEnlistmentType transactionEnlistment;
 
     public void setDescription(String description) {
         this.description = description;
@@ -57,5 +60,13 @@ public class ConfigurationBuilder {
 
     public String getModuleName() {
         return moduleName;
+    }
+
+    public void setTransactionEnlistment(TransactionEnlistmentType transactionEnlistment) {
+        this.transactionEnlistment = transactionEnlistment;
+    }
+
+    public TransactionEnlistmentType getTransactionEnlistment() {
+        return transactionEnlistment;
     }
 }

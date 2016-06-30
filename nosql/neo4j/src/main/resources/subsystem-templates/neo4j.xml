@@ -25,7 +25,7 @@
 <config>
     <extension-module>org.wildfly.extension.nosql.neo4j</extension-module>
     <subsystem xmlns="urn:jboss:domain:neo4j:1.0">
-        <neo4j name="default" id="neo4jtesttprofile" jndi-name="java:jboss/neo4jdriver/test">
+        <neo4j name="default" id="neo4jtesttprofile" jndi-name="java:jboss/neo4jdriver/test" transaction="1pc">
             <host name="default" outbound-socket-binding-ref="neo4jtesthost"/>
         </neo4j>
     </subsystem>

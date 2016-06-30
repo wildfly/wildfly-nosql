@@ -31,6 +31,7 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
+import org.neo4j.driver.v1.Transaction;
 
 /**
  * StatefulTestBean for the Neo4J database
@@ -46,6 +47,9 @@ public class StatefulTestBean {
     @Inject
     @Named("neo4jtesttprofile")
     private Driver injectedDriver;
+
+    @Inject
+    NestedBean nestedBean;
 
 
     public String addPerson() {
@@ -77,4 +81,24 @@ public class StatefulTestBean {
             session.close();
         }
     }
+
+    public String transactionEnlistmentReadAfterCallingTransactionClose() {
+        Session session = injectedDriver.session();
+        Transaction transaction = session.beginTransaction();
+        try {
+            transaction.run("CREATE (a:Person {name:'TRANSACTION', title:'King'})");
+            transaction.success();
+            transaction.close();
+            return nestedBean.getPerson("TRANSACTION");
+        } finally {
+            if ( transaction.isOpen()) {
+                transaction.run("MATCH (a:Person) delete a");
+                transaction.close();
+            }
+            session.close();
+        }
+    }
+
+
+
 }

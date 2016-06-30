@@ -24,6 +24,9 @@ package org.wildfly.nosql.common;
 
 import static org.jboss.logging.Logger.Level.ERROR;
 
+import java.util.ArrayList;
+
+import org.jboss.as.controller.OperationFailedException;
 import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.BasicLogger;
 import org.jboss.logging.Logger;
@@ -89,4 +92,7 @@ public interface NoSQLLogger extends BasicLogger {
 
     @Message(id = 5, value = "Cannot unwrap class '%s'.")
     IllegalArgumentException unassignable(Class clazz);
+
+    @Message(id = 6, value = "Cannot set %s to %s.  Instead set to one of %s")
+    OperationFailedException invalidParameter(String transaction, String str, ArrayList arrayList);
 }

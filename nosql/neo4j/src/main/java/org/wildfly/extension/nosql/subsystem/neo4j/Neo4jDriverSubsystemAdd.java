@@ -22,11 +22,16 @@
 
 package org.wildfly.extension.nosql.subsystem.neo4j;
 
+import javax.transaction.TransactionManager;
+import javax.transaction.TransactionSynchronizationRegistry;
+
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.operations.validation.ParametersValidator;
+import org.jboss.as.txn.service.TransactionManagerService;
+import org.jboss.as.txn.service.TransactionSynchronizationRegistryService;
 import org.wildfly.nosql.common.DriverDependencyProcessor;
 import org.wildfly.nosql.common.DriverScanDependencyProcessor;
 import org.jboss.as.server.AbstractDeploymentChainStep;
@@ -74,7 +79,10 @@ public class Neo4jDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
 
     private void startNeo4jDriverSubsysteService(final OperationContext context) {
         Neo4jSubsystemService neo4jSubsystemService = new Neo4jSubsystemService();
-        context.getServiceTarget().addService(Neo4jSubsystemService.serviceName(), neo4jSubsystemService).setInitialMode(ServiceController.Mode.ACTIVE).install();
+        context.getServiceTarget().addService(Neo4jSubsystemService.serviceName(), neo4jSubsystemService).setInitialMode(ServiceController.Mode.ACTIVE)
+        .addDependency(TransactionManagerService.SERVICE_NAME, TransactionManager.class, neo4jSubsystemService.getTransactionManagerInjector())
+        .addDependency(TransactionSynchronizationRegistryService.SERVICE_NAME, TransactionSynchronizationRegistry.class, neo4jSubsystemService.getTxSyncRegistryInjector())
+                .install();
     }
 
 

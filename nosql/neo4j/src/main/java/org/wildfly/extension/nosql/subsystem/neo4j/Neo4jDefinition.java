@@ -22,6 +22,8 @@
 
 package org.wildfly.extension.nosql.subsystem.neo4j;
 
+import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -41,6 +43,7 @@ import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.operations.validation.ParameterValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.naming.ServiceBasedNamingStore;
@@ -59,6 +62,7 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.ImmediateValue;
 import org.wildfly.extension.nosql.driver.neo4j.ConfigurationBuilder;
 import org.wildfly.extension.nosql.driver.neo4j.Neo4jClientConnectionService;
+import org.wildfly.extension.nosql.driver.neo4j.transaction.TransactionEnlistmentType;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 
 /**
@@ -94,11 +98,36 @@ public class Neo4jDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(false)
                     .build();
 
+    protected static final SimpleAttributeDefinition TRANSACTION =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.TRANSACTION, ModelType.STRING, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setAllowExpression(false)
+                    .setValidator(new ParameterValidator() {
+                        @Override
+                        public void validateParameter(String parameterName, ModelNode value) throws OperationFailedException {
+                            if (value.isDefined()) {
+                                String str = value.asString();
+                                if (TransactionEnlistmentType.getFromStringValue(str) == null) {
+                                    throw ROOT_LOGGER.invalidParameter(CommonAttributes.TRANSACTION, str, TransactionEnlistmentType.allowedNames());
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void validateResolvedParameter(String parameterName, ModelNode value) throws OperationFailedException {
+                            validateParameter(parameterName, value.resolve());
+                        }
+
+                    }
+                    )
+                    .build();
+
 
     protected static List<SimpleAttributeDefinition> ATTRIBUTES = Arrays.asList(
             ID_NAME,
             JNDI_NAME,
-            MODULE);
+            MODULE,
+            TRANSACTION);
 
     static final Map<String, AttributeDefinition> ATTRIBUTES_MAP = new HashMap<>();
 
@@ -150,6 +179,9 @@ public class Neo4jDefinition extends PersistentResourceDefinition {
             }
             if (profileEntry.hasDefined(CommonAttributes.MODULE_NAME)) {
                 builder.setModuleName(profileEntry.get(CommonAttributes.MODULE_NAME).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.TRANSACTION)) {
+                builder.setTransactionEnlistment(TransactionEnlistmentType.getFromStringValue(profileEntry.get(CommonAttributes.TRANSACTION).asString()));
             }
             if (profileEntry.hasDefined(CommonAttributes.HOST_DEF)) {
                 ModelNode hostModels = profileEntry.get(CommonAttributes.HOST_DEF);

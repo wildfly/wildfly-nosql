@@ -44,7 +44,6 @@ import javax.enterprise.inject.spi.InjectionTargetFactory;
 
 import org.jboss.as.server.CurrentServiceContainer;
 import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.Session;
 import org.wildfly.extension.nosql.subsystem.neo4j.Neo4jSubsystemService;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.SubsystemService;
@@ -72,8 +71,9 @@ public class Neo4jExtension implements Extension {
                 abd.addBean(bm.createBean(
                         new DriverBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Driver.class)), profile),
                         Driver.class, new DriverProducerFactory(profile)));
-                abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Session.class)),profile),
-                        Session.class, new SessionProducerFactory(profile)));
+//                TODO: uncomment or delete the following.
+//                abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Session.class)),profile),
+//                        Session.class, new SessionProducerFactory(profile)));
             }
          } else {
             log.log(Level.INFO, "Application contains a default Driver Bean, automatic registration will be disabled");
@@ -169,7 +169,7 @@ public class Neo4jExtension implements Extension {
             };
         }
     }
-
+/* TODO: delete this commented out code or uncomment
     private static class SessionBeanAttributes implements BeanAttributes<Session> {
 
         private BeanAttributes<Session> delegate;
@@ -195,7 +195,7 @@ public class Neo4jExtension implements Extension {
 
         @Override
         public Class<? extends Annotation> getScope() {
-            return ApplicationScoped.class;
+            return RequestScoped.class;                     // Session is not thread safe, so ensure each app request has its own session
         }
 
         @Override
@@ -243,12 +243,12 @@ public class Neo4jExtension implements Extension {
                     return noSQLConnection.unwrap(Session.class);
                 }
 
-                /**
+                 *
                  * Injected session should be closed as soon as RequestScoped request completes,
                  * to ensure that the (not thread safe) session can then be used for another request.
                  *
                  * @param session
-                 */
+                 *
                 @Override
                 public void dispose(Session session) {
                     session.close();
@@ -261,5 +261,5 @@ public class Neo4jExtension implements Extension {
             };
         }
     }
-
+*/
 }
