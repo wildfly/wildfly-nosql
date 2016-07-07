@@ -23,9 +23,12 @@
 package org.jboss.as.test.compat.nosql.neo4j;
 
 import javax.annotation.Resource;
+import javax.ejb.TransactionManagement;
+import javax.ejb.TransactionManagementType;
 import javax.ejb.Stateful;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.transaction.UserTransaction;
 
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
@@ -34,68 +37,43 @@ import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
 
 /**
- * StatefulTestBean for the Neo4J database
+ * test with bean managed transactions
  *
  * @author Scott Marlow
  */
 @Stateful
-public class StatefulTestBean {
+@TransactionManagement(TransactionManagementType.BEAN)
+public class BMTStatefulTestBean {
+
+    @Resource
+    private UserTransaction userTransaction;
 
     @Resource(lookup = "java:jboss/neo4jdriver/test")
     private Driver driver;
 
-    @Inject
-    @Named("neo4jtesttprofile")
-    private Driver injectedDriver;
-
-    @Inject
-    NestedBean nestedBean;
-
-
-    public String addPerson() {
+    public String twoTransactions() throws Exception {
+        userTransaction.begin();
         Session session = driver.session();
-        try {
-            session.run("CREATE (a:Person {name:'Arthur', title:'King'})");
-            StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'Arthur' RETURN a.name AS name, a.title AS title");
-
-
-            Record record = result.next();
-            return record.toString();
-        } finally {
-            session.run("MATCH (a:Person) delete a");
-            session.close();
-        }
-    }
-
-    public String addPersonClassInstanceInjection() {
-        Session session = injectedDriver.session();
-        try {
-            session.run("CREATE (a:Person {name:'CDI', title:'King'})");
-            StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'CDI' RETURN a.name AS name, a.title AS title");
-
-
-            Record record = result.next();
-            return record.toString();
-        } finally {
-            session.run("MATCH (a:Person) delete a");
-            session.close();
-        }
-    }
-
-    public String transactionEnlistmentReadAfterCallingTransactionClose() {
-        Session session = injectedDriver.session();
         Transaction transaction = session.beginTransaction();
         try {
-            transaction.run("CREATE (a:Person {name:'TRANSACTION', title:'King'})");
+            transaction.run("CREATE (a:Person {name:'BMT', title:'King'})");
             transaction.success();
             transaction.close();
-            return nestedBean.getPerson("TRANSACTION");
+
+            userTransaction.commit();
+            userTransaction.begin();
+            transaction = session.beginTransaction();
+
+            StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'BMT' RETURN a.name AS name, a.title AS title");
+            Record record = result.next();
+            return record.toString();
         } finally {
             if ( transaction.isOpen()) {
                 session.run("MATCH (a:Person) delete a");
                 transaction.close();
             }
             session.close();
+            userTransaction.commit();
         }
     }
 

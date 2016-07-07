@@ -80,14 +80,15 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
             final AnnotationTarget annotationTarget = annotation.target();
             final AnnotationValue lookupValue = annotation.value("lookup");
             final String lookup = lookupValue != null ? lookupValue.asString() : null;
-
-            if (annotationTarget instanceof FieldInfo) {
-                processFieldResource(deploymentUnit, lookup);
-            } else if (annotationTarget instanceof MethodInfo) {
-                final MethodInfo methodInfo = (MethodInfo) annotationTarget;
-                processMethodResource(deploymentUnit, methodInfo, lookup);
-            } else if (annotationTarget instanceof ClassInfo) {
-                processClassResource(deploymentUnit, lookup);
+            if (lookup != null) {
+                if (annotationTarget instanceof FieldInfo) {
+                    processFieldResource(deploymentUnit, lookup);
+                } else if (annotationTarget instanceof MethodInfo) {
+                    final MethodInfo methodInfo = (MethodInfo) annotationTarget;
+                    processMethodResource(deploymentUnit, methodInfo, lookup);
+                } else if (annotationTarget instanceof ClassInfo) {
+                    processClassResource(deploymentUnit, lookup);
+                }
             }
         }
 
@@ -98,9 +99,11 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
             if (annotationTarget instanceof ClassInfo) {
                 final AnnotationInstance[] values = outerAnnotation.value("value").asNestedArray();
                 for (AnnotationInstance annotation : values) {
-                    final AnnotationValue nameValue = annotation.value("name");
-                    final String name = nameValue != null ? nameValue.asString() : null;
-                    processClassResource(deploymentUnit, name);
+                    final AnnotationValue lookupValue = annotation.value("lookup");
+                    final String lookup = lookupValue != null ? lookupValue.asString() : null;
+                    if (lookup != null) {
+                        processClassResource(deploymentUnit, lookup);
+                    }
                 }
             }
         }

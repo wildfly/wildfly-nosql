@@ -64,7 +64,7 @@ public class Neo4jDBTestCase {
         EnterpriseArchive ear = ShrinkWrap.create(EnterpriseArchive.class, ARCHIVE_NAME + ".ear");
         // addTestJarsToEar(ear);
         JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "beans.jar");
-        lib.addClasses(StatefulTestBean.class, NestedBean.class);
+        lib.addClasses(StatefulTestBean.class, NestedBean.class, BMTStatefulTestBean.class);
         ear.addAsModule(lib);
         final WebArchive main = ShrinkWrap.create(WebArchive.class, "main.war");
         main.addClasses(Neo4jDBTestCase.class);
@@ -112,4 +112,11 @@ public class Neo4jDBTestCase {
         }
     }
 
+
+    @Test
+    public void testBMT() throws Exception {
+        BMTStatefulTestBean statefulTestBean = lookup("BMTStatefulTestBean", BMTStatefulTestBean.class);
+        String result = statefulTestBean.twoTransactions();
+        assertEquals(result,"Record<{name: \"BMT\", title: \"King\"}>");
+    }
 }
