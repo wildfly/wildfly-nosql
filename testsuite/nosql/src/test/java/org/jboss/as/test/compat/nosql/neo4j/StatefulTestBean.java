@@ -83,7 +83,10 @@ public class StatefulTestBean {
     }
 
     public String transactionEnlistmentReadAfterCallingTransactionClose() {
+        // JTA transaction is started by CMT, the following obtains a Session that is enlisted into the JTA transaction
         Session session = injectedDriver.session();
+        // Obtain the org.neo4j.driver.v1.Transaction, although the Session could also perform the same operations
+        // (except Transaction.success/close), which are redirected to org.neo4j.driver.v1.Transaction.
         Transaction transaction = session.beginTransaction();
         try {
             transaction.run("CREATE (a:Person {name:'TRANSACTION', title:'King'})");
@@ -91,11 +94,12 @@ public class StatefulTestBean {
             transaction.close();
             return nestedBean.getPerson("TRANSACTION");
         } finally {
-            if ( transaction.isOpen()) {
+            if ( transaction.isOpen()) { // this will be true
                 session.run("MATCH (a:Person) delete a");
-                transaction.close();
+                transaction.close();     // this will be ignored, as the transaction is closed when the JTA transation ends.
             }
-            session.close();
+            session.close();             // TODO: consider design change to defer this to be auto-closed at transaction end time
+                                         //       see similar comments in BMTStatefulTestBean
         }
     }
 

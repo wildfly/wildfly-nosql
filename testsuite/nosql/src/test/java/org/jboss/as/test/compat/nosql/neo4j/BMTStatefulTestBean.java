@@ -52,15 +52,29 @@ public class BMTStatefulTestBean {
     private Driver driver;
 
     public String twoTransactions() throws Exception {
-        userTransaction.begin();
+        // obtain session without an active JTA transaction, session will not be enlisted into a JTA transaction yet.
+        // if driver.session was called after the JTA transaction is started, session would of been enlisted into the
+        // JTA transaction.
         Session session = driver.session();
+        // start the JTA transaction via javax.transaction.UserTransaction
+        userTransaction.begin();
+        // obtain org.neo4j.driver.v1.Transaction within JTA transaction, which will be enlisted into the JTA transaction.
+        // if session.beginTransaction() was called before the JTA transaction started, the org.neo4j.driver.v1.Transaction
+        // wouldn't be enlisted into JTA transaction.
         Transaction transaction = session.beginTransaction();
         try {
             transaction.run("CREATE (a:Person {name:'BMT', title:'King'})");
+            // the following two calls (tx.success()/tx.close()) are ignored, instead when the JTA transaction ends, the following two calls are
+            // then made internally.
             transaction.success();
             transaction.close();
-
+            // commit the JTA transaction, which also calls org.neo4j.driver.v1.Transaction.success()/close().
+            // if the JTA transaction rolls back, org.neo4j.driver.v1.Transaction.failure()/close() would instead be called.
             userTransaction.commit();
+
+            // Start another JTA transaction, note that the same Session is still used, since it is still open.
+            // TODO: Consider design change to have enlisted org.neo4j.driver.v1.Session, be auto closed when JTA transaction ends,
+            //       which would require this test app to call driver.session() again.
             userTransaction.begin();
             transaction = session.beginTransaction();
 
@@ -68,12 +82,13 @@ public class BMTStatefulTestBean {
             Record record = result.next();
             return record.toString();
         } finally {
-            if ( transaction.isOpen()) {
+            if ( transaction.isOpen()) {  // this should return true, as the JTA transaction is still active
                 session.run("MATCH (a:Person) delete a");
-                transaction.close();
+                transaction.close();      // this call to close, should be ignored, as the transaction is still active.
             }
-            session.close();
-            userTransaction.commit();
+            session.close();              // TODO: see above TODO about auto-closing session at transaction end, if we did
+                                          //       that, we would have to ignore this call to session.close().
+            userTransaction.commit();     // second JTA transaction is ended, which also closes the org.neo4j.driver.v1.Transaction/Session
         }
     }
 

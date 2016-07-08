@@ -60,19 +60,23 @@ public class SessionProxy implements InvocationHandler {
 
     }
 
-    static Object sessionProxy(Object result, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
-        SessionProxy sessionProxy = new SessionProxy(result, transactionManager, transactionSynchronizationRegistry, profileName, jndiName);
-        Object proxy = Proxy.newProxyInstance(
-                result.getClass().getClassLoader(),
-                result.getClass().getInterfaces(),
+    static Object sessionProxy(Object underlyingSession, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
+        // TODO: change to session per JTA transaction, where session is autoclosed at JTA transaction end
+        //       which means that multiple calls to Driver.session, within the same JTA transaction, would return same session.
+        // TODO: also, instead of creating a new SessionProxy for every call to Driver.session(), we
+        //       should cache the SessionProxy per JTA transaction as well.
+        SessionProxy sessionProxy = new SessionProxy(underlyingSession, transactionManager, transactionSynchronizationRegistry, profileName, jndiName);
+        Object sessionProxyInstance = Proxy.newProxyInstance(
+                underlyingSession.getClass().getClassLoader(),
+                underlyingSession.getClass().getInterfaces(),
                 sessionProxy
                 );
         try {
             int txstatus = transactionManager.getStatus();
             // if jta transaction is active,
             if (txstatus == Status.STATUS_ACTIVE || txstatus == Status.STATUS_MARKED_ROLLBACK) {
-                result = transactionSynchronizationRegistry.getResource(profileName);
-                if (result == null) {
+                Object transactionProxy = transactionSynchronizationRegistry.getResource(profileName);
+                if (transactionProxy == null) {
                     sessionProxy.transactionProxy();  // register TransactionProxy
                 }
             }
@@ -80,7 +84,7 @@ public class SessionProxy implements InvocationHandler {
 
         }
 
-        return proxy;
+        return sessionProxyInstance;
     }
 
     @Override
