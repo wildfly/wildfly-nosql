@@ -178,27 +178,6 @@
             <artifactId>junit</artifactId>
             <scope>test</scope>
         </dependency>
-	<dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <scope>test</scope>
-	</dependency>
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-           </exclusions>
-        </dependency>
-        <dependency>
-           <groupId>org.neo4j.driver</groupId>
-	   <artifactId>neo4j-java-driver</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
            <groupId>com.codahale.metrics</groupId>
            <artifactId>metrics-core</artifactId>

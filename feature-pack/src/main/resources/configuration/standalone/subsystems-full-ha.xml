@@ -26,7 +26,8 @@
         <subsystem supplement="${mod_cluster.supplement}">mod_cluster.xml</subsystem>
         <subsystem>naming.xml</subsystem>
         <subsystem>mongodb.xml</subsystem>        
-        <subsystem>neo4j.xml</subsystem> 
+        <subsystem>neo4j.xml</subsystem>
+        <subsystem>orientdb.xml</subsystem>
         <subsystem>pojo.xml</subsystem>
         <subsystem>remoting.xml</subsystem>
         <subsystem>resource-adapters.xml</subsystem>

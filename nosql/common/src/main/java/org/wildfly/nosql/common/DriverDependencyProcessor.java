@@ -57,10 +57,11 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
         if (nosqlDriverModuleName != null) {
             final ModuleSpecification moduleSpecification = deploymentUnit.getAttachment(Attachments.MODULE_SPECIFICATION);
             final ModuleLoader moduleLoader = Module.getBootModuleLoader();
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(nosqlDriverModuleName));
-            addMongoCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
-            addCassandraCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
-            addNeo4jCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(moduleName));
+            addMongoCDIDependency(moduleSpecification, moduleLoader, moduleName);
+            addCassandraCDIDependency(moduleSpecification, moduleLoader, moduleName);
+            addNeo4jCDIDependency(moduleSpecification, moduleLoader, moduleName);
+            addOrientCDIDependency(moduleSpecification, moduleLoader, moduleName);
         }
 
     }
@@ -90,6 +91,14 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
         if ("com.datastax.cassandra.driver-core".equals(moduleName)) { // temp hack for cdi extension loading
                                                                        // TODO: instead try loading a Cassandra class from modululeName
             addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.cassandra"));
+        }
+    }
+
+    private void addOrientCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
+        if ("com.orientechnologies".equals(moduleName)) {
+            // temp hack for cdi extension loading
+            // TODO: instead try loading a OrientDB class from modululeName
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.orientdb"));
         }
     }
 

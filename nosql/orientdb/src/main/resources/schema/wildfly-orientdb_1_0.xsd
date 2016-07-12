@@ -1,0 +1,66 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ JBoss, Home of Professional Open Source.
+  ~ Copyright 2016, Red Hat, Inc., and individual contributors
+  ~ as indicated by the @author tags. See the copyright.txt file in the
+  ~ distribution for a full listing of individual contributors.
+  ~
+  ~ This is free software; you can redistribute it and/or modify it
+  ~ under the terms of the GNU Lesser General Public License as
+  ~ published by the Free Software Foundation; either version 2.1 of
+  ~ the License, or (at your option) any later version.
+  ~
+  ~ This software is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  ~ Lesser General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Lesser General Public
+  ~ License along with this software; if not, write to the Free
+  ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+  ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+  -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+    <xs:element name="config" type="configType"/>
+    <xs:complexType name="configType">
+        <xs:sequence>
+            <xs:element name="extension-module" type="xs:string"/>
+            <xs:element name="subsystem" type="subsystemType"/>
+            <xs:element name="outbound-socket-binding" type="outboundSocketBindingType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="subsystemType">
+        <xs:sequence>
+            <xs:element name="orient" type="orientType"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:complexType name="orientType">
+        <xs:sequence>
+            <xs:element name="host" type="hostType" maxOccurs="1"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="id" type="xs:string" use="required"/>
+        <xs:attribute name="database" type="xs:string" use="required"/>
+        <xs:attribute name="jndi-name" type="xs:string" use="required"/>
+        <xs:attribute name="user-name" type="xs:string"/>
+        <xs:attribute name="password" type="xs:string"/>
+        <xs:attribute name="max-partition-size" type="xs:integer"/>
+        <xs:attribute name="max-pool-size" type="xs:integer"/>
+    </xs:complexType>
+    <xs:complexType name="hostType">
+        <xs:attribute name="name" type="xs:string" use="required"/>
+        <xs:attribute name="outbound-socket-binding-ref" type="xs:string" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="outboundSocketBindingType">
+        <xs:sequence>
+            <xs:element name="remote-destination" type="remoteDestinationType"/>
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" use="required"/>
+    </xs:complexType>
+    <xs:complexType name="remoteDestinationType">
+        <xs:attribute name="host" type="xs:string" use="required"/>
+        <xs:attribute name="port" type="xs:string" use="required"/>
+    </xs:complexType>
+</xs:schema>

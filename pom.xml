@@ -213,6 +213,9 @@
         <version.mongodb.driver>3.2.2</version.mongodb.driver>
         <version.cassandra.driver>3.0.0</version.cassandra.driver>
         <version.neo4j.driver>1.0.1</version.neo4j.driver>
+        <version.com.orientechnologies>2.1.20</version.com.orientechnologies>
+        <version.com.googlecode.concurrentlinkedhashmap>1.4.1</version.com.googlecode.concurrentlinkedhashmap>
+        <version.com.tinkerpop.blueprints>2.6.0</version.com.tinkerpop.blueprints>
         <version.org.opensaml.opensaml>3.1.1</version.org.opensaml.opensaml>
         <version.org.picketbox.picketbox-commons>1.0.0.final</version.org.picketbox.picketbox-commons>
         <version.org.picketlink>2.5.5.SP3</version.org.picketlink>
@@ -1195,6 +1198,12 @@
             <dependency>
                 <groupId>org.wildfly</groupId>
                 <artifactId>wildfly-neo4jsubsystem</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.wildfly</groupId>
+                <artifactId>wildfly-orientdbsubsystem</artifactId>
                 <version>${project.version}</version>
             </dependency>
  
@@ -6185,6 +6194,104 @@
                     </exclusion>
                 </exclusions>
 	    </dependency>
+
+            <dependency>
+                <groupId>com.orientechnologies</groupId>
+                <artifactId>orientdb-core</artifactId>
+                <version>${version.com.orientechnologies}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.xerial.snappy</groupId>
+                        <artifactId>snappy-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+                        <artifactId>concurrentlinkedhashmap-lru</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>net.java.dev.jna</groupId>
+                        <artifactId>jna</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>net.java.dev.jna</groupId>
+                        <artifactId>jna-platform</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.orientechnologies</groupId>
+                <artifactId>orientdb-graphdb</artifactId>
+                <version>${version.com.orientechnologies}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.orientechnologies</groupId>
+                        <artifactId>orientdb-server</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.orientechnologies</groupId>
+                        <artifactId>orientdb-tools</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.tinkerpop.gremlin</groupId>
+                        <artifactId>gremlin-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.tinkerpop.gremlin</groupId>
+                        <artifactId>gremlin-groovy</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.orientechnologies</groupId>
+                <artifactId>orientdb-object</artifactId>
+                <version>${version.com.orientechnologies}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.hibernate.javax.persistence</groupId>
+                        <artifactId>hibernate-jpa-2.0-api</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.orientechnologies</groupId>
+                <artifactId>orientdb-client</artifactId>
+                <version>${version.com.orientechnologies}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.orientechnologies</groupId>
+                <artifactId>orientdb-enterprise</artifactId>
+                <version>${version.com.orientechnologies}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.tinkerpop.blueprints</groupId>
+                <artifactId>blueprints-core</artifactId>
+                <version>${version.com.tinkerpop.blueprints}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>commons-logging</groupId>
+                        <artifactId>commons-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.carrotsearch</groupId>
+                        <artifactId>hppc</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>commons-configuration</groupId>
+                        <artifactId>commons-configuration</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+            <dependency>
+                <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+                <artifactId>concurrentlinkedhashmap-lru</artifactId>
+                <version>${version.com.googlecode.concurrentlinkedhashmap}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

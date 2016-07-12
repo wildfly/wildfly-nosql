@@ -35,6 +35,7 @@
     <artifactId>wildfly-testsuite-nosql</artifactId>
     <name>WildFly Test Suite: NoSQL Tests</name>
     <properties>
+        <version.commons-configuration>1.6</version.commons-configuration>
 
         <!-- This project's testsuite dir. To be changed for every submodule (until we figure out how to do it automatically). -->
         <jbossas.ts.dir>${basedir}/..</jbossas.ts.dir>
@@ -61,47 +62,18 @@
             <artifactId>slf4j-simple</artifactId>
             <scope>test</scope>
         </dependency>
-        
         <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>${version.mongodb.driver}</version>
+            <groupId>commons-configuration</groupId>
+            <artifactId>commons-configuration</artifactId>
+            <version>${version.commons-configuration}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
-        
-       <dependency>
-           <groupId>org.neo4j.driver</groupId>
-           <artifactId>neo4j-java-driver</artifactId>
-           <version>${version.neo4j.driver}</version>
-           <scope>test</scope>
-           <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-           </exclusions>
-        </dependency>
-<!--         
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>${version.cassandra.driver}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
--->
-
        <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-testsuite-shared</artifactId>
@@ -125,59 +97,12 @@
             <groupId>org.wildfly.arquillian</groupId>
             <artifactId>wildfly-arquillian-container-managed</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.wildfly.arquillian</groupId>
             <artifactId>wildfly-arquillian-protocol-jmx</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
-
-    <dependencyManagement>
-        <dependencies>
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>${version.mongodb.driver}</version>            
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-           </exclusions>
-        </dependency>
-        
-       <dependency>
-           <groupId>org.neo4j.driver</groupId>
-           <artifactId>neo4j-java-driver</artifactId>
-           <version>${version.neo4j.driver}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-           </exclusions>
-        </dependency>
-<!--         
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>${version.cassandra.driver}</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-           </exclusions>
-        </dependency>
--->
-
-        </dependencies>
-    </dependencyManagement>
 
     <build>
         <plugins>

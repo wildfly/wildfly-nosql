@@ -44,6 +44,7 @@
         <module>mongodb</module>
         <module>cassandra</module>
         <module>common</module>
+        <module>orientdb</module>
     </modules>
 
     <dependencies>
