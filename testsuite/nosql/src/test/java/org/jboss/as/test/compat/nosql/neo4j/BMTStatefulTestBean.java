@@ -29,6 +29,7 @@ import javax.ejb.Stateful;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.transaction.UserTransaction;
+import javax.transaction.Status;
 
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
@@ -52,43 +53,74 @@ public class BMTStatefulTestBean {
     private Driver driver;
 
     public String twoTransactions() throws Exception {
-        // obtain session without an active JTA transaction, session will not be enlisted into a JTA transaction yet.
-        // if driver.session was called after the JTA transaction is started, session would of been enlisted into the
-        // JTA transaction.
-        Session session = driver.session();
         // start the JTA transaction via javax.transaction.UserTransaction
         userTransaction.begin();
-        // obtain org.neo4j.driver.v1.Transaction within JTA transaction, which will be enlisted into the JTA transaction.
-        // if session.beginTransaction() was called before the JTA transaction started, the org.neo4j.driver.v1.Transaction
-        // wouldn't be enlisted into JTA transaction.
-        Transaction transaction = session.beginTransaction();
+
         try {
+            // obtain session which will be enlisted into the JTA transaction.
+            Session session = driver.session();
+
+            if (session != driver.session()) {
+                throw new RuntimeException("multiple calls to Driver.session() must return the same session within JTA transaction.");
+            }
+            // obtain org.neo4j.driver.v1.Transaction within JTA transaction, which will is enlisted into the JTA transaction.
+            Transaction transaction = session.beginTransaction();
+
+            if (transaction != session.beginTransaction()) {
+                throw new RuntimeException("multiple calls to Session.beginTransaction() must return the same (Neo4j) transaction within JTA transaction.");
+            }
+
             transaction.run("CREATE (a:Person {name:'BMT', title:'King'})");
             // the following two calls (tx.success()/tx.close()) are ignored, instead when the JTA transaction ends, the following two calls are
             // then made internally.
             transaction.success();
             transaction.close();
+            if (transaction.isOpen() != true) {
+                throw new RuntimeException("calls to (Ne04j) Transaction.close should be ignored, as transaction will close after JTA transaction ends.");
+            }
+
+            // calls to close the session should also be ignored, since the session is also considered to be enlisted into the JTA transaction
+            session.close();
+            if (session.isOpen() != true) {
+                throw new RuntimeException("Session should be open since JTA transaction is still active.");
+            }
+
             // commit the JTA transaction, which also calls org.neo4j.driver.v1.Transaction.success()/close().
             // if the JTA transaction rolls back, org.neo4j.driver.v1.Transaction.failure()/close() would instead be called.
             userTransaction.commit();
 
-            // Start another JTA transaction, note that the same Session is still used, since it is still open.
-            // TODO: Consider design change to have enlisted org.neo4j.driver.v1.Session, be auto closed when JTA transaction ends,
-            //       which would require this test app to call driver.session() again.
+            if (transaction.isOpen() != false) {
+                throw new RuntimeException("(Ne04j) Transaction should now be closed since JTA transaction ended.");
+            }
+
+            if (session.isOpen() != false) {
+                throw new RuntimeException("Session should now be closed since JTA transaction ended.");
+            }
+            session.close();    // should be ignored
+            // Start another JTA transaction, note that the session has to be obtained again
             userTransaction.begin();
-            transaction = session.beginTransaction();
+            session = driver.session();
+
+            if (session != driver.session()) {
+                throw new RuntimeException("multiple calls to Driver.session() must return the same session within JTA transaction.");
+            }
+
+            transaction = session.beginTransaction();   // get the JTA transaction enlisted (Ne04j) transaction
+
+            if (transaction != session.beginTransaction()) {
+                throw new RuntimeException("multiple calls to Session.beginTransaction() must return the same (Neo4j) transaction within JTA transaction.");
+            }
 
             StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'BMT' RETURN a.name AS name, a.title AS title");
             Record record = result.next();
             return record.toString();
         } finally {
-            if ( transaction.isOpen()) {  // this should return true, as the JTA transaction is still active
-                session.run("MATCH (a:Person) delete a");
-                transaction.close();      // this call to close, should be ignored, as the transaction is still active.
+            if(userTransaction.getStatus() == Status.STATUS_ACTIVE) {
+                userTransaction.commit();     // second JTA transaction is ended, which also closes the enlisted org.neo4j.driver.v1.Transaction/Session
             }
-            session.close();              // TODO: see above TODO about auto-closing session at transaction end, if we did
-                                          //       that, we would have to ignore this call to session.close().
-            userTransaction.commit();     // second JTA transaction is ended, which also closes the org.neo4j.driver.v1.Transaction/Session
+            Session cleanupSession = driver.session();
+            cleanupSession.run("MATCH (a:Person) delete a");
+            cleanupSession.close();
         }
     }
 

@@ -25,6 +25,7 @@ package org.wildfly.extension.nosql.driver.neo4j.transaction;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
+import javax.transaction.Status;
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
@@ -51,10 +52,24 @@ public class DriverProxy implements InvocationHandler {
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 
-        Object result = method.invoke(underlyingDriver, args);
+
         if (method.getName().equals("session")) {  // wrap returned Session instance
-            return SessionProxy.sessionProxy(result, transactionManager, transactionSynchronizationRegistry, profileName, jndiName);
+            // if jta transaction is active,
+            int txstatus = transactionManager.getStatus();
+            if (txstatus == Status.STATUS_ACTIVE || txstatus == Status.STATUS_MARKED_ROLLBACK) {
+                Object result = SessionProxy.getSessionFromJTATransaction(transactionSynchronizationRegistry, profileName);
+                if ( result != null) {  // return existing JTA active session
+                    return result;
+                }
+                return SessionProxy.registerSessionWithJTATransaction(
+                        method.invoke(underlyingDriver, args),      // pass underlying session
+                        transactionManager,
+                        transactionSynchronizationRegistry,
+                        profileName,
+                        jndiName);
+            }
         }
+        Object result = method.invoke(underlyingDriver, args);
         return result;
     }
 }

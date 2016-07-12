@@ -44,7 +44,7 @@ public class Neo4jXAResourceImpl implements LastResource, XAResourceWrapper {
     private static final boolean trace = ROOT_LOGGER.isTraceEnabled();
 
     /**
-     * Current transction branch id
+     * Current transaction branch id
      */
     private Xid currentXid;
 

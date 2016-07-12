@@ -23,7 +23,7 @@
 package org.wildfly.extension.nosql.driver.neo4j.transaction;
 
 /**
- * TransactionControl is a private api for controlling the Neo4j inte
+ * TransactionControl is a private api for controlling the Neo4j transaction interaction
  *
  * @author Scott Marlow
  */

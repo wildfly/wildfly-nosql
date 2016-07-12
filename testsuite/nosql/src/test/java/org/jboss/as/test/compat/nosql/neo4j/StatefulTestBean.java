@@ -83,23 +83,30 @@ public class StatefulTestBean {
     }
 
     public String transactionEnlistmentReadAfterCallingTransactionClose() {
-        // JTA transaction is started by CMT, the following obtains a Session that is enlisted into the JTA transaction
+        // JTA transaction is started by CMT, the following obtains a Session that is enlisted into the JTA transaction.
+        // The
         Session session = injectedDriver.session();
-        // Obtain the org.neo4j.driver.v1.Transaction, although the Session could also perform the same operations
-        // (except Transaction.success/close), which are redirected to org.neo4j.driver.v1.Transaction.
+        // Obtain the org.neo4j.driver.v1.Transaction.  All calls to session or transaction,
+        // will be invoked via the org.neo4j.driver.v1.Transaction.
+        // Calls to Transaction.success/close/failure are ignored, which is important to note, so transaction.failure()
+        // does not cause a failure.
+        // The only way to influence success/failure of the Neo4j + JTA transaction, is at the JTA transaction level.
+        // If the JTA transaction fails, org.neo4j.driver.v1.Transaction.failure() is called.
+        // If the JTA transaction succeeds, org.neo4j.driver.v1.Transaction.success() is called.
+        // org.neo4j.driver.v1.Transaction.close() is also called when the JTA transaction ends.
         Transaction transaction = session.beginTransaction();
         try {
             transaction.run("CREATE (a:Person {name:'TRANSACTION', title:'King'})");
-            transaction.success();
-            transaction.close();
+            transaction.success();       // ignored
+            transaction.close();         // ignored
             return nestedBean.getPerson("TRANSACTION");
         } finally {
             if ( transaction.isOpen()) { // this will be true
                 session.run("MATCH (a:Person) delete a");
-                transaction.close();     // this will be ignored, as the transaction is closed when the JTA transation ends.
+                transaction.close();     // ignored
             }
-            session.close();             // TODO: consider design change to defer this to be auto-closed at transaction end time
-                                         //       see similar comments in BMTStatefulTestBean
+            session.close();             // ignored, session is auto closed when the transaction ends.
+
         }
     }
 

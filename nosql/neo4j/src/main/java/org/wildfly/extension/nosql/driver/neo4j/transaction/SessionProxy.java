@@ -49,41 +49,46 @@ public class SessionProxy implements InvocationHandler {
     private TransactionManager transactionManager;
     private TransactionSynchronizationRegistry transactionSynchronizationRegistry;
     private String profileName;
-    private String jndiName;
 
-    SessionProxy(Object session, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
+    private static final String TRANSACTION_RESOURCE = "_nosqlTXPROXY_";
+    private static final String SESSION_RESOURCE = "_nosqlSESSPROXY_";
+
+    SessionProxy(Object session, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName) {
         this.underlyingSession = session;
         this.transactionManager = transactionManager;
         this.transactionSynchronizationRegistry = transactionSynchronizationRegistry;
         this.profileName = profileName;
-        this.jndiName = jndiName;
-
     }
 
-    static Object sessionProxy(Object underlyingSession, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
-        // TODO: change to session per JTA transaction, where session is autoclosed at JTA transaction end
-        //       which means that multiple calls to Driver.session, within the same JTA transaction, would return same session.
-        // TODO: also, instead of creating a new SessionProxy for every call to Driver.session(), we
-        //       should cache the SessionProxy per JTA transaction as well.
-        SessionProxy sessionProxy = new SessionProxy(underlyingSession, transactionManager, transactionSynchronizationRegistry, profileName, jndiName);
+    static Object getSessionFromJTATransaction(TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName) {
+        return transactionSynchronizationRegistry.getResource(SESSION_RESOURCE + profileName);
+    }
+
+    static Object registerSessionWithJTATransaction(Object underlyingSession, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
+        SessionProxy sessionProxy = new SessionProxy(underlyingSession, transactionManager, transactionSynchronizationRegistry, profileName);
         Object sessionProxyInstance = Proxy.newProxyInstance(
                 underlyingSession.getClass().getClassLoader(),
                 underlyingSession.getClass().getInterfaces(),
                 sessionProxy
                 );
+        TransactionProxy transactionProxy = new TransactionProxy();
+        Object transactionProxyInstance = Proxy.newProxyInstance(
+            // TODO: also load Transaction class from custom user specified modules
+            Transaction.class.getClassLoader(),
+            new Class<?>[]{Transaction.class, Resource.class, StatementRunner.class},
+            transactionProxy);
+
+        TransactionControl transactionControl = sessionProxy.transactionControl(transactionProxy);
+        Neo4jXAResourceImpl resource = new Neo4jXAResourceImpl(transactionControl,jndiName, null, null);
         try {
-            int txstatus = transactionManager.getStatus();
-            // if jta transaction is active,
-            if (txstatus == Status.STATUS_ACTIVE || txstatus == Status.STATUS_MARKED_ROLLBACK) {
-                Object transactionProxy = transactionSynchronizationRegistry.getResource(profileName);
-                if (transactionProxy == null) {
-                    sessionProxy.transactionProxy();  // register TransactionProxy
-                }
-            }
+            transactionManager.getTransaction().enlistResource(resource);
+        } catch (RollbackException e) {
+            throw new RuntimeException(e);
         } catch (SystemException e) {
-
+            throw new RuntimeException(e);
         }
-
+        transactionSynchronizationRegistry.putResource(TRANSACTION_RESOURCE + profileName,transactionProxyInstance);
+        transactionSynchronizationRegistry.putResource(SESSION_RESOURCE + profileName,sessionProxyInstance);
         return sessionProxyInstance;
     }
 
@@ -95,50 +100,41 @@ public class SessionProxy implements InvocationHandler {
             // if jta transaction is active,
             if (txstatus == Status.STATUS_ACTIVE || txstatus == Status.STATUS_MARKED_ROLLBACK) {
                 //   return existing XAResource associated with transaction, using profile name of NoSQL connection
-                result = transactionSynchronizationRegistry.getResource(profileName);
+                result = transactionSynchronizationRegistry.getResource(TRANSACTION_RESOURCE + profileName);
                 if (result != null) {
-                    return result;    // return existing TransactionProxy
+                    return result;    // return existing transaction proxy enlisted into JTA transaction
                 }
                 else {
-                    return transactionProxy();  // return newly registered TransactionProxy
+                    throw new RuntimeException("internal error, transaction proxy (" + profileName+ ") not registered with TransactionSynchronizationRegistry");
                 }
             } else {
-                // no active transaction, delegate beginTransaction call to underlying session
-                result = method.invoke(underlyingSession, args);
+                // For all other javax.transaction.Status states (e.g. STATUS_ROLLEDBACK, ...), fail fast beginTransaction call by throwing an Exception
+                throw new RuntimeException("javax.transaction.Status '" + txstatus + "', fail fast the call to '" + method.getName() + "'" );
             }
 
+        }
+        else if(method.getName().equals("close")) {
+            // ignore call to close, as session/transaction will be auto-closed when JTA transaction ends.
+            return null;
         } else {
-            // if we have an active JTA transaction, redirect session invocations to transaction.
+            // we should have an underlying Neo4j transaction, redirect session invocations to transaction.
             // underlyingTransaction will only be non-null when we have an active JTA transaction.
             if (underlyingTransaction != null) {
-                // lookup equivalent method on Transaction class (TODO: cache methods)
+                // lookup equivalent method on Transaction class (TODO: cache Transaction methods)
                 method = underlyingTransaction.getClass().getMethod(method.getName(),method.getParameterTypes());
                 result = method.invoke(underlyingTransaction, args);
             }
+            else if(method.getName().equals("isOpen")) {
+                // underlyingSession + underlyingTransaction must of been closed, handle isOpen by returning false
+                return Boolean.FALSE;
+            }
             else {
-                result = method.invoke(underlyingSession, args);
+                // we are only proxying the session if there is an active JTA transaction, so we shouldn't reach the state of
+                // no underlyingTransaction.
+                // After the underlyingTransaction is closed, no further calls should be made (other than close/isOpen).
+                throw new RuntimeException("no underlying Neo4j transaction to invoke '" + method.getName()+"' with.");
             }
         }
-        return result;
-    }
-
-    private Object transactionProxy() {
-        TransactionProxy transactionProxy = new TransactionProxy();
-        Object result = Proxy.newProxyInstance(
-                            Transaction.class.getClassLoader(), // Todo: also load Transaction class from custom user specified modules
-                            new Class<?>[]{Transaction.class, Resource.class, StatementRunner.class},
-                            transactionProxy);
-
-        TransactionControl transactionControl = transactionControl(transactionProxy);
-        Neo4jXAResourceImpl resource = new Neo4jXAResourceImpl(transactionControl,jndiName, null, null);
-        try {
-            transactionManager.getTransaction().enlistResource(resource);
-        } catch (RollbackException e) {
-            e.printStackTrace();
-        } catch (SystemException e) {
-            e.printStackTrace();
-        }
-        transactionSynchronizationRegistry.putResource(profileName,result);
         return result;
     }
 
@@ -187,11 +183,16 @@ public class SessionProxy implements InvocationHandler {
                 }
             }
 
+            /**
+             * close the underlying Neo4j Transaction and Neo4j Session when the JTA transaction ends.
+             */
             @Override
             public void close() {
                 try {
                     underlyingTransaction.getClass().getMethod("close").invoke(underlyingTransaction, null);
                     underlyingTransaction = null;
+                    underlyingSession.getClass().getMethod("close").invoke(underlyingSession,null);
+                    underlyingSession = null;
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException("could not close the transaction", e);
                 } catch (InvocationTargetException e) {
