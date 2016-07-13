@@ -26,7 +26,9 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 
 /**
- * TransactionProxy
+ * TransactionProxy ignores calls to Transaction.success() + Transaction.failure() + Transaction.close(),
+ * which are called later.  When the JTA transaction commits, Transaction.success() + Transaction.close() are called.
+ * When the JTA transaction rolls back, Transaction.failure() + Transaction.close() are called.
  *
  * @author Scott Marlow
  */

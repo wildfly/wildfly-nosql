@@ -30,7 +30,7 @@ import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
 
 /**
- * DriverProxy
+ * DriverProxy creates SessionProxy if JTA transaction is active during Driver.session() call.
  *
  * @author Scott Marlow
  */

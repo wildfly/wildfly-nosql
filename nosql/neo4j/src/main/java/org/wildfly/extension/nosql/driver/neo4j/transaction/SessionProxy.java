@@ -130,8 +130,8 @@ public class SessionProxy implements InvocationHandler {
             }
             else {
                 // we are only proxying the session if there is an active JTA transaction, so we shouldn't reach the state of
-                // no underlyingTransaction.
-                // After the underlyingTransaction is closed, no further calls should be made (other than close/isOpen).
+                // no underlyingTransaction.  However, after the underlyingTransaction is closed,
+                // no further calls should be made (other than close/isOpen).
                 throw new RuntimeException("no underlying Neo4j transaction to invoke '" + method.getName()+"' with.");
             }
         }
