@@ -28,14 +28,9 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 
 import javax.transaction.RollbackException;
-import javax.transaction.Status;
 import javax.transaction.SystemException;
 import javax.transaction.TransactionManager;
 import javax.transaction.TransactionSynchronizationRegistry;
-
-import org.neo4j.driver.v1.StatementRunner;
-import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.util.Resource;
 
 /**
  * SessionProxy
@@ -46,17 +41,12 @@ public class SessionProxy implements InvocationHandler {
 
     private Object underlyingSession;
     private Object underlyingTransaction;
-    private TransactionManager transactionManager;
-    private TransactionSynchronizationRegistry transactionSynchronizationRegistry;
     private String profileName;
 
-    private static final String TRANSACTION_RESOURCE = "_nosqlTXPROXY_";
     private static final String SESSION_RESOURCE = "_nosqlSESSPROXY_";
 
-    SessionProxy(Object session, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName) {
+    SessionProxy(Object session, String profileName) {
         this.underlyingSession = session;
-        this.transactionManager = transactionManager;
-        this.transactionSynchronizationRegistry = transactionSynchronizationRegistry;
         this.profileName = profileName;
     }
 
@@ -65,20 +55,14 @@ public class SessionProxy implements InvocationHandler {
     }
 
     static Object registerSessionWithJTATransaction(Object underlyingSession, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
-        SessionProxy sessionProxy = new SessionProxy(underlyingSession, transactionManager, transactionSynchronizationRegistry, profileName);
+        SessionProxy sessionProxy = new SessionProxy(underlyingSession, profileName);
         Object sessionProxyInstance = Proxy.newProxyInstance(
                 underlyingSession.getClass().getClassLoader(),
                 underlyingSession.getClass().getInterfaces(),
                 sessionProxy
                 );
-        TransactionProxy transactionProxy = new TransactionProxy();
-        Object transactionProxyInstance = Proxy.newProxyInstance(
-            // TODO: also load Transaction class from custom user specified modules
-            Transaction.class.getClassLoader(),
-            new Class<?>[]{Transaction.class, Resource.class, StatementRunner.class},
-            transactionProxy);
 
-        TransactionControl transactionControl = sessionProxy.transactionControl(transactionProxy);
+        TransactionControl transactionControl = sessionProxy.transactionControl();
         Neo4jXAResourceImpl resource = new Neo4jXAResourceImpl(transactionControl,jndiName, null, null);
         try {
             transactionManager.getTransaction().enlistResource(resource);
@@ -87,7 +71,6 @@ public class SessionProxy implements InvocationHandler {
         } catch (SystemException e) {
             throw new RuntimeException(e);
         }
-        transactionSynchronizationRegistry.putResource(TRANSACTION_RESOURCE + profileName,transactionProxyInstance);
         transactionSynchronizationRegistry.putResource(SESSION_RESOURCE + profileName,sessionProxyInstance);
         return sessionProxyInstance;
     }
@@ -96,22 +79,7 @@ public class SessionProxy implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Object result;
         if (method.getName().equals("beginTransaction")) {  /// Transaction beginTransaction();
-            int txstatus = transactionManager.getStatus();
-            // if jta transaction is active,
-            if (txstatus == Status.STATUS_ACTIVE || txstatus == Status.STATUS_MARKED_ROLLBACK) {
-                //   return existing XAResource associated with transaction, using profile name of NoSQL connection
-                result = transactionSynchronizationRegistry.getResource(TRANSACTION_RESOURCE + profileName);
-                if (result != null) {
-                    return result;    // return existing transaction proxy enlisted into JTA transaction
-                }
-                else {
-                    throw new RuntimeException("internal error, transaction proxy (" + profileName+ ") not registered with TransactionSynchronizationRegistry");
-                }
-            } else {
-                // For all other javax.transaction.Status states (e.g. STATUS_ROLLEDBACK, ...), fail fast beginTransaction call by throwing an Exception
-                throw new RuntimeException("javax.transaction.Status '" + txstatus + "', fail fast the call to '" + method.getName() + "'" );
-            }
-
+            throw new RuntimeException("Incorrect use of JTA enlisted Session(" + profileName+ "), application should use JTA to control the transaction instead of Session.beginTransaction");
         }
         else if(method.getName().equals("close")) {
             // ignore call to close, as session/transaction will be auto-closed when JTA transaction ends.
@@ -138,7 +106,7 @@ public class SessionProxy implements InvocationHandler {
         return result;
     }
 
-    private TransactionControl transactionControl(final TransactionProxy transactionProxy) {
+    private TransactionControl transactionControl() {
 
         return new TransactionControl() {
 
@@ -146,7 +114,6 @@ public class SessionProxy implements InvocationHandler {
             public Object beginTransaction() {
                 try {
                     underlyingTransaction = underlyingSession.getClass().getMethod("beginTransaction").invoke(underlyingSession, null);
-                    transactionProxy.setUnderlyingTransaction(underlyingTransaction);
                     return underlyingTransaction;
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException("could not begin transaction", e);
@@ -204,5 +171,4 @@ public class SessionProxy implements InvocationHandler {
             }
         };
     }
-
 }

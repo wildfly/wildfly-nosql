@@ -22,11 +22,14 @@
 
 package org.jboss.as.test.compat.nosql.neo4j;
 
+import static org.junit.Assert.fail;
+
 import javax.annotation.Resource;
 import javax.ejb.Stateful;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import org.junit.rules.ExpectedException;
 import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
@@ -84,29 +87,28 @@ public class StatefulTestBean {
 
     public String transactionEnlistmentReadAfterCallingTransactionClose() {
         // JTA transaction is started by CMT, the following obtains a Session that is enlisted into the JTA transaction.
-        // The
         Session session = injectedDriver.session();
-        // Obtain the org.neo4j.driver.v1.Transaction.  All calls to session or transaction,
-        // will be invoked via the org.neo4j.driver.v1.Transaction.
-        // Calls to Transaction.success/close/failure are ignored, which is important to note, so transaction.failure()
-        // does not cause a failure.
         // The only way to influence success/failure of the Neo4j + JTA transaction, is at the JTA transaction level.
         // If the JTA transaction fails, org.neo4j.driver.v1.Transaction.failure() is called.
         // If the JTA transaction succeeds, org.neo4j.driver.v1.Transaction.success() is called.
         // org.neo4j.driver.v1.Transaction.close() is also called when the JTA transaction ends.
-        Transaction transaction = session.beginTransaction();
+
+        // Calls to Session.beginTransaction() in a JTA transaction are expected to throw a RuntimeException
         try {
-            transaction.run("CREATE (a:Person {name:'TRANSACTION', title:'King'})");
-            transaction.success();       // ignored
-            transaction.close();         // ignored
+            Transaction transaction = session.beginTransaction();
+            fail("Calling Session.beginTransaction in a JTA transaction should throw a RuntimeException.");
+        } catch (RuntimeException expectedException) {
+            // success
+        }
+
+        try {
+            session.run("CREATE (a:Person {name:'TRANSACTION', title:'King'})");
             return nestedBean.getPerson("TRANSACTION");
         } finally {
-            if ( transaction.isOpen()) { // this will be true
+            if ( session.isOpen()) { // this will be true
                 session.run("MATCH (a:Person) delete a");
-                transaction.close();     // ignored
+                session.close();             // ignored, session is auto closed when the transaction ends.
             }
-            session.close();             // ignored, session is auto closed when the transaction ends.
-
         }
     }
 

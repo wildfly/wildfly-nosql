@@ -22,6 +22,8 @@
 
 package org.jboss.as.test.compat.nosql.neo4j;
 
+import static org.junit.Assert.fail;
+
 import javax.annotation.Resource;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
@@ -63,21 +65,16 @@ public class BMTStatefulTestBean {
             if (session != driver.session()) {
                 throw new RuntimeException("multiple calls to Driver.session() must return the same session within JTA transaction.");
             }
-            // obtain org.neo4j.driver.v1.Transaction within JTA transaction, which will is enlisted into the JTA transaction.
-            Transaction transaction = session.beginTransaction();
 
-            if (transaction != session.beginTransaction()) {
-                throw new RuntimeException("multiple calls to Session.beginTransaction() must return the same (Neo4j) transaction within JTA transaction.");
+            // Calls to Session.beginTransaction() in a JTA transaction are expected to throw a RuntimeException
+            try {
+                Transaction transaction = session.beginTransaction();
+                fail("Calling Session.beginTransaction in a JTA transaction should throw a RuntimeException.");
+            } catch (RuntimeException expectedException) {
+                // success
             }
 
-            transaction.run("CREATE (a:Person {name:'BMT', title:'King'})");
-            // the following two calls (tx.success()/tx.close()) are ignored, instead when the JTA transaction ends, the following two calls are
-            // then made internally.
-            transaction.success();
-            transaction.close();
-            if (transaction.isOpen() != true) {
-                throw new RuntimeException("calls to (Ne04j) Transaction.close should be ignored, as transaction will close after JTA transaction ends.");
-            }
+            session.run("CREATE (a:Person {name:'BMT', title:'King'})");
 
             // calls to close the session should also be ignored, since the session is also considered to be enlisted into the JTA transaction
             session.close();
@@ -88,10 +85,6 @@ public class BMTStatefulTestBean {
             // commit the JTA transaction, which also calls org.neo4j.driver.v1.Transaction.success()/close().
             // if the JTA transaction rolls back, org.neo4j.driver.v1.Transaction.failure()/close() would instead be called.
             userTransaction.commit();
-
-            if (transaction.isOpen() != false) {
-                throw new RuntimeException("(Ne04j) Transaction should now be closed since JTA transaction ended.");
-            }
 
             if (session.isOpen() != false) {
                 throw new RuntimeException("Session should now be closed since JTA transaction ended.");
@@ -105,10 +98,12 @@ public class BMTStatefulTestBean {
                 throw new RuntimeException("multiple calls to Driver.session() must return the same session within JTA transaction.");
             }
 
-            transaction = session.beginTransaction();   // get the JTA transaction enlisted (Ne04j) transaction
-
-            if (transaction != session.beginTransaction()) {
-                throw new RuntimeException("multiple calls to Session.beginTransaction() must return the same (Neo4j) transaction within JTA transaction.");
+            // Calls to Session.beginTransaction() in a JTA transaction are expected to throw a RuntimeException
+            try {
+                Transaction transaction = session.beginTransaction();
+                fail("Calling Session.beginTransaction in a JTA transaction should throw a RuntimeException.");
+            } catch (RuntimeException expectedException) {
+                // success
             }
 
             StatementResult result = session.run("MATCH (a:Person) WHERE a.name = 'BMT' RETURN a.name AS name, a.title AS title");
