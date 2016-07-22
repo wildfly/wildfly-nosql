@@ -29,33 +29,45 @@ import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.VAL
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.WRITE_ATTRIBUTE_OPERATION;
 import static org.jboss.as.test.integration.management.util.ModelUtil.createOpNode;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.util.Hashtable;
 
 import javax.naming.Context;
 import javax.naming.InitialContext;
+import javax.naming.NameClassPair;
+import javax.naming.NameNotFoundException;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 
 import com.mongodb.client.MongoDatabase;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
+import org.jboss.as.arquillian.api.ServerSetupTask;
+import org.jboss.as.arquillian.api.ServerSetup;
+import org.jboss.as.arquillian.container.ManagementClient;
 import org.jboss.as.test.integration.management.base.ContainerResourceMgmtTestBase;
 import org.jboss.as.test.integration.management.util.MgmtOperationException;
+import org.jboss.as.test.integration.management.base.AbstractMgmtTestBase;
+import org.jboss.as.test.shared.ServerReload;
 import org.jboss.as.test.shared.TestSuiteEnvironment;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.EnterpriseArchive;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
+import org.jboss.staxmapper.XMLElementReader;
+import org.jboss.staxmapper.XMLElementWriter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
 
 /**
  * CustomModuleTestCase
@@ -63,34 +75,65 @@ import org.junit.runner.RunWith;
  * @author Scott Marlow
  */
 @RunWith(Arquillian.class)
-@Ignore // stopped working when I added @Deployment
-public class CustomModuleTestCase extends ContainerResourceMgmtTestBase {
+@ServerSetup(CustomModuleTestCase.TestCaseSetup.class)
+public class CustomModuleTestCase  {
 
+    @ArquillianResource
     private static InitialContext iniCtx;
 
     private static final String ARCHIVE_NAME = "CustomModuleTestCase_test";
 
     @Deployment
-    public static Archive<?> deploy() throws Exception {
-
-        EnterpriseArchive ear = ShrinkWrap.create(EnterpriseArchive.class, ARCHIVE_NAME + ".ear");
-        JavaArchive lib = ShrinkWrap.create(JavaArchive.class, "beans.jar");
-        lib.addPackage(StatefulTestBean.class.getPackage());
-        lib.addClasses(MgmtOperationException.class);
-        ear.addAsModule(lib);
-        final WebArchive main = ShrinkWrap.create(WebArchive.class, "main.war");
-        main.addClasses(CustomModuleTestCase.class);
-        ear.addAsModule(main);
-        return ear;
+    public static JavaArchive deploy() throws Exception {
+        JavaArchive jar = ShrinkWrap.create(JavaArchive.class, "beans.jar");
+        jar.addPackage(StatefulTestBean.class.getPackage());
+        jar.addClasses(MgmtOperationException.class);
+        jar.addClasses(CustomModuleTestCase.class, MgmtOperationException.class, XMLElementReader.class,
+                XMLElementWriter.class, AbstractMgmtTestBase.class, ContainerResourceMgmtTestBase.class)
+                .addAsManifestResource(
+                        new StringAsset(
+                                "Dependencies: org.jboss.as.controller-client,org.jboss.dmr,org.jboss.as.cli \n"),
+                        "MANIFEST.MF");
+        return jar;
     }
 
     protected static <T> T lookup(String beanName, Class<T> interfaceType) throws NamingException {
-        return interfaceType.cast(iniCtx.lookup("java:global/" + ARCHIVE_NAME + "/" + "beans/" + beanName + "!" + interfaceType.getName()));
+        // String find = "java:global/" + ARCHIVE_NAME + "/" + "beans/" + beanName + "!" + interfaceType.getName();
+        String find = "java:global/" + "beans/" + beanName + "!" + interfaceType.getName();
+        try {
+            return interfaceType.cast(iniCtx.lookup(find));
+        } catch(NameNotFoundException e) {
+            dumpJndi(find);
+            throw e;
+        }
+    }
+
+    private static void dumpJndi(String s) {
+        try {
+            dumpTreeEntry(iniCtx.list(s), s);
+        } catch (NamingException ignore) {
+        }
+    }
+
+    private static void dumpTreeEntry(NamingEnumeration<NameClassPair> list, String s) throws NamingException {
+        System.out.println("\ndump " + s);
+        while (list.hasMore()) {
+            NameClassPair ncp = list.next();
+            System.out.println(ncp.toString());
+            if (s.length() == 0) {
+                dumpJndi(ncp.getName());
+            } else {
+                dumpJndi(s + "/" + ncp.getName());
+            }
+        }
     }
 
     @Test
     public void jndiLookup() throws Exception {
         Object value = iniCtx.lookup("java:jboss/mongodb/test");
+        if (value == null) {
+              dumpJndi("java:jboss/mongodb/test");
+        }
         assertTrue(value instanceof MongoDatabase);
     }
 
@@ -101,16 +144,14 @@ public class CustomModuleTestCase extends ContainerResourceMgmtTestBase {
         statefulTestBean.addProduct();
     }
 
+
     @Test
-    public void testHasTestModuleSlot() throws IOException, MgmtOperationException {
-        ModelNode result = executeOperation(createOpNode("subsystem=mongodb/mongo=default", "read-resource"));
-
-        assertTrue("contains database : " + result.toJSONString(true), result.get("database").isDefined());
-        assertTrue("contains database=mongotestdb : " + result.toJSONString(true), result.get("database").asString().equals("mongotestdb"));
-
-        assertTrue("contains module : " + result.toJSONString(true), result.get("module").isDefined());
-        assertTrue("contains module=org.mongodb.driver:test : " + result.toJSONString(true), result.get("module").asString().equals("org.mongodb.driver:test"));
+    public void testHasTestModuleSlot() throws Exception {
+        StatefulTestBean statefulTestBean = lookup("StatefulTestBean", StatefulTestBean.class);
+        String classLoaderName = statefulTestBean.getNoSQLClassLoader().toString();
+        assertTrue(classLoaderName + " contains module org.mongodb.driver:test : " + classLoaderName, classLoaderName.contains("org.mongodb.driver:test"));
     }
+
 
     @BeforeClass
     public static void beforeClass() throws NamingException {
@@ -121,34 +162,47 @@ public class CustomModuleTestCase extends ContainerResourceMgmtTestBase {
         iniCtx = new InitialContext(env);
     }
 
-    @Before
-    public void doSetup() throws Exception {
-        ModelNode address = new ModelNode();
-        address.add("subsystem", "mongodb");
-        address.add("mongo", "default");
-        address.protect();
 
-        final ModelNode operation = new ModelNode();
-        operation.get(OP_ADDR).set(address);
-        operation.get(OP).set(WRITE_ATTRIBUTE_OPERATION);
-        operation.get(NAME).set("module");
-        operation.get(VALUE).set("org.mongodb.driver:test");
-        ModelNode result = executeOperation(operation);
-    }
+    static class TestCaseSetup extends ContainerResourceMgmtTestBase implements ServerSetupTask {
 
-    @After
-    public void tearDown() throws Exception {
-        ModelNode address = new ModelNode();
-        address.add("subsystem", "mongodb");
-        address.add("mongo", "default");
-        address.protect();
 
-        final ModelNode operation = new ModelNode();
-        operation.get(OP_ADDR).set(address);
-        operation.get(OP).set(WRITE_ATTRIBUTE_OPERATION);
-        operation.get(NAME).set("module");
-        operation.get(VALUE).set("org.mongodb.driver");
-        ModelNode result = executeOperation(operation);
+        @Override
+        public final void setup(final ManagementClient managementClient, final String containerId) throws Exception {
+            setManagementClient(managementClient);
+            ModelNode address = new ModelNode();
+            address.add("subsystem", "mongodb");
+            address.add("mongo", "default");
+            address.protect();
+
+            final ModelNode operation = new ModelNode();
+            operation.get(OP_ADDR).set(address);
+            operation.get(OP).set(WRITE_ATTRIBUTE_OPERATION);
+            operation.get(NAME).set("module");
+            operation.get(VALUE).set("org.mongodb.driver:test");
+            ModelNode result = executeOperation(operation);
+            reload();
+        }
+
+        @Override
+        public void tearDown(final ManagementClient managementClient, final String containerId) throws Exception {
+            ModelNode address = new ModelNode();
+            address.add("subsystem", "mongodb");
+            address.add("mongo", "default");
+            address.protect();
+
+            final ModelNode operation = new ModelNode();
+            operation.get(OP_ADDR).set(address);
+            operation.get(OP).set(WRITE_ATTRIBUTE_OPERATION);
+            operation.get(NAME).set("module");
+            operation.get(VALUE).set("org.mongodb.driver:test");
+            ModelNode result = executeOperation(operation);
+            reload();
+        }
+
+        public void reload() throws Exception {
+            ServerReload.executeReloadAndWaitForCompletion(getModelControllerClient(), 50000);
+        }
+
     }
 }
 

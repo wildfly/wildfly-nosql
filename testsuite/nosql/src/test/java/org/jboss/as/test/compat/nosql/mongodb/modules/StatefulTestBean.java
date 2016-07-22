@@ -102,4 +102,8 @@ public class StatefulTestBean {
             }
         }
     }
+
+    public ClassLoader getNoSQLClassLoader() {
+        return database.getClass().getClassLoader();
+    }
 }
