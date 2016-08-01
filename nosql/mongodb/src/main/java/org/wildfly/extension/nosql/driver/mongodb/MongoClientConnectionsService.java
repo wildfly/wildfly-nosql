@@ -27,8 +27,6 @@ import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
 import org.jboss.as.network.OutboundSocketBinding;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.inject.MapInjector;
@@ -49,8 +47,8 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
     final ConfigurationBuilder configurationBuilder;
     // standard application server way to obtain target hostname + port for target NoSQL database server(s)
     private Map<String, OutboundSocketBinding> outboundSocketBindings = new HashMap<String, OutboundSocketBinding>();
-    private MongoClient client;
-    private MongoDatabase database;
+    private Object /* MongoClient */ client;
+    private Object /* MongoDatabase */ database;
     private MongoInteraction mongoInteraction;
 
     public InjectedValue<MongoSubsystemService> getMongoSubsystemServiceInjectedValue() {
@@ -75,12 +73,26 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
         mongoSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configurationBuilder.getJNDIName(), configurationBuilder.getModuleName());
         mongoSubsystemServiceInjectedValue.getValue().addModuleNameFromProfile(configurationBuilder.getDescription(), configurationBuilder.getModuleName());
         for (OutboundSocketBinding target : outboundSocketBindings.values()) {
-            mongoInteraction.hostPort(target.getUnresolvedDestinationAddress(), target.getDestinationPort());
+            try {
+                mongoInteraction.hostPort(target.getUnresolvedDestinationAddress(), target.getDestinationPort());
+            } catch (Throwable throwable) {
+                throw new RuntimeException("could not setup ServerAddress for " + target.getUnresolvedDestinationAddress() + " " + target.getDestinationPort(),throwable);
+            }
         }
-        client = mongoInteraction.mongoClient();
+        try {
+            client = mongoInteraction.mongoClient();
+        } catch (Throwable throwable) {
+            throw new RuntimeException("could not setup connection to " + configurationBuilder.getDescription(),throwable);
+        }
+
         if (configurationBuilder.getDatabase() != null) {
-            database = mongoInteraction.getDB(client);
+            try {
+                database = mongoInteraction.getDB();
+            } catch (Throwable throwable) {
+                throw new RuntimeException("could not use database " + configurationBuilder.getDatabase(),throwable);
+            }
         }
+
     }
 
     @Override
@@ -88,7 +100,7 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
         try {
             mongoSubsystemServiceInjectedValue.getValue().removeModuleNameFromJndi(configurationBuilder.getJNDIName());
             mongoSubsystemServiceInjectedValue.getValue().removeModuleNameFromProfile(configurationBuilder.getDescription());
-            mongoInteraction.close(client);
+            mongoInteraction.close();
         } catch (Throwable throwable) {
             ROOT_LOGGER.driverFailedToStop(throwable);
         }
@@ -100,20 +112,29 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
         return this;
     }
 
-    public MongoClient getClient() {
+    public Object /* MongoClient */ getClient() {
         return client;
     }
 
-    public MongoDatabase getDatabase() {
+    public Object /* MongoDatabase */ getDatabase() {
         return database;
+    }
+
+    private Class getMongoClientClass() {
+        return mongoInteraction.getMongoClientClass();
+    }
+
+    private Class getMongoDatabaseClass() {
+        return mongoInteraction.getMongoDatabaseClass();
     }
 
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        if ( MongoClient.class.isAssignableFrom( clazz ) ) {
+
+        if ( getMongoClientClass().isAssignableFrom( clazz ) ) {
             return (T) client;
         }
-        if ( MongoDatabase.class.isAssignableFrom( clazz)) {
+        if ( database != null && getMongoDatabaseClass().isAssignableFrom( clazz)) {
             return (T) database;
         }
         throw ROOT_LOGGER.unassignable(clazz);

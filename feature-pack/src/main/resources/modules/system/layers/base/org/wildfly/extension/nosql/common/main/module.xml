@@ -48,6 +48,7 @@
         <module name="org.jboss.as.network"/>
         <module name="org.jboss.as.server"/>
         <module name="org.jboss.as.threads"/>
+        <module name="org.jboss.as.weld"/>
         <module name="org.jboss.invocation"/>
         <module name="org.jboss.jandex"/>
         <module name="org.jboss.logging"/>

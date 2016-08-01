@@ -24,12 +24,17 @@ package org.wildfly.nosql.common;
 
 import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.List;
 
 import javax.annotation.Resource;
 import javax.annotation.Resources;
+import javax.enterprise.inject.spi.Extension;
 import javax.inject.Named;
 
+import org.jboss.as.ee.weld.WeldDeploymentMarker;
 import org.jboss.as.server.CurrentServiceContainer;
 import org.jboss.as.server.deployment.AttachmentKey;
 import org.jboss.as.server.deployment.Attachments;
@@ -38,6 +43,7 @@ import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.server.deployment.annotation.CompositeIndex;
+import org.jboss.as.weld.deployment.WeldPortableExtensions;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.AnnotationTarget;
 import org.jboss.jandex.AnnotationValue;
@@ -45,6 +51,10 @@ import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
 import org.jboss.jandex.FieldInfo;
 import org.jboss.jandex.MethodInfo;
+import org.jboss.modules.Module;
+import org.jboss.modules.ModuleIdentifier;
+import org.jboss.modules.ModuleLoadException;
+import org.jboss.modules.ModuleLoader;
 import org.jboss.msc.service.ServiceName;
 
 /**
@@ -196,6 +206,8 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
                 throw ROOT_LOGGER.cannotAddReferenceToModule(module, currentValue, deploymentUnit.getName());
             }
         }
+        final ModuleLoader moduleLoader = Module.getBootModuleLoader();
+        mongoSetup(deploymentUnit, moduleLoader, module);
     }
 
     protected static String getPerDeploymentDeploymentModuleName(DeploymentUnit deploymentUnit) {
@@ -205,6 +217,47 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         synchronized (deploymentUnit) {
             return deploymentUnit.getAttachment(perModuleNameKey);
         }
+    }
+
+    private void mongoSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        Class mongoClientClass, mongoDatabaseClass;
+
+        try {
+            mongoClientClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass("com.mongodb.MongoClient");
+            mongoDatabaseClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass("com.mongodb.client.MongoDatabase");
+
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a MongoDB module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
+        }
+        // only reach this point if module is a MongoDB driver
+        try {
+            final DeploymentUnit parent = deploymentUnit.getParent() == null ? deploymentUnit : deploymentUnit.getParent();
+            if (WeldDeploymentMarker.isPartOfWeldDeployment(deploymentUnit)) {
+                WeldPortableExtensions extensions = WeldPortableExtensions.getPortableExtensions(parent);
+                ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb");
+                Class mongoExtensionClass = moduleLoader.loadModule(mongoCDIExtensionModule).getClassLoader().loadClass("org.wildfly.extension.nosql.cdi.MongoExtension");
+                final MethodHandles.Lookup lookup = MethodHandles.lookup();
+                MethodHandle mongoExtensionCtor = lookup.findConstructor(mongoExtensionClass, MethodType.methodType(void.class, Class.class, Class.class));
+                Extension extension = (Extension) mongoExtensionCtor.invoke(mongoClientClass, mongoDatabaseClass);
+                extensions.registerExtensionInstance(extension, parent);
+            }
+        } catch (ClassNotFoundException expected) {
+            throw new RuntimeException("could not load NoSQL driver CDI extension module " + nosqlDriverModuleName);
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver CDI extension module " + nosqlDriverModuleName);
+        } catch (InstantiationException e) {
+            throw new RuntimeException("could not create new instance of MongoDB extension", e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("could not create new instance of MongoDB extension", e);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Missing method", e);
+        } catch (Throwable throwable) {
+            throw new RuntimeException("unexpected error", throwable);
+        }
+
     }
 
     private SubsystemService getService() {

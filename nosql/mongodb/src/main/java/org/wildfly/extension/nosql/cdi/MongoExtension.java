@@ -42,8 +42,6 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.InjectionTarget;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
 
-import com.mongodb.MongoClient;
-import com.mongodb.client.MongoDatabase;
 import org.jboss.as.server.CurrentServiceContainer;
 import org.wildfly.extension.nosql.subsystem.mongodb.MongoSubsystemService;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
@@ -56,26 +54,32 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
  * defined by @Inject in application beans
  * Registration will be aborted if user defines her own <code>MongoClient</code> bean or producer
  *
- * TODO: eliminate dependency on MongoDB client classes so different MongoDB driver modules can be used.
- *
  * @author Antoine Sabot-Durand
  * @author Scott Marlow
  */
 public class MongoExtension implements Extension {
 
+    private final Class mongoClientClass;
+    private final Class mongoDatabaseClass;
+
+    public MongoExtension(Class mongoClientClass, Class mongoDatabaseClass) {
+        this.mongoClientClass = mongoClientClass;
+        this.mongoDatabaseClass = mongoDatabaseClass;
+    }
+
     private static final Logger log = Logger.getLogger(MongoExtension.class.getName());
 
     void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
-        if (bm.getBeans(MongoClient.class, DefaultLiteral.INSTANCE).isEmpty()) {
+        if (bm.getBeans(mongoClientClass, DefaultLiteral.INSTANCE).isEmpty()) {
             // Iterate profiles and create Cluster/Session bean for each profile, that application code can @Inject
             for(String profile: getService().profileNames()) {
                 log.log(Level.INFO, "Registering bean for profile {0}", profile);
                 abd.addBean(bm.createBean(
-                        new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(MongoClient.class)), profile),
-                        MongoClient.class, new MongoClientProducerFactory(profile)));
+                        new MongoClientBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(mongoClientClass)), profile),
+                        mongoClientClass, new MongoClientProducerFactory(profile, mongoClientClass)));
                 abd.addBean(bm.createBean(
-                        new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(MongoDatabase.class)), profile),
-                        MongoDatabase.class, new MongoDatabaseProducerFactory(profile)));
+                        new MongoDatabaseBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(mongoDatabaseClass)), profile),
+                        mongoDatabaseClass, new MongoDatabaseProducerFactory(profile, mongoDatabaseClass)));
             }
          } else {
             log.log(Level.INFO, "Application contains a default MongoClient Bean, automatic registration will be disabled");
@@ -86,12 +90,12 @@ public class MongoExtension implements Extension {
         return (SubsystemService) CurrentServiceContainer.getServiceContainer().getService(MongoSubsystemService.serviceName()).getValue();
     }
 
-    private static class MongoClientBeanAttributes implements BeanAttributes<MongoClient> {
+    private static class MongoClientBeanAttributes<T> implements BeanAttributes<T> {
 
-        private BeanAttributes<MongoClient> delegate;
+        private BeanAttributes<T> delegate;
         private final String profile;
 
-        MongoClientBeanAttributes(BeanAttributes<MongoClient> beanAttributes, String profile) {
+        MongoClientBeanAttributes(BeanAttributes<T> beanAttributes, String profile) {
             delegate = beanAttributes;
             this.profile = profile;
         }
@@ -130,37 +134,39 @@ public class MongoExtension implements Extension {
         }
     }
 
-    private static class MongoClientProducerFactory
-            implements InjectionTargetFactory<MongoClient> {
+    private static class MongoClientProducerFactory<T>
+            implements InjectionTargetFactory<T> {
         final String profile;
+        final Class mongoClientClass;
 
-        MongoClientProducerFactory(String profile) {
+        MongoClientProducerFactory(String profile, Class mongoClientClass) {
             this.profile = profile;
+            this.mongoClientClass = mongoClientClass;
         }
 
         @Override
-        public InjectionTarget<MongoClient> createInjectionTarget(Bean<MongoClient> bean) {
-            return new InjectionTarget<MongoClient>() {
+        public InjectionTarget<T> createInjectionTarget(Bean<T> bean) {
+            return new InjectionTarget<T>() {
                 @Override
-                public void inject(MongoClient instance, CreationalContext<MongoClient> ctx) {
+                public void inject(T instance, CreationalContext<T> ctx) {
                 }
 
                 @Override
-                public void postConstruct(MongoClient instance) {
+                public void postConstruct(T instance) {
                 }
 
                 @Override
-                public void preDestroy(MongoClient instance) {
+                public void preDestroy(T instance) {
                 }
 
                 @Override
-                public MongoClient produce(CreationalContext<MongoClient> ctx) {
+                public T produce(CreationalContext<T> ctx) {
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
-                    return noSQLConnection.unwrap(MongoClient.class);
+                    return (T)noSQLConnection.unwrap(mongoClientClass);
                 }
 
                 @Override
-                public void dispose(MongoClient connection) {
+                public void dispose(T connection) {
                     // connection.close();
                 }
 
@@ -172,12 +178,12 @@ public class MongoExtension implements Extension {
         }
     }
 
-    private static class MongoDatabaseBeanAttributes implements BeanAttributes<MongoDatabase> {
+    private static class MongoDatabaseBeanAttributes<T> implements BeanAttributes<T> {
 
-        private BeanAttributes<MongoDatabase> delegate;
+        private BeanAttributes<T> delegate;
         private final String profile;
 
-        MongoDatabaseBeanAttributes(BeanAttributes<MongoDatabase> beanAttributes, String profile) {
+        MongoDatabaseBeanAttributes(BeanAttributes<T> beanAttributes, String profile) {
             delegate = beanAttributes;
             this.profile = profile;
         }
@@ -216,37 +222,39 @@ public class MongoExtension implements Extension {
         }
     }
 
-    private static class MongoDatabaseProducerFactory
-            implements InjectionTargetFactory<MongoDatabase> {
+    private static class MongoDatabaseProducerFactory<T>
+            implements InjectionTargetFactory<T> {
         private final String profile;
+        private final Class mongoDatabaseClass;
 
-        MongoDatabaseProducerFactory(String profile) {
+        MongoDatabaseProducerFactory(String profile, Class mongoDatabaseClass) {
             this.profile = profile;
+            this.mongoDatabaseClass = mongoDatabaseClass;
         }
 
         @Override
-        public InjectionTarget<MongoDatabase> createInjectionTarget(Bean<MongoDatabase> bean) {
-            return new InjectionTarget<MongoDatabase>() {
+        public InjectionTarget<T> createInjectionTarget(Bean<T> bean) {
+            return new InjectionTarget<T>() {
                 @Override
-                public void inject(MongoDatabase instance, CreationalContext<MongoDatabase> ctx) {
+                public void inject(T instance, CreationalContext<T> ctx) {
                 }
 
                 @Override
-                public void postConstruct(MongoDatabase instance) {
+                public void postConstruct(T instance) {
                 }
 
                 @Override
-                public void preDestroy(MongoDatabase instance) {
+                public void preDestroy(T instance) {
                 }
 
                 @Override
-                public MongoDatabase produce(CreationalContext<MongoDatabase> ctx) {
+                public T produce(CreationalContext<T> ctx) {
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
-                    return noSQLConnection.unwrap(MongoDatabase.class);
+                    return (T)noSQLConnection.unwrap(mongoDatabaseClass);
                 }
 
                 @Override
-                public void dispose(MongoDatabase database) {
+                public void dispose(T database) {
 
                 }
 

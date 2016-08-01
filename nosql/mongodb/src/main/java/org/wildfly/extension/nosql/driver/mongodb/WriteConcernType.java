@@ -22,8 +22,6 @@
 
 package org.wildfly.extension.nosql.driver.mongodb;
 
-import com.mongodb.WriteConcern;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,21 +30,11 @@ import java.util.List;
  */
 public enum WriteConcernType {
 
-    ACKNOWLEDGED(WriteConcern.ACKNOWLEDGED),
-    UNACKNOWLEDGED(WriteConcern.UNACKNOWLEDGED),
-    JOURNALED(WriteConcern.JOURNALED),
-    MAJORITY(WriteConcern.MAJORITY);
+    ACKNOWLEDGED,
+    UNACKNOWLEDGED(),
+    JOURNALED(),
+    MAJORITY();
 
     public static final List<String> NAMES = Arrays.asList("ACKNOWLEDGED", "UNACKNOWLEDGED", "JOURNALED", "MAJORITY");
-
-    private final WriteConcern writeConcern;
-
-    WriteConcernType(WriteConcern writeConcern) {
-        this.writeConcern = writeConcern;
-    }
-
-    public WriteConcern getWriteConcern() {
-        return writeConcern;
-    }
 
 }

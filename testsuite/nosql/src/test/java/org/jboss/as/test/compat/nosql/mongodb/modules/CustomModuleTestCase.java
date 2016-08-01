@@ -194,7 +194,7 @@ public class CustomModuleTestCase  {
             operation.get(OP_ADDR).set(address);
             operation.get(OP).set(WRITE_ATTRIBUTE_OPERATION);
             operation.get(NAME).set("module");
-            operation.get(VALUE).set("org.mongodb.driver:test");
+            operation.get(VALUE).set("org.mongodb.driver:main");
             ModelNode result = executeOperation(operation);
             reload();
         }

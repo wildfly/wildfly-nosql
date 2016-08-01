@@ -183,7 +183,7 @@ public class MongoDefinition extends PersistentResourceDefinition {
                             for (Property property : propertyModels.get(CommonAttributes.PROPERTY).asPropertyList()) {
                                 if (property.getName().equals(CommonAttributes.WRITE_CONCERN)) {
                                     builder.setWriteConcern(
-                                            WriteConcernType.valueOf(property.getValue().asString()).getWriteConcern());
+                                            WriteConcernType.valueOf(property.getValue().asString()).name());
                                 }
                             }
                         }

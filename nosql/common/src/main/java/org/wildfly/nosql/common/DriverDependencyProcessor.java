@@ -31,6 +31,7 @@ import org.jboss.as.server.deployment.module.ModuleDependency;
 import org.jboss.as.server.deployment.module.ModuleSpecification;
 import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
+import org.jboss.modules.ModuleLoadException;
 import org.jboss.modules.ModuleLoader;
 
 /**
@@ -51,25 +52,31 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
      */
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         final DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
-        final String moduleName = DriverScanDependencyProcessor.getPerDeploymentDeploymentModuleName(deploymentUnit);
+        final String nosqlDriverModuleName = DriverScanDependencyProcessor.getPerDeploymentDeploymentModuleName(deploymentUnit);
 
-        if (moduleName != null) {
+        if (nosqlDriverModuleName != null) {
             final ModuleSpecification moduleSpecification = deploymentUnit.getAttachment(Attachments.MODULE_SPECIFICATION);
             final ModuleLoader moduleLoader = Module.getBootModuleLoader();
-
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(moduleName));
-            addMongoCDIDependency(moduleSpecification, moduleLoader, moduleName);
-            addCassandraCDIDependency(moduleSpecification, moduleLoader, moduleName);
-            addNeo4jCDIDependency(moduleSpecification, moduleLoader, moduleName);
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(nosqlDriverModuleName));
+            addMongoCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+            addCassandraCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+            addNeo4jCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
         }
 
     }
 
-    private void addMongoCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
-        if ("org.mongodb.driver".equals(moduleName)) { // temp hack for cdi extension loading
-                                                       // TODO: instead try loading a MongoDB class from modululeName
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb"));
+    private void addMongoCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        try {
+            moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass("com.mongodb.MongoClient");
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a MongoDB module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
         }
+        // only reach this point if module is a MongoDB driver
+        ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb");
+        addDependency(moduleSpecification, moduleLoader, mongoCDIExtensionModule);
     }
 
     private void addNeo4jCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
