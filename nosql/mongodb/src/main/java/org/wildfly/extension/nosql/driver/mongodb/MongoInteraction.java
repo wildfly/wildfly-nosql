@@ -144,7 +144,6 @@ public class MongoInteraction {
 
         try {
             builderCtorMethod = lookup.findConstructor(mongoBuilderClass, MethodType.methodType(void.class));
-            // builderCtorMethod.asType((builderCtorMethod.type().changeReturnType(mongoBuilderClass)));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Could not get 'ctor' method " + MONGOBUILDERCLASS, e);
         } catch (IllegalAccessException e) {
@@ -225,7 +224,7 @@ public class MongoInteraction {
     }
 
     public Object /* MongoClientOptions */ mongoClientOptions() throws Throwable {
-        Object builder = mongoBuilderClass.newInstance();
+        Object builder = builderCtorMethod.invoke();
         // builder.description(configurationBuilder.getDescription());
         //descriptionMethod.invokeExact(builder, configurationBuilder.getDescription());
         descriptionMethod.invoke(builder, configurationBuilder.getDescription());
