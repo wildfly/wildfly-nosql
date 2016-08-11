@@ -91,8 +91,10 @@ public class MongoDBTestCase {
     @Test
     public void testSimpleCreateAndLoadEntities() throws Exception {
         StatefulTestBean statefulTestBean = lookup("StatefulTestBean", StatefulTestBean.class);
-        statefulTestBean.addUserComment();
-        statefulTestBean.addProduct();
+        String comment = statefulTestBean.addUserComment();
+        assertTrue(comment + " contains \"MongoDB Is Web Scale\"", comment.contains("MongoDB Is Web Scale"));
+        String product = statefulTestBean.addProduct();
+        assertTrue(product + " contains \"Acme products\"", product.contains("Acme products"));
     }
 
     private static void dumpJndi(String s) {

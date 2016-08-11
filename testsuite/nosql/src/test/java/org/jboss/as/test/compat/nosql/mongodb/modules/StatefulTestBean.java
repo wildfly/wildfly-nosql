@@ -50,7 +50,7 @@ public class StatefulTestBean {
     @Named("mongodbtestprofile")
     MongoDatabase injectedDatabase;
 
-    public void addUserComment() {
+    public String addUserComment() {
         MongoCollection collection = null;
         Document query = null;
         try {
@@ -62,8 +62,7 @@ public class StatefulTestBean {
                             .append("city", "Fastville")
                             .append("state", "MA")
                             .append("zip", 18180))
-                    .append("comment", "I really love your new website but I have a lot of questions about using NoSQL versus a traditional RDBMS.  " +
-                            "I would like to sign up for your 'Mongo DB Is Web Scale' training session.");
+                    .append("comment", "MongoDB Is Web Scale");
             // save the comment
             collection = database.getCollection("comments");
             collection.insertOne(comment);
@@ -72,13 +71,13 @@ public class StatefulTestBean {
             query = new Document("_id", who);
             FindIterable cursor = collection.find(query);
             Object userComment = cursor.first();
-            System.out.println("DBObject.toString() = " + userComment.toString());
+            return userComment.toString();
         } finally {
             collection.drop();
         }
     }
 
-    public void addProduct() {
+    public String addProduct() {
         MongoCollection collection = null;
         Document query = null;
         try {
@@ -95,7 +94,7 @@ public class StatefulTestBean {
             query = new Document("_id", companyName);
             FindIterable cursor = collection.find(query);
             Object dbObject = cursor.first();
-            System.out.println("DBObject.toString() = " + dbObject.toString());
+            return dbObject.toString();
         } finally {
             if (query != null) {
                 collection.drop();
