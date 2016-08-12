@@ -57,11 +57,11 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
         if (nosqlDriverModuleName != null) {
             final ModuleSpecification moduleSpecification = deploymentUnit.getAttachment(Attachments.MODULE_SPECIFICATION);
             final ModuleLoader moduleLoader = Module.getBootModuleLoader();
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(moduleName));
-            addMongoCDIDependency(moduleSpecification, moduleLoader, moduleName);
-            addCassandraCDIDependency(moduleSpecification, moduleLoader, moduleName);
-            addNeo4jCDIDependency(moduleSpecification, moduleLoader, moduleName);
-            addOrientCDIDependency(moduleSpecification, moduleLoader, moduleName);
+            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(nosqlDriverModuleName));
+            addMongoCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+            addCassandraCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+            addNeo4jCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+            addOrientCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
         }
 
     }
