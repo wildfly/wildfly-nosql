@@ -32,7 +32,9 @@ import org.jboss.modules.ModuleIdentifier;
 import org.jboss.modules.ModuleLoadException;
 
 /**
- * MethodHandleBuilder helps construct a series of MethodHandle
+ * MethodHandleBuilder helps construct a series of MethodHandle's.
+ *
+ * Usage:
  * MethodHandleBuilder mhb = new MethodHandleBuilder();
  * mhb.classLoader(moduleIdentifier).className("com.mongodb.MongoClient")
  * MethodHandle closeMethod = mhb.method("close");
@@ -43,8 +45,9 @@ import org.jboss.modules.ModuleLoadException;
  */
 public class MethodHandleBuilder {
 
-    private ClassLoader classLoader;
-    private Class targetClass;
+    private ClassLoader classLoader; // caller can switch to a new classloader at any time, which impacts the next call to MethodHandleBuilder
+    private Class targetClass;  // caller can switch to a new targetClass at any time, which impacts the next call to MethodHandleBuilder
+
     private final MethodHandles.Lookup lookup = MethodHandles.lookup();
 
     public MethodHandleBuilder classLoader(ModuleIdentifier moduleIdentifier) {
@@ -52,6 +55,7 @@ public class MethodHandleBuilder {
         try {
             module = Module.getBootModuleLoader().loadModule(moduleIdentifier);
         } catch (ModuleLoadException e) {
+            // TODO: use NoSQLLogger for all exceptions created here
             throw new RuntimeException("Could not load module " + moduleIdentifier.getName(), e);
         }
         this.classLoader = module.getClassLoader();

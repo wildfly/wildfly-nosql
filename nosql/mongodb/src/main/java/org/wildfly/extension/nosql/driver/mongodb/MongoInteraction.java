@@ -51,7 +51,6 @@ public class MongoInteraction {
     private final MethodHandle getDatabaseMethod;
     private final MethodHandle mongoClientCtorMethod;
 
-
     private static final String MONGOBUILDERCLASS = "com.mongodb.MongoClientOptions$Builder";
     private final MethodHandle builderCtorMethod;
     private final MethodHandle descriptionMethod;
