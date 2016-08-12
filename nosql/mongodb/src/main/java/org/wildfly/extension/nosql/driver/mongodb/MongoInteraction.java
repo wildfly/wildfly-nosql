@@ -23,17 +23,12 @@
 package org.wildfly.extension.nosql.driver.mongodb;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jboss.modules.Module;
 import org.jboss.modules.ModuleIdentifier;
-import org.jboss.modules.ModuleLoadException;
-import org.jboss.modules.ModuleLoader;
+import org.wildfly.nosql.common.MethodHandleBuilder;
 
 /**
  * MongoInteraction
@@ -44,162 +39,60 @@ public class MongoInteraction {
 
     private final ArrayList serverAddressArrayList = new ArrayList(); // List<ServerAddress>
     private final ConfigurationBuilder configurationBuilder;
-    private final ClassLoader driverClassLoader;
+    private Object clientInstance;
 
     private static final String MONGOCLIENTCLASS = "com.mongodb.MongoClient";
     private final Class mongoClientClass;
     private static final String MONGOCLIENTOPTIONSCLASS = "com.mongodb.MongoClientOptions";
-    private final Class mongoClientOptionsClass;
     private static final String MONGODATABASECLASS = "com.mongodb.client.MongoDatabase";
-    private final Class mongoDatabaseClass;
 
+    private final Class mongoDatabaseClass;
     private final MethodHandle closeMethod;
     private final MethodHandle getDatabaseMethod;
     private final MethodHandle mongoClientCtorMethod;
-    private Object clientInstance;
+
 
     private static final String MONGOBUILDERCLASS = "com.mongodb.MongoClientOptions$Builder";
-    private final Class mongoBuilderClass;
-    private static final String MONGOWRITECONCERNCLASS = "com.mongodb.WriteConcern";
-    private final Class mongoWriteConcernClass;
     private final MethodHandle builderCtorMethod;
     private final MethodHandle descriptionMethod;
     private final MethodHandle writeConcernMethod;
-    private final MethodHandle writeConcernValueOfMethod;
     private final MethodHandle buildMethod;
 
+    private static final String MONGOWRITECONCERNCLASS = "com.mongodb.WriteConcern";
+    private final MethodHandle writeConcernValueOfMethod;
+
     private static final String MONGOSERVERADDRESSCLASS = "com.mongodb.ServerAddress";
-    private final Class mongoServerAddressClass;
     private final MethodHandle serverAddressHostCtor;
     private final MethodHandle serverAddressHostPortCtor;
 
     public MongoInteraction(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
-        final ModuleLoader moduleLoader = Module.getBootModuleLoader();
-        try {
-            Module module = moduleLoader.loadModule(ModuleIdentifier.fromString(configurationBuilder.getModuleName()));
-            driverClassLoader = module.getClassLoader();
-        } catch (ModuleLoadException e) {
-            throw new RuntimeException("Could not load module " + configurationBuilder.getModuleName(), e);
-        }
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
 
-        try {
-            mongoClientClass = driverClassLoader.loadClass(MONGOCLIENTCLASS);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load " + MONGOCLIENTCLASS, e);
-        }
+        // specify NoSQL driver classloader
+        methodHandleBuilder.classLoader(ModuleIdentifier.fromString(configurationBuilder.getModuleName()));
+        // get MongoClientOptions class for creating MongoClient constructor
+        Class mongoClientOptionsClass = methodHandleBuilder.className(MONGOCLIENTOPTIONSCLASS).getTargetClass();
+        // save MongoClient class  so getter method can return it
+        mongoClientClass = methodHandleBuilder.className(MONGOCLIENTCLASS).getTargetClass();
+        closeMethod = methodHandleBuilder.method("close");
+        getDatabaseMethod = methodHandleBuilder.declaredMethod("getDatabase", String.class);
+        mongoClientCtorMethod = methodHandleBuilder.declaredConstructor(List.class, mongoClientOptionsClass);
 
-        try {
-            mongoClientOptionsClass = driverClassLoader.loadClass(MONGOCLIENTOPTIONSCLASS);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load " + MONGOCLIENTOPTIONSCLASS, e);
-        }
+        Class mongoWriteConcernClass = methodHandleBuilder.className(MONGOWRITECONCERNCLASS).getTargetClass();
+        writeConcernValueOfMethod = methodHandleBuilder.method("valueOf", String.class);
 
-        try {
-            mongoDatabaseClass = driverClassLoader.loadClass(MONGODATABASECLASS);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load " + MONGODATABASECLASS, e);
-        }
+        methodHandleBuilder.className(MONGOBUILDERCLASS);
+        builderCtorMethod = methodHandleBuilder.constructor(MethodType.methodType(void.class));
+        descriptionMethod = methodHandleBuilder.declaredMethod("description", String.class);
+        writeConcernMethod = methodHandleBuilder.method("writeConcern", mongoWriteConcernClass);
+        buildMethod = methodHandleBuilder.method("build");
 
-        final MethodHandles.Lookup lookup = MethodHandles.lookup();
-        try {
-            Method close = mongoClientClass.getMethod("close");
-            closeMethod = lookup.unreflect(close);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'close' method " + MONGOCLIENTCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'close' method " + MONGOCLIENTCLASS, e);
-        }
+        methodHandleBuilder.className(MONGOSERVERADDRESSCLASS);
+        serverAddressHostCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, String.class));
+        serverAddressHostPortCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, String.class, int.class));
 
-        try {
-            Method getDatabase = mongoClientClass.getDeclaredMethod("getDatabase", String.class);
-            getDatabaseMethod = lookup.unreflect(getDatabase);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'getDatabase' method " + MONGOCLIENTCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'getDatabase' method " + MONGOCLIENTCLASS, e);
-        }
-
-        // MongoClient(final List<ServerAddress> seeds, final MongoClientOptions options)
-        try {
-            Constructor ctor = mongoClientClass.getDeclaredConstructor(List.class, mongoClientOptionsClass);
-            mongoClientCtorMethod = lookup.unreflectConstructor(ctor);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'getDatabase' method " + MONGOCLIENTCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'getDatabase' method " + MONGOCLIENTCLASS, e);
-        }
-
-        try {
-            mongoBuilderClass = driverClassLoader.loadClass(MONGOBUILDERCLASS);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load " + MONGOBUILDERCLASS, e);
-        }
-
-        try {
-            mongoWriteConcernClass =driverClassLoader.loadClass(MONGOWRITECONCERNCLASS);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load " + MONGOWRITECONCERNCLASS, e);
-        }
-
-        try {
-            builderCtorMethod = lookup.findConstructor(mongoBuilderClass, MethodType.methodType(void.class));
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'ctor' method " + MONGOBUILDERCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'ctor'" + MONGOBUILDERCLASS, e);
-        }
-
-        try {
-            Method method = mongoBuilderClass.getDeclaredMethod("description", String.class);
-            descriptionMethod = lookup.unreflect(method);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'description' method " + MONGOBUILDERCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'description' method" + MONGOBUILDERCLASS, e);
-        }
-
-        try {
-            Method method = mongoBuilderClass.getMethod("writeConcern", mongoWriteConcernClass);
-            writeConcernMethod = lookup.unreflect(method);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'writeConcern' method " + MONGOBUILDERCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'writeConcern' method" + MONGOBUILDERCLASS, e);
-        }
-
-        try {
-            Method method = mongoWriteConcernClass.getMethod("valueOf", String.class);
-            writeConcernValueOfMethod = lookup.unreflect(method);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'writeConcern' method " + MONGOBUILDERCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'writeConcern' method" + MONGOBUILDERCLASS, e);
-        }
-
-        try {
-            Method method = mongoBuilderClass.getMethod("build");
-            buildMethod = lookup.unreflect(method);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'build' method " + MONGOBUILDERCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'build' method" + MONGOBUILDERCLASS, e);
-        }
-
-        try {
-            mongoServerAddressClass = driverClassLoader.loadClass(MONGOSERVERADDRESSCLASS);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("Could not load " + MONGOSERVERADDRESSCLASS, e);
-        }
-
-        try {
-            serverAddressHostCtor = lookup.findConstructor(mongoServerAddressClass, MethodType.methodType(void.class, String.class));
-            serverAddressHostPortCtor = lookup.findConstructor(mongoServerAddressClass, MethodType.methodType(void.class, String.class, int.class));
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Could not get 'ctor' method " + MONGOSERVERADDRESSCLASS, e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Could not get MethodHandle for 'ctor'" + MONGOSERVERADDRESSCLASS, e);
-        }
+        mongoDatabaseClass = methodHandleBuilder.className(MONGODATABASECLASS).getTargetClass();
     }
 
     public void hostPort(String host, int port) throws Throwable {
