@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.jboss.modules.ModuleIdentifier;
 import org.wildfly.nosql.common.MethodHandleBuilder;
+import org.wildfly.nosql.common.NoSQLConstants;
 
 /**
  * MongoInteraction
@@ -41,26 +42,19 @@ public class MongoInteraction {
     private final ConfigurationBuilder configurationBuilder;
     private Object clientInstance;
 
-    private static final String MONGOCLIENTCLASS = "com.mongodb.MongoClient";
     private final Class mongoClientClass;
-    private static final String MONGOCLIENTOPTIONSCLASS = "com.mongodb.MongoClientOptions";
-    private static final String MONGODATABASECLASS = "com.mongodb.client.MongoDatabase";
-
     private final Class mongoDatabaseClass;
     private final MethodHandle closeMethod;
     private final MethodHandle getDatabaseMethod;
     private final MethodHandle mongoClientCtorMethod;
 
-    private static final String MONGOBUILDERCLASS = "com.mongodb.MongoClientOptions$Builder";
     private final MethodHandle builderCtorMethod;
     private final MethodHandle descriptionMethod;
     private final MethodHandle writeConcernMethod;
     private final MethodHandle buildMethod;
 
-    private static final String MONGOWRITECONCERNCLASS = "com.mongodb.WriteConcern";
     private final MethodHandle writeConcernValueOfMethod;
 
-    private static final String MONGOSERVERADDRESSCLASS = "com.mongodb.ServerAddress";
     private final MethodHandle serverAddressHostCtor;
     private final MethodHandle serverAddressHostPortCtor;
 
@@ -71,27 +65,27 @@ public class MongoInteraction {
         // specify NoSQL driver classloader
         methodHandleBuilder.classLoader(ModuleIdentifier.fromString(configurationBuilder.getModuleName()));
         // get MongoClientOptions class for creating MongoClient constructor
-        Class mongoClientOptionsClass = methodHandleBuilder.className(MONGOCLIENTOPTIONSCLASS).getTargetClass();
+        Class mongoClientOptionsClass = methodHandleBuilder.className(NoSQLConstants.MONGOCLIENTOPTIONSCLASS).getTargetClass();
         // save MongoClient class  so getter method can return it
-        mongoClientClass = methodHandleBuilder.className(MONGOCLIENTCLASS).getTargetClass();
+        mongoClientClass = methodHandleBuilder.className(NoSQLConstants.MONGOCLIENTCLASS).getTargetClass();
         closeMethod = methodHandleBuilder.method("close");
         getDatabaseMethod = methodHandleBuilder.declaredMethod("getDatabase", String.class);
         mongoClientCtorMethod = methodHandleBuilder.declaredConstructor(List.class, mongoClientOptionsClass);
 
-        Class mongoWriteConcernClass = methodHandleBuilder.className(MONGOWRITECONCERNCLASS).getTargetClass();
+        Class mongoWriteConcernClass = methodHandleBuilder.className(NoSQLConstants.MONGOWRITECONCERNCLASS).getTargetClass();
         writeConcernValueOfMethod = methodHandleBuilder.method("valueOf", String.class);
 
-        methodHandleBuilder.className(MONGOBUILDERCLASS);
+        methodHandleBuilder.className(NoSQLConstants.MONGOBUILDERCLASS);
         builderCtorMethod = methodHandleBuilder.constructor(MethodType.methodType(void.class));
         descriptionMethod = methodHandleBuilder.declaredMethod("description", String.class);
         writeConcernMethod = methodHandleBuilder.method("writeConcern", mongoWriteConcernClass);
         buildMethod = methodHandleBuilder.method("build");
 
-        methodHandleBuilder.className(MONGOSERVERADDRESSCLASS);
+        methodHandleBuilder.className(NoSQLConstants.MONGOSERVERADDRESSCLASS);
         serverAddressHostCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, String.class));
         serverAddressHostPortCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, String.class, int.class));
 
-        mongoDatabaseClass = methodHandleBuilder.className(MONGODATABASECLASS).getTargetClass();
+        mongoDatabaseClass = methodHandleBuilder.className(NoSQLConstants.MONGODATABASECLASS).getTargetClass();
     }
 
     public void hostPort(String host, int port) throws Throwable {

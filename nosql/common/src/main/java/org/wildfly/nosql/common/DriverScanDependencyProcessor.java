@@ -25,7 +25,6 @@ package org.wildfly.nosql.common;
 import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 
 import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.List;
 
@@ -222,9 +221,11 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
     private void mongoSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
         Class mongoClientClass, mongoDatabaseClass;
 
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
+
         try {
-            mongoClientClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass("com.mongodb.MongoClient");
-            mongoDatabaseClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass("com.mongodb.client.MongoDatabase");
+            mongoClientClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.MONGOCLIENTCLASS);
+            mongoDatabaseClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.MONGODATABASECLASS);
 
         } catch (ClassNotFoundException expected) {
             // ignore CNFE which just means that module is not a MongoDB module
@@ -237,25 +238,16 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
             final DeploymentUnit parent = deploymentUnit.getParent() == null ? deploymentUnit : deploymentUnit.getParent();
             if (WeldDeploymentMarker.isPartOfWeldDeployment(deploymentUnit)) {
                 WeldPortableExtensions extensions = WeldPortableExtensions.getPortableExtensions(parent);
-                ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb");
-                Class mongoExtensionClass = moduleLoader.loadModule(mongoCDIExtensionModule).getClassLoader().loadClass("org.wildfly.extension.nosql.cdi.MongoExtension");
-                final MethodHandles.Lookup lookup = MethodHandles.lookup();
-                MethodHandle mongoExtensionCtor = lookup.findConstructor(mongoExtensionClass, MethodType.methodType(void.class, Class.class, Class.class));
+                ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create(NoSQLConstants.MONGOCDIEXTENSIONMODULE);
+                methodHandleBuilder.classLoader(mongoCDIExtensionModule);
+                methodHandleBuilder.className(NoSQLConstants.MONGOCDIEXTENSIONCLASS);
+                MethodHandle mongoExtensionCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, Class.class, Class.class));
+
                 Extension extension = (Extension) mongoExtensionCtor.invoke(mongoClientClass, mongoDatabaseClass);
                 extensions.registerExtensionInstance(extension, parent);
             }
-        } catch (ClassNotFoundException expected) {
-            throw new RuntimeException("could not load NoSQL driver CDI extension module " + nosqlDriverModuleName);
-        } catch (ModuleLoadException e) {
-            throw new RuntimeException("could not load NoSQL driver CDI extension module " + nosqlDriverModuleName);
-        } catch (InstantiationException e) {
-            throw new RuntimeException("could not create new instance of MongoDB extension", e);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("could not create new instance of MongoDB extension", e);
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException("Missing method", e);
         } catch (Throwable throwable) {
-            throw new RuntimeException("unexpected error", throwable);
+            throw new RuntimeException("unexpected error constructing " + methodHandleBuilder.getTargetClass().getName(), throwable);
         }
 
     }

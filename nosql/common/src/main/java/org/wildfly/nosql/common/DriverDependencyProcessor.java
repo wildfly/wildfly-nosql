@@ -68,7 +68,7 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
 
     private void addMongoCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
         try {
-            moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass("com.mongodb.MongoClient");
+            moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.MONGOCLIENTCLASS);
         } catch (ClassNotFoundException expected) {
             // ignore CNFE which just means that module is not a MongoDB module
             return;
@@ -76,7 +76,7 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
         }
         // only reach this point if module is a MongoDB driver
-        ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create("org.wildfly.extension.nosql.mongodb");
+        ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create(NoSQLConstants.MONGOCDIEXTENSIONMODULE);
         addDependency(moduleSpecification, moduleLoader, mongoCDIExtensionModule);
     }
 
