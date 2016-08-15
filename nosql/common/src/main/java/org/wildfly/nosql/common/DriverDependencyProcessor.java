@@ -63,7 +63,6 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
             addNeo4jCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
             addOrientCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
         }
-
     }
 
     private void addMongoCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
@@ -80,26 +79,46 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
         addDependency(moduleSpecification, moduleLoader, mongoCDIExtensionModule);
     }
 
-    private void addNeo4jCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
-        if ("org.neo4j.driver".equals(moduleName)) {   // temp hack for cdi extension loading
-                                                       // TODO: instead try loading a Neo4J class from modululeName
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.neo4j"));
+    private void addNeo4jCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        try {
+            moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.NEO4JDRIVERCLASS);
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a Neo4j module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
         }
+        // only reach this point if module is a Neo4j driver
+        ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create(NoSQLConstants.NEO4JCDIEXTENSIONMODULE);
+        addDependency(moduleSpecification, moduleLoader, mongoCDIExtensionModule);
     }
 
-    private void addCassandraCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
-        if ("com.datastax.cassandra.driver-core".equals(moduleName)) { // temp hack for cdi extension loading
-                                                                       // TODO: instead try loading a Cassandra class from modululeName
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.cassandra"));
+    private void addCassandraCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        try {
+            moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.CASSANDRACLUSTERCLASS);
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a Cassandra module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
         }
+        // only reach this point if module is a Cassandra driver
+        ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create(NoSQLConstants.CASSANDRACDIEXTENSIONMODULE);
+        addDependency(moduleSpecification, moduleLoader, mongoCDIExtensionModule);
     }
 
-    private void addOrientCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String moduleName) {
-        if ("com.orientechnologies".equals(moduleName)) {
-            // temp hack for cdi extension loading
-            // TODO: instead try loading a OrientDB class from modululeName
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.create("org.wildfly.extension.nosql.orientdb"));
+    private void addOrientCDIDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        try {
+            moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.ORIENTDBPARTIONEDDBPOOLCLASS);
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a OrientDB module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
         }
+        // only reach this point if module is a OrientDB driver
+        ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create(NoSQLConstants.ORIENTDBCDIEXTENSIONMODULE);
+        addDependency(moduleSpecification, moduleLoader, mongoCDIExtensionModule);
     }
 
     private void addDependency(ModuleSpecification moduleSpecification, ModuleLoader moduleLoader,
