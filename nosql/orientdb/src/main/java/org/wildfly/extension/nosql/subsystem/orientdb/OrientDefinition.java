@@ -22,7 +22,6 @@
 
 package org.wildfly.extension.nosql.subsystem.orientdb;
 
-import com.orientechnologies.orient.core.db.OPartitionedDatabasePool;
 import org.jboss.as.controller.AbstractAddStepHandler;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationContext;
@@ -50,6 +49,7 @@ import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.ImmediateValue;
 import org.wildfly.extension.nosql.driver.Configuration;
 import org.wildfly.extension.nosql.driver.OrientClientConnectionsService;
+import org.wildfly.extension.nosql.driver.OrientInteraction;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 
 import java.util.Arrays;
@@ -80,6 +80,12 @@ final class OrientDefinition extends PersistentResourceDefinition {
             new SimpleAttributeDefinitionBuilder(CommonAttributes.JNDI_NAME, ModelType.STRING, false)
                     .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
                     .setAllowExpression(true)
+                    .build();
+
+    protected static final SimpleAttributeDefinition MODULE =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.MODULE_NAME, ModelType.STRING, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setAllowExpression(false)
                     .build();
 
     private static final SimpleAttributeDefinition USER_NAME =
@@ -147,7 +153,8 @@ final class OrientDefinition extends PersistentResourceDefinition {
 
         private void startServices(OperationContext context, Configuration configuration, String outboundSocketBinding) {
             ServiceName connectionsServiceName = ConnectionServiceAccess.serviceName(configuration.getProfileName());
-            OrientClientConnectionsService connectionsService = new OrientClientConnectionsService(configuration);
+            OrientInteraction orientInteraction = new OrientInteraction(configuration);
+            OrientClientConnectionsService connectionsService = new OrientClientConnectionsService(configuration, orientInteraction);
             ServiceBuilder<OrientClientConnectionsService> connectionsServiceBuilder = context.getServiceTarget()
                     .addService(connectionsServiceName, connectionsService);
 
@@ -161,8 +168,7 @@ final class OrientDefinition extends PersistentResourceDefinition {
                     new CastingInjector<>(connectionsService.getOutboundSocketBindingInjectedValue(),
                             OutboundSocketBinding.class));
             connectionsServiceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
-
-            bindJndi(context, connectionsServiceName, configuration.getJndiName(), OPartitionedDatabasePool.class);
+            bindJndi(context, connectionsServiceName, configuration.getJndiName(), orientInteraction.getDatabasePoolClass());
         }
 
         private <T> void bindJndi(OperationContext context, ServiceName serviceName, String jndiName, Class<T> clazz) {
@@ -199,6 +205,9 @@ final class OrientDefinition extends PersistentResourceDefinition {
             }
             if (profileEntry.hasDefined(CommonAttributes.JNDI_NAME)) {
                 builder.jndiName(profileEntry.get(CommonAttributes.JNDI_NAME).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.MODULE_NAME)) {
+                builder.moduleName(profileEntry.get(CommonAttributes.MODULE_NAME).asString());
             }
             if (profileEntry.hasDefined(CommonAttributes.USER_NAME)) {
                 builder.userName(profileEntry.get(CommonAttributes.USER_NAME).asString());

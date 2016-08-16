@@ -22,7 +22,6 @@
 
 package org.wildfly.extension.nosql.cdi;
 
-import com.orientechnologies.orient.core.db.OPartitionedDatabasePool;
 import org.jboss.as.server.CurrentServiceContainer;
 import org.wildfly.extension.nosql.subsystem.orientdb.OrientSubsystemService;
 import org.wildfly.nosql.common.SubsystemService;
@@ -43,14 +42,20 @@ public class OrientExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(OrientExtension.class.getName());
 
+    private final Class oPartitionedDatabasePoolClass;
+
+    public OrientExtension(Class oPartitionedDatabasePoolClass) {
+        this.oPartitionedDatabasePoolClass = oPartitionedDatabasePoolClass;
+    }
+
     public void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery afterBeanDiscovery, BeanManager beanManager) {
-        if (beanManager.getBeans(OPartitionedDatabasePool.class, DefaultLiteral.INSTANCE).isEmpty()) {
+        if (beanManager.getBeans(oPartitionedDatabasePoolClass, DefaultLiteral.INSTANCE).isEmpty()) {
             for(String profile: getService().profileNames()) {
-                LOGGER.log(Level.INFO, "Registering " + OPartitionedDatabasePool.class + " bean for profile {0}", profile);
-                afterBeanDiscovery.addBean(getBean(beanManager, OPartitionedDatabasePool.class, profile));
+                LOGGER.log(Level.INFO, "Registering " + oPartitionedDatabasePoolClass + " bean for profile {0}", profile);
+                afterBeanDiscovery.addBean(getBean(beanManager, oPartitionedDatabasePoolClass, profile));
             }
         } else {
-            LOGGER.log(Level.INFO, "Application contains a default " + OPartitionedDatabasePool.class
+            LOGGER.log(Level.INFO, "Application contains a default " + oPartitionedDatabasePoolClass
                     + " Bean, automatic registration will be disabled");
         }
     }

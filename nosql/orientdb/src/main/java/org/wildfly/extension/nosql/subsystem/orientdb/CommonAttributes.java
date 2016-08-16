@@ -30,6 +30,7 @@ interface CommonAttributes {
     String ORIENT = "orient";
     String ID = "id";
     String JNDI_NAME = "jndi-name";
+    String MODULE_NAME = "module";
     String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
     String HOST = "host";
     String DATABASE = "database";

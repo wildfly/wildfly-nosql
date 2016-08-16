@@ -22,24 +22,53 @@
 
 package org.wildfly.extension.nosql.driver;
 
-import com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal;
-import com.orientechnologies.orient.core.db.OPartitionedDatabasePool;
+import java.lang.invoke.MethodHandle;
+
+import org.jboss.modules.ModuleIdentifier;
+import org.wildfly.nosql.common.MethodHandleBuilder;
+import org.wildfly.nosql.common.NoSQLConstants;
 
 /**
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
-class OrientInteraction {
+public class OrientInteraction {
 
     private final Configuration configuration;
+    private final Class oPartitionedDatabasePool;  // com.orientechnologies.orient.core.db.OPartitionedDatabasePool
+    private MethodHandle oPartitionedDatabasePoolCtorMethod;
 
-    OrientInteraction(Configuration configuration) {
+    public OrientInteraction(Configuration configuration) {
         this.configuration = configuration;
-        ODatabaseRecordThreadLocal.INSTANCE.isDefined(); // Seems to be a bug. Needs call on INSTANCE to work later.
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
+        // specify NoSQL driver classloader
+        methodHandleBuilder.classLoader(ModuleIdentifier.fromString(configuration.getModuleName()));
+        oPartitionedDatabasePool = methodHandleBuilder.className(NoSQLConstants.ORIENTDBPARTIONEDDBPOOLCLASS).getTargetClass();
+        // OPartitionedDatabasePool(String url, String userName, String password, int maxPartitionSize, int maxPoolSize)
+        oPartitionedDatabasePoolCtorMethod = methodHandleBuilder.declaredConstructor(
+                String.class, String.class, String.class, int.class, int.class);
+
+        methodHandleBuilder.className(NoSQLConstants.ORIENTDBDATABASERECORDTHREADLOCALCLASS);
+        MethodHandle oDatabaseRecordThreadLocalInstanceField = methodHandleBuilder.findStaticField("INSTANCE");
+        MethodHandle isDefinedMethod = methodHandleBuilder.method("isDefined");
+        try {
+            // call ODatabaseRecordThreadLocal.INSTANCE.isDefined(), which seems to be a bug. Needs call on INSTANCE to work later.
+            // TODO: does this leak anything on the deployment thread?
+            isDefinedMethod.invoke(oDatabaseRecordThreadLocalInstanceField.invoke());
+        } catch (Throwable throwable) {
+            throw new RuntimeException("could not reference " +methodHandleBuilder.getTargetClass().getName() + " INSTANCE field", throwable);
+        }
     }
 
-    OPartitionedDatabasePool getDatabasePool() {
-        return new OPartitionedDatabasePool(configuration.getDatabaseUrl(), configuration.getUserName(),
-                configuration.getPassword(), configuration.getMaxPartitionSize(), configuration.getMaxPoolSize());
+    <T> T getDatabasePool() {
+        try {
+            return (T)oPartitionedDatabasePoolCtorMethod.invoke(configuration.getDatabaseUrl(), configuration.getUserName(),
+                    configuration.getPassword(), configuration.getMaxPartitionSize(), configuration.getMaxPoolSize());
+        } catch (Throwable throwable) {
+            throw new RuntimeException("could not create partitioned database connection pool for " + configuration.getDatabaseUrl() + " " + configuration.getUserName(), throwable);
+        }
     }
 
+    public Class getDatabasePoolClass() {
+        return oPartitionedDatabasePool;
+    }
 }

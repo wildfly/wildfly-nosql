@@ -25,6 +25,7 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import org.jboss.modules.Module;
@@ -119,6 +120,17 @@ public class MethodHandleBuilder {
             throw new RuntimeException("Could not get constructor for " + targetClass.getName() + " with MethodType " + methodType.toString(), e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException("Could not get constructor MethodHandle for " + targetClass.getName(), e);
+        }
+    }
+
+    public MethodHandle findStaticField(String name) {
+        try {
+            Field field = targetClass.getField(name);
+            return lookup.unreflectGetter(field);
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException("Could not get static field " + name + " on class " + targetClass.getName(), e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not get static field " + name + " on class " + targetClass.getName(), e);
         }
     }
 }

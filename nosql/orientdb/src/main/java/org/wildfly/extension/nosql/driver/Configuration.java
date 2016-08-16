@@ -99,6 +99,10 @@ public class Configuration {
         return profileName;
     }
 
+    public void setDatabaseUrl(String databaseUrl) {
+        this.databaseUrl = databaseUrl;
+    }
+
     public static class Builder {
 
         private Configuration configuration;

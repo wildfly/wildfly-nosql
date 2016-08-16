@@ -22,7 +22,6 @@
 
 package org.wildfly.extension.nosql.driver;
 
-import com.orientechnologies.orient.core.db.OPartitionedDatabasePool;
 import org.jboss.as.network.OutboundSocketBinding;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
@@ -40,21 +39,21 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
 
     private Configuration configuration;
 
-    private OrientInteraction orientInteraction;
+    private final OrientInteraction orientInteraction;
 
     private final InjectedValue<OrientSubsystemService> orientSubsystemServiceInjectedValue = new InjectedValue<>();
 
     private final InjectedValue<OutboundSocketBinding> outboundSocketBindingInjectedValue = new InjectedValue<>();
 
-    public OrientClientConnectionsService(Configuration configuration) {
+    public OrientClientConnectionsService(Configuration configuration, OrientInteraction orientInteraction) {
         this.configuration = configuration;
+        this.orientInteraction = orientInteraction;
     }
 
     @Override
     public void start(StartContext startContext) throws StartException {
         initOrientSubsystemService();
         initDatabaseUrl();
-        orientInteraction = new OrientInteraction(configuration);
     }
 
     @Override
@@ -71,7 +70,7 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
     @SuppressWarnings("unchecked")
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        if (OPartitionedDatabasePool.class.isAssignableFrom(clazz)) {
+        if (orientInteraction.getDatabasePoolClass().isAssignableFrom(clazz)) {
             return (T) orientInteraction.getDatabasePool();
         }
         throw NoSQLLogger.ROOT_LOGGER.unassignable(clazz);
@@ -95,7 +94,9 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
     private void initDatabaseUrl() {
         Configuration.Builder configurationBuilder = new Configuration.Builder(configuration);
         configurationBuilder.databaseUrl(getDatabaseUrl(outboundSocketBindingInjectedValue.getValue(), configuration));
-        configuration = configurationBuilder.build();
+        // TODO: Eliminate the extra Configuration/ConfigurationBuilder instances
+        Configuration extraConfiguration = configurationBuilder.build();
+        configuration.setDatabaseUrl(extraConfiguration.getDatabaseUrl());
     }
 
     private String getDatabaseUrl(OutboundSocketBinding target, Configuration configuration) {

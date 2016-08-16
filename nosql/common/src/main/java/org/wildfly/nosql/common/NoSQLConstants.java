@@ -19,6 +19,8 @@ public class NoSQLConstants {
     // OrientDB constants
     public static final String ORIENTDBCDIEXTENSIONMODULE = "org.wildfly.extension.nosql.orientdb";
     public static final String ORIENTDBPARTIONEDDBPOOLCLASS = "com.orientechnologies.orient.core.db.OPartitionedDatabasePool";
+    public static final String ORIENTDBDATABASERECORDTHREADLOCALCLASS = "com.orientechnologies.orient.core.db.ODatabaseRecordThreadLocal";
+    public static final String ORIENTCDIEXTENSIONCLASS = "org.wildfly.extension.nosql.cdi.OrientExtension";
 
     // MongoDB constants
     public static String MONGOCLIENTCLASS = "com.mongodb.MongoClient";

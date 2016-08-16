@@ -205,8 +205,13 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
                 throw ROOT_LOGGER.cannotAddReferenceToModule(module, currentValue, deploymentUnit.getName());
             }
         }
+
+        // register CDI extensions for each NoSQL driver that is used by deployment
         final ModuleLoader moduleLoader = Module.getBootModuleLoader();
         mongoSetup(deploymentUnit, moduleLoader, module);
+        cassandraSetup(deploymentUnit, moduleLoader, module);
+        neo4jSetup(deploymentUnit, moduleLoader, module);
+        orientSetup(deploymentUnit, moduleLoader, module);
     }
 
     protected static String getPerDeploymentDeploymentModuleName(DeploymentUnit deploymentUnit) {
@@ -220,9 +225,7 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
 
     private void mongoSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
         Class mongoClientClass, mongoDatabaseClass;
-
         MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
-
         try {
             mongoClientClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.MONGOCLIENTCLASS);
             mongoDatabaseClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.MONGODATABASECLASS);
@@ -241,14 +244,50 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
                 ModuleIdentifier mongoCDIExtensionModule = ModuleIdentifier.create(NoSQLConstants.MONGOCDIEXTENSIONMODULE);
                 methodHandleBuilder.classLoader(mongoCDIExtensionModule);
                 methodHandleBuilder.className(NoSQLConstants.MONGOCDIEXTENSIONCLASS);
-                MethodHandle mongoExtensionCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, Class.class, Class.class));
+                MethodHandle extensionCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, Class.class, Class.class));
 
-                Extension extension = (Extension) mongoExtensionCtor.invoke(mongoClientClass, mongoDatabaseClass);
+                Extension extension = (Extension) extensionCtor.invoke(mongoClientClass, mongoDatabaseClass);
                 extensions.registerExtensionInstance(extension, parent);
             }
         } catch (Throwable throwable) {
             throw new RuntimeException("unexpected error constructing " + methodHandleBuilder.getTargetClass().getName(), throwable);
         }
+    }
+
+    private void orientSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        Class oPartitionedDatabasePoolClass;
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
+        try {
+            oPartitionedDatabasePoolClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.ORIENTDBPARTIONEDDBPOOLCLASS);
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a OrientDB module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
+        }
+        // only reach this point if module is a Orient driver
+        try {
+            final DeploymentUnit parent = deploymentUnit.getParent() == null ? deploymentUnit : deploymentUnit.getParent();
+            if (WeldDeploymentMarker.isPartOfWeldDeployment(deploymentUnit)) {
+                WeldPortableExtensions extensions = WeldPortableExtensions.getPortableExtensions(parent);
+                ModuleIdentifier cdiExtensionModule = ModuleIdentifier.create(NoSQLConstants.ORIENTDBCDIEXTENSIONMODULE);
+                methodHandleBuilder.classLoader(cdiExtensionModule);
+                methodHandleBuilder.className(NoSQLConstants.ORIENTCDIEXTENSIONCLASS);
+                MethodHandle extensionCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, Class.class));
+
+                Extension extension = (Extension) extensionCtor.invoke(oPartitionedDatabasePoolClass);
+                extensions.registerExtensionInstance(extension, parent);
+            }
+        } catch (Throwable throwable) {
+            throw new RuntimeException("unexpected error constructing " + methodHandleBuilder.getTargetClass().getName(), throwable);
+        }
+    }
+
+    private void neo4jSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+
+    }
+
+    private void cassandraSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
 
     }
 
