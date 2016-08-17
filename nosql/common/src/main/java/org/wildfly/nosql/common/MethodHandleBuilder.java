@@ -123,7 +123,7 @@ public class MethodHandleBuilder {
         }
     }
 
-    public MethodHandle findStaticField(String name) {
+    public MethodHandle staticField(String name) {
         try {
             Field field = targetClass.getField(name);
             return lookup.unreflectGetter(field);
@@ -133,4 +133,15 @@ public class MethodHandleBuilder {
             throw new RuntimeException("Could not get static field " + name + " on class " + targetClass.getName(), e);
         }
     }
+
+    public MethodHandle staticMethod(String name, MethodType methodType) {
+        try {
+            return lookup.findStatic(targetClass, name, methodType);
+        } catch (NoSuchMethodException e) {
+            throw new RuntimeException("Could not get static method " + name + " on class " + targetClass.getName(), e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Could not get static method " + name + " on class " + targetClass.getName(), e);
+        }
+    }
+
 }

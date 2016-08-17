@@ -22,9 +22,12 @@
 
 package org.wildfly.extension.nosql.driver.cassandra;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
-import org.jboss.msc.service.StartException;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+
+import org.jboss.modules.ModuleIdentifier;
+import org.wildfly.nosql.common.MethodHandleBuilder;
+import org.wildfly.nosql.common.NoSQLConstants;
 
 /**
  * CassandraInteraction is for interacting with Cassandra without static references to Cassandra classes.
@@ -33,40 +36,77 @@ import org.jboss.msc.service.StartException;
  */
 public class CassandraInteraction {
 
-    private Cluster.Builder clusterBuilder;
+    private final Class clusterClass;
+    private final Class sessionClass;
 
-    private Cluster.Builder getBuilder() throws StartException {
+    private final Class clusterBuilderClass;
+    private final MethodHandle clusterBuilderMethod;
+    private final MethodHandle clusterConnectMethod;
+    private final MethodHandle clusterCloseMethod;
+    private final MethodHandle builderBuildMethod;
+    private final MethodHandle builderWithClusterNameMethod;
+    private final MethodHandle builderWithPortMethod;
+    private final MethodHandle builderAddContactPointMethod;
+    private final MethodHandle sessionCloseMethod;
+    private Object clusterBuilder;
+
+    public CassandraInteraction(ConfigurationBuilder configurationBuilder) {
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
+        methodHandleBuilder.classLoader(ModuleIdentifier.fromString(configurationBuilder.getModuleName()));
+        clusterBuilderClass = methodHandleBuilder.className(NoSQLConstants.CASSANDRACLUSTERBUILDERCLASS).getTargetClass();
+        builderBuildMethod = methodHandleBuilder.method("build");
+        builderWithClusterNameMethod = methodHandleBuilder.method("withClusterName", String.class);
+        builderWithPortMethod = methodHandleBuilder.method("withPort", int.class);
+        builderAddContactPointMethod = methodHandleBuilder.method("addContactPoint", String.class);
+        clusterClass = methodHandleBuilder.className(NoSQLConstants.CASSANDRACLUSTERCLASS).getTargetClass();
+        clusterConnectMethod = methodHandleBuilder.method("connect", String.class);
+        clusterCloseMethod = methodHandleBuilder.method("close");
+        clusterBuilderMethod = methodHandleBuilder.staticMethod("builder", MethodType.methodType(clusterBuilderClass));
+        sessionClass = methodHandleBuilder.className(NoSQLConstants.CASSANDRASESSIONCLASS).getTargetClass();
+        sessionCloseMethod = methodHandleBuilder.method("close");
+    }
+
+    private Object getBuilder() throws Throwable {
         if (clusterBuilder == null) {
-            this.clusterBuilder = Cluster.builder();
+            this.clusterBuilder =  clusterBuilderMethod.invoke(); // Cluster.builder();
         }
         return clusterBuilder;
     }
 
-    protected Cluster build() throws StartException {
-        return getBuilder().build();
+    protected Object /* Cluster */ build() throws Throwable {
+        return builderBuildMethod.invoke(getBuilder());
     }
 
-    protected Session connect(Cluster cluster, String keySpace) throws StartException {
-        return cluster.connect(keySpace);
+    protected Object connect(Object cluster, String keySpace) throws Throwable {
+        return clusterConnectMethod.invoke(cluster, keySpace);
     }
 
-    protected void withClusterName(String clusterName) throws StartException {
-        getBuilder().withClusterName(clusterName);
+    protected void withClusterName(String clusterName) throws Throwable {
+        builderWithClusterNameMethod.invoke(getBuilder(), clusterName);
     }
 
-    protected void withPort(int port) throws StartException {
-        getBuilder().withPort(port);
+    protected void withPort(int port) throws Throwable {
+        builderWithPortMethod.invoke(getBuilder(), port);
     }
 
-    protected void addContactPoint(String host) throws StartException {
-        getBuilder().addContactPoint(host);
+    protected void addContactPoint(String host) throws Throwable {
+        builderAddContactPointMethod.invoke(getBuilder(), host);
     }
 
-    protected void clusterClose(Cluster cluster) throws Throwable {
-        cluster.close();
+    protected void clusterClose(Object cluster) throws Throwable {
+        clusterCloseMethod.invoke(cluster);
     }
 
-    protected void sessionClose(Session session) throws Throwable {
-        session.close();
+    protected void sessionClose(Object session) throws Throwable {
+        sessionCloseMethod.invoke(session);
     }
+
+    public Class getClusterClass() {
+        return clusterClass;
+    }
+
+    public Class getSessionClass() {
+        return sessionClass;
+    }
+
 }

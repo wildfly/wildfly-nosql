@@ -284,10 +284,64 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
     }
 
     private void neo4jSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        Class driverClass;
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
+        try {
+            driverClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.NEO4JDRIVERCLASS);
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a Neo4j module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
+        }
+        // only reach this point if module is a Neo4j driver
+        try {
+            final DeploymentUnit parent = deploymentUnit.getParent() == null ? deploymentUnit : deploymentUnit.getParent();
+            if (WeldDeploymentMarker.isPartOfWeldDeployment(deploymentUnit)) {
+                WeldPortableExtensions extensions = WeldPortableExtensions.getPortableExtensions(parent);
+                ModuleIdentifier cdiExtensionModule = ModuleIdentifier.create(NoSQLConstants.NEO4JCDIEXTENSIONMODULE);
+                methodHandleBuilder.classLoader(cdiExtensionModule);
+                methodHandleBuilder.className(NoSQLConstants.NEO4JCDIEXTENSIONCLASS);
+                MethodHandle extensionCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, Class.class));
 
+                Extension extension = (Extension) extensionCtor.invoke(driverClass);
+                extensions.registerExtensionInstance(extension, parent);
+            }
+        } catch (Throwable throwable) {
+            throw new RuntimeException("unexpected error constructing " + methodHandleBuilder.getTargetClass().getName(), throwable);
+        }
     }
 
     private void cassandraSetup(DeploymentUnit deploymentUnit, ModuleLoader moduleLoader, String nosqlDriverModuleName) {
+        Class clusterClass;
+        Class sessionClass;
+
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
+        try {
+            clusterClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.CASSANDRACLUSTERCLASS);
+            sessionClass = moduleLoader.loadModule(ModuleIdentifier.fromString(nosqlDriverModuleName)).getClassLoader().loadClass(NoSQLConstants.CASSANDRASESSIONCLASS);
+        } catch (ClassNotFoundException expected) {
+            // ignore CNFE which just means that module is not a Cassandra module
+            return;
+        } catch (ModuleLoadException e) {
+            throw new RuntimeException("could not load NoSQL driver module " + nosqlDriverModuleName, e);
+        }
+        // only reach this point if module is a Cassandra driver
+        try {
+            final DeploymentUnit parent = deploymentUnit.getParent() == null ? deploymentUnit : deploymentUnit.getParent();
+            if (WeldDeploymentMarker.isPartOfWeldDeployment(deploymentUnit)) {
+                WeldPortableExtensions extensions = WeldPortableExtensions.getPortableExtensions(parent);
+                ModuleIdentifier cdiExtensionModule = ModuleIdentifier.create(NoSQLConstants.CASSANDRACDIEXTENSIONMODULE);
+                methodHandleBuilder.classLoader(cdiExtensionModule);
+                methodHandleBuilder.className(NoSQLConstants.CASSANDRACDIEXTENSIONCLASS);
+                MethodHandle extensionCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, Class.class, Class.class));
+
+                Extension extension = (Extension) extensionCtor.invoke(clusterClass, sessionClass);
+                extensions.registerExtensionInstance(extension, parent);
+            }
+        } catch (Throwable throwable) {
+            throw new RuntimeException("unexpected error constructing " + methodHandleBuilder.getTargetClass().getName(), throwable);
+        }
 
     }
 

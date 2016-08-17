@@ -43,7 +43,6 @@ import javax.enterprise.inject.spi.InjectionTarget;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
 
 import org.jboss.as.server.CurrentServiceContainer;
-import org.neo4j.driver.v1.Driver;
 import org.wildfly.extension.nosql.subsystem.neo4j.Neo4jSubsystemService;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 import org.wildfly.nosql.common.SubsystemService;
@@ -55,8 +54,6 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
  * defined by CDI Inject in application beans
  * Registration will be aborted if user defines her own <code>Driver</code> bean or producer
  *
- * TODO: eliminate dependency on client classes so different driver modules can be used.
- *
  * @author Antoine Sabot-Durand
  * @author Scott Marlow
  */
@@ -64,13 +61,18 @@ public class Neo4jExtension implements Extension {
 
     private static final Logger log = Logger.getLogger(Neo4jExtension.class.getName());
 
+    private final Class driverClass;
+    public Neo4jExtension(Class driverClass) {
+        this.driverClass = driverClass;
+    }
+
     void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
-        if (bm.getBeans(Driver.class, DefaultLiteral.INSTANCE).isEmpty()) {
+        if (bm.getBeans(driverClass, DefaultLiteral.INSTANCE).isEmpty()) {
             for(String profile: getService().profileNames()) {
                 log.log(Level.INFO, "Registering bean for profile {0}", profile);
                 abd.addBean(bm.createBean(
-                        new DriverBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Driver.class)), profile),
-                        Driver.class, new DriverProducerFactory(profile)));
+                        new DriverBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(driverClass)), profile),
+                        driverClass, new DriverProducerFactory(profile, driverClass)));
 //                TODO: uncomment or delete the following.
 //                abd.addBean(bm.createBean(new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Session.class)),profile),
 //                        Session.class, new SessionProducerFactory(profile)));
@@ -84,12 +86,12 @@ public class Neo4jExtension implements Extension {
         return (SubsystemService) CurrentServiceContainer.getServiceContainer().getService(Neo4jSubsystemService.serviceName()).getValue();
     }
 
-    private static class DriverBeanAttributes implements BeanAttributes<Driver> {
+    private static class DriverBeanAttributes<T> implements BeanAttributes<T> {
 
-        private BeanAttributes<Driver> delegate;
+        private BeanAttributes<T> delegate;
         private final String profile;
 
-        DriverBeanAttributes(BeanAttributes<Driver> beanAttributes, String profile) {
+        DriverBeanAttributes(BeanAttributes<T> beanAttributes, String profile) {
             delegate = beanAttributes;
             this.profile = profile;
         }
@@ -128,37 +130,39 @@ public class Neo4jExtension implements Extension {
         }
     }
 
-    private static class DriverProducerFactory
-            implements InjectionTargetFactory<Driver> {
+    private static class DriverProducerFactory<T>
+            implements InjectionTargetFactory<T> {
         private final String profile;
 
-        DriverProducerFactory(String profile) {
+        private final Class driverClass;
+        DriverProducerFactory(String profile, Class driverClass) {
             this.profile = profile;
+            this.driverClass = driverClass;
         }
 
         @Override
-        public InjectionTarget<Driver> createInjectionTarget(Bean<Driver> bean) {
-            return new InjectionTarget<Driver>() {
+        public InjectionTarget<T> createInjectionTarget(Bean<T> bean) {
+            return new InjectionTarget<T>() {
                 @Override
-                public void inject(Driver instance, CreationalContext<Driver> ctx) {
+                public void inject(T instance, CreationalContext<T> ctx) {
                 }
 
                 @Override
-                public void postConstruct(Driver instance) {
+                public void postConstruct(T instance) {
                 }
 
                 @Override
-                public void preDestroy(Driver instance) {
+                public void preDestroy(T instance) {
                 }
 
                 @Override
-                public Driver produce(CreationalContext<Driver> ctx) {
+                public T produce(CreationalContext<T> ctx) {
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
-                    return noSQLConnection.unwrap(Driver.class);
+                    return (T)noSQLConnection.unwrap(driverClass);
                 }
 
                 @Override
-                public void dispose(Driver driver) {
+                public void dispose(T driver) {
                     // no need to close the shared driver, its thread safe and shared by all application deployments.
                 }
 

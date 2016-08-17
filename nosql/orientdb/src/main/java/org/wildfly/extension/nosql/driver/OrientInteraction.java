@@ -48,7 +48,7 @@ public class OrientInteraction {
                 String.class, String.class, String.class, int.class, int.class);
 
         methodHandleBuilder.className(NoSQLConstants.ORIENTDBDATABASERECORDTHREADLOCALCLASS);
-        MethodHandle oDatabaseRecordThreadLocalInstanceField = methodHandleBuilder.findStaticField("INSTANCE");
+        MethodHandle oDatabaseRecordThreadLocalInstanceField = methodHandleBuilder.staticField("INSTANCE");
         MethodHandle isDefinedMethod = methodHandleBuilder.method("isDefined");
         try {
             // call ODatabaseRecordThreadLocal.INSTANCE.isDefined(), which seems to be a bug. Needs call on INSTANCE to work later.

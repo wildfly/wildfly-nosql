@@ -10,11 +10,14 @@ public class NoSQLConstants {
     // Cassandra constants
     public static final String CASSANDRACDIEXTENSIONMODULE = "org.wildfly.extension.nosql.cassandra";
     public static final String CASSANDRACLUSTERCLASS = "com.datastax.driver.core.Cluster";
-
+    public static final String CASSANDRACLUSTERBUILDERCLASS = "com.datastax.driver.core.Cluster$Builder";
+    public static final String CASSANDRASESSIONCLASS = "com.datastax.driver.core.Session";
+    public static final String CASSANDRACDIEXTENSIONCLASS = "org.wildfly.extension.nosql.cdi.CassandraExtension";
 
     // Neo4j constants
     public static final String NEO4JCDIEXTENSIONMODULE = "org.wildfly.extension.nosql.neo4j";
     public static final String NEO4JDRIVERCLASS = "org.neo4j.driver.v1.Driver";
+    public static final String NEO4JCDIEXTENSIONCLASS = "org.wildfly.extension.nosql.cdi.Neo4jExtension";
 
     // OrientDB constants
     public static final String ORIENTDBCDIEXTENSIONMODULE = "org.wildfly.extension.nosql.orientdb";

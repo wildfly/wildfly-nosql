@@ -42,8 +42,6 @@ import javax.enterprise.inject.spi.InjectionPoint;
 import javax.enterprise.inject.spi.InjectionTarget;
 import javax.enterprise.inject.spi.InjectionTargetFactory;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
 import org.jboss.as.server.CurrentServiceContainer;
 import org.wildfly.extension.nosql.subsystem.cassandra.CassandraSubsystemService;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
@@ -55,8 +53,6 @@ import org.wildfly.nosql.common.spi.NoSQLConnection;
  * This CDI Extension registers a <code>Session,Cluster</code>
  * Registration will be aborted if user defines her own <code>Session,Cluster</code> bean or producer
  *
- * TODO: verify if we need to eliminate dependency on Cassandra client classes so different Cassandra driver modules can be used.
- *
  * @author Antoine Sabot-Durand
  * @author Scott Marlow
  */
@@ -64,20 +60,27 @@ public class CassandraExtension implements Extension {
 
     private static final Logger log = Logger.getLogger(CassandraExtension.class.getName());
 
+    private final Class sessionClass;
+    private final Class clusterClass;
+
+    public CassandraExtension(Class clusterClass, Class sessionClass) {
+        this.clusterClass = clusterClass;
+        this.sessionClass = sessionClass;
+    }
     /**
      */
     void registerNoSQLSourceBeans(@Observes AfterBeanDiscovery abd, BeanManager bm) {
 
-        if (bm.getBeans(Cluster.class, DefaultLiteral.INSTANCE).isEmpty()) {
+        if (bm.getBeans(clusterClass, DefaultLiteral.INSTANCE).isEmpty()) {
             // Iterate profiles and create Cluster/Session bean for each profile, that application code can @Inject
             for(String profile: getService().profileNames()) {
                 log.log(Level.INFO, "Registering bean for profile {0}", profile);
                 abd.addBean(bm.createBean(
-                        new ClusterBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Cluster.class)), profile),
-                        Cluster.class, new ClusterProducerFactory(profile)));
+                        new ClusterBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(clusterClass)), profile),
+                        clusterClass, new ClusterProducerFactory(profile, clusterClass)));
                 abd.addBean(bm.createBean(
-                        new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(Session.class)), profile),
-                        Session.class, new SessionProducerFactory(profile)));
+                        new SessionBeanAttributes(bm.createBeanAttributes(bm.createAnnotatedType(sessionClass)), profile),
+                        sessionClass, new SessionProducerFactory(profile, sessionClass)));
             }
          } else {
             log.log(Level.INFO, "Application contains a default Cluster Bean, automatic registration will be disabled");
@@ -88,12 +91,12 @@ public class CassandraExtension implements Extension {
         return (SubsystemService) CurrentServiceContainer.getServiceContainer().getService(CassandraSubsystemService.serviceName()).getValue();
     }
 
-    private static class ClusterBeanAttributes implements BeanAttributes<Cluster> {
+    private static class ClusterBeanAttributes<T> implements BeanAttributes<T> {
 
-        private final BeanAttributes<Cluster> delegate;
+        private final BeanAttributes<T> delegate;
         private final String profile;
 
-        ClusterBeanAttributes(BeanAttributes<Cluster> beanAttributes, String profile) {
+        ClusterBeanAttributes(BeanAttributes<T> beanAttributes, String profile) {
             delegate = beanAttributes;
             this.profile = profile;
         }
@@ -132,38 +135,40 @@ public class CassandraExtension implements Extension {
         }
     }
 
-    private static class ClusterProducerFactory
-            implements InjectionTargetFactory<Cluster> {
+    private static class ClusterProducerFactory<T>
+            implements InjectionTargetFactory<T> {
 
         private final String profile;
+        private final Class clusterClass;
 
-        ClusterProducerFactory(String profile) {
+        ClusterProducerFactory(String profile, Class clusterClass) {
             this.profile = profile;
+            this.clusterClass = clusterClass;
         }
 
         @Override
-        public InjectionTarget<Cluster> createInjectionTarget(Bean<Cluster> bean) {
-            return new InjectionTarget<Cluster>() {
+        public InjectionTarget<T> createInjectionTarget(Bean<T> bean) {
+            return new InjectionTarget<T>() {
                 @Override
-                public void inject(Cluster instance, CreationalContext<Cluster> ctx) {
+                public void inject(T instance, CreationalContext<T> ctx) {
                 }
 
                 @Override
-                public void postConstruct(Cluster instance) {
+                public void postConstruct(T instance) {
                 }
 
                 @Override
-                public void preDestroy(Cluster instance) {
+                public void preDestroy(T instance) {
                 }
 
                 @Override
-                public Cluster produce(CreationalContext<Cluster> ctx) {
+                public T produce(CreationalContext<T> ctx) {
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
-                    return noSQLConnection.unwrap(Cluster.class);
+                    return (T)noSQLConnection.unwrap(clusterClass);
                 }
 
                 @Override
-                public void dispose(Cluster connection) {
+                public void dispose(T connection) {
                     // connection.close();
                 }
 
@@ -175,12 +180,12 @@ public class CassandraExtension implements Extension {
         }
     }
 
-    private static class SessionBeanAttributes implements BeanAttributes<Session> {
+    private static class SessionBeanAttributes<T> implements BeanAttributes<T> {
 
-        private BeanAttributes<Session> delegate;
+        private BeanAttributes<T> delegate;
         private final String profile;
 
-        SessionBeanAttributes(BeanAttributes<Session> beanAttributes, String profile) {
+        SessionBeanAttributes(BeanAttributes<T> beanAttributes, String profile) {
             delegate = beanAttributes;
             this.profile = profile;
         }
@@ -219,37 +224,40 @@ public class CassandraExtension implements Extension {
         }
     }
 
-    private static class SessionProducerFactory
-            implements InjectionTargetFactory<Session> {
+    private static class SessionProducerFactory<T>
+            implements InjectionTargetFactory<T> {
 
         private final String profile;
-        SessionProducerFactory(String profile) {
+        private final Class sessionClass;
+
+        SessionProducerFactory(String profile, Class sessionClass) {
             this.profile = profile;
+            this.sessionClass = sessionClass;
         }
 
         @Override
-        public InjectionTarget<Session> createInjectionTarget(Bean<Session> bean) {
-            return new InjectionTarget<Session>() {
+        public InjectionTarget<T> createInjectionTarget(Bean<T> bean) {
+            return new InjectionTarget<T>() {
                 @Override
-                public void inject(Session instance, CreationalContext<Session> ctx) {
+                public void inject(T instance, CreationalContext<T> ctx) {
                 }
 
                 @Override
-                public void postConstruct(Session instance) {
+                public void postConstruct(T instance) {
                 }
 
                 @Override
-                public void preDestroy(Session instance) {
+                public void preDestroy(T instance) {
                 }
 
                 @Override
-                public Session produce(CreationalContext<Session> ctx) {
+                public T produce(CreationalContext<T> ctx) {
                     NoSQLConnection noSQLConnection = ConnectionServiceAccess.connection(profile);
-                    return noSQLConnection.unwrap(Session.class);
+                    return (T)noSQLConnection.unwrap(sessionClass);
                 }
 
                 @Override
-                public void dispose(Session database) {
+                public void dispose(T database) {
 
                 }
 

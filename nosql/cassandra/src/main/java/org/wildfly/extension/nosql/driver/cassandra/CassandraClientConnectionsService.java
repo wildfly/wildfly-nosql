@@ -27,8 +27,6 @@ import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.datastax.driver.core.Cluster;
-import com.datastax.driver.core.Session;
 import org.jboss.as.network.OutboundSocketBinding;
 import org.jboss.msc.inject.Injector;
 import org.jboss.msc.inject.MapInjector;
@@ -51,13 +49,17 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
     // standard application server way to obtain target hostname + port for target NoSQL database server(s)
     private Map<String, OutboundSocketBinding> outboundSocketBindings = new HashMap<String, OutboundSocketBinding>();
     private final CassandraInteraction cassandraInteraction;
-    private Cluster cluster;  // represents connection into Cassandra
-    private Session session;  // only set if keyspaceName is specified
+    private final Class clusterClass;
+    private final Class sessionClass;
+    private Object cluster;  // represents connection into Cassandra
+    private Object session;  // only set if keyspaceName is specified
     private final InjectedValue<CassandraSubsystemService> cassandraSubsystemServiceInjectedValue = new InjectedValue<>();
 
     public CassandraClientConnectionsService(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
-        cassandraInteraction = new CassandraInteraction();
+        cassandraInteraction = new CassandraInteraction(configurationBuilder);
+        clusterClass = cassandraInteraction.getClusterClass();
+        sessionClass = cassandraInteraction.getSessionClass();
     }
 
     public Injector<OutboundSocketBinding> getOutboundSocketBindingInjector(String name) {
@@ -71,29 +73,32 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
     @Override
     public void start(StartContext startContext) throws StartException {
 
+        try {
+            // maintain a mapping from JNDI name to NoSQL module name, that we will use during deployment time to
+            // identify the static module name to add to the deployment.
+            cassandraSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configurationBuilder.getJNDIName(), configurationBuilder.getModuleName());
+            cassandraSubsystemServiceInjectedValue.getValue().addModuleNameFromProfile(configurationBuilder.getDescription(), configurationBuilder.getModuleName());
 
-        // maintain a mapping from JNDI name to NoSQL module name, that we will use during deployment time to
-        // identify the static module name to add to the deployment.
-        cassandraSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configurationBuilder.getJNDIName(), configurationBuilder.getModuleName());
-        cassandraSubsystemServiceInjectedValue.getValue().addModuleNameFromProfile(configurationBuilder.getDescription(), configurationBuilder.getModuleName());
-
-        for (OutboundSocketBinding target : outboundSocketBindings.values()) {
-            if (target.getDestinationPort() > 0) {
-                cassandraInteraction.withPort(target.getDestinationPort());
+            for (OutboundSocketBinding target : outboundSocketBindings.values()) {
+                if (target.getDestinationPort() > 0) {
+                    cassandraInteraction.withPort(target.getDestinationPort());
+                }
+                if (target.getUnresolvedDestinationAddress() != null) {
+                    cassandraInteraction.addContactPoint(target.getUnresolvedDestinationAddress());
+                }
             }
-            if (target.getUnresolvedDestinationAddress() != null) {
-                cassandraInteraction.addContactPoint(target.getUnresolvedDestinationAddress());
+
+            if (configurationBuilder.getDescription() != null) {
+                cassandraInteraction.withClusterName(configurationBuilder.getDescription());
             }
-        }
+            cluster = cassandraInteraction.build();
 
-        if (configurationBuilder.getDescription() != null) {
-            cassandraInteraction.withClusterName(configurationBuilder.getDescription());
-        }
-        cluster = cassandraInteraction.build();
-
-        String keySpace = configurationBuilder.getKeySpace();
-        if (keySpace != null) {
-            session = cassandraInteraction.connect(cluster, keySpace);
+            String keySpace = configurationBuilder.getKeySpace();
+            if (keySpace != null) {
+                session = cassandraInteraction.connect(cluster, keySpace);
+            }
+        } catch (Throwable throwable) {
+            throw new RuntimeException("could not setup Cassandra connection " + configurationBuilder.getDescription(), throwable);
         }
     }
 
@@ -118,20 +123,20 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
         return this;
     }
 
-    public Cluster getCluster() {
+    public Object getCluster() {
         return cluster;
     }
 
-    public Session getSession() {
+    public Object getSession() {
         return session;
     }
 
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        if ( Cluster.class.isAssignableFrom( clazz ) ) {
+        if ( clusterClass.isAssignableFrom( clazz ) ) {
             return (T) cluster;
         }
-        if ( Session.class.isAssignableFrom( clazz)) {
+        if ( sessionClass.isAssignableFrom( clazz)) {
             return (T) session;
         }
         throw ROOT_LOGGER.unassignable(clazz);
