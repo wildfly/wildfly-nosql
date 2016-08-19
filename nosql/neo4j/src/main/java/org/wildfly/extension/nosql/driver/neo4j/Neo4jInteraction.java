@@ -22,9 +22,13 @@
 
 package org.wildfly.extension.nosql.driver.neo4j;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+
+import org.jboss.modules.ModuleIdentifier;
 import org.jboss.msc.service.StartException;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
+import org.wildfly.nosql.common.MethodHandleBuilder;
+import org.wildfly.nosql.common.NoSQLConstants;
 
 /**
  * Neo4jInteraction is for interacting with Neo4j without static references to Neo4j classes.
@@ -32,11 +36,25 @@ import org.neo4j.driver.v1.GraphDatabase;
  * @author Scott Marlow
  */
 public class Neo4jInteraction {
-    StringBuffer builder = new StringBuffer("");
 
-    protected Driver build() throws StartException {
-        // TODO: switch to public static Driver driver( String url, AuthToken authToken, Config config )
-        return GraphDatabase.driver(builder.toString());
+    private StringBuffer builder = new StringBuffer("");
+    private final Class driverClass;
+    private final MethodHandle closeDriverMethod;
+    private final MethodHandle buildMethod;
+
+    public Neo4jInteraction(ConfigurationBuilder configurationBuilder) {
+        MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
+        // specify NoSQL driver classloader
+        methodHandleBuilder.classLoader(ModuleIdentifier.fromString(configurationBuilder.getModuleName()));
+        driverClass = methodHandleBuilder.className(NoSQLConstants.NEO4JDRIVERCLASS).getTargetClass();
+        closeDriverMethod = methodHandleBuilder.method("close");
+        methodHandleBuilder.className(NoSQLConstants.NEO4JGRAPHDATABASECLASS);
+        buildMethod = methodHandleBuilder.staticMethod("driver", MethodType.methodType(driverClass, String.class));
+    }
+
+    protected Object /* Driver */ build() throws Throwable {
+        // TODO: switch from driver( String url) to public static Driver driver( String url, AuthToken authToken, Config config )
+        return buildMethod.invoke(builder.toString());
     }
 
     protected void withPort(int port) throws StartException {
@@ -55,8 +73,12 @@ public class Neo4jInteraction {
         builder.append(value);
     }
 
-    protected void driverClose(Driver driver) throws Throwable {
-        driver.close();
+    protected void driverClose(Object driver) throws Throwable {
+        closeDriverMethod.invoke(driver);
+    }
+
+    protected Class getDriverClass() {
+        return driverClass;
     }
 
 }

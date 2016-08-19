@@ -24,6 +24,7 @@ package org.wildfly.extension.nosql.driver.neo4j;
 
 import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 
+import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,8 +39,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
-import org.neo4j.driver.v1.Driver;
-import org.wildfly.extension.nosql.driver.neo4j.transaction.Neo4jOnePhaseCommitDriver;
+import org.wildfly.extension.nosql.driver.neo4j.transaction.DriverProxy;
 import org.wildfly.extension.nosql.driver.neo4j.transaction.TransactionEnlistmentType;
 import org.wildfly.extension.nosql.subsystem.neo4j.Neo4jSubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
@@ -55,7 +55,7 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
     // standard application server way to obtain target hostname + port for target NoSQL database server(s)
     private Map<String, OutboundSocketBinding> outboundSocketBindings = new HashMap<String, OutboundSocketBinding>();
     private final Neo4jInteraction neo4jInteraction;
-    private Driver driver;  // Driver is thread safe but Session is not
+    private Object /* Driver */ driver;  // Driver is thread safe but Session is not
     private final InjectedValue<Neo4jSubsystemService> neo4jSubsystemServiceInjectedValue = new InjectedValue<>();
 
     public InjectedValue<Neo4jSubsystemService> getNeo4jSubsystemServiceInjectedValue() {
@@ -64,7 +64,7 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
 
     public Neo4jClientConnectionService(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
-        neo4jInteraction = new Neo4jInteraction();
+        neo4jInteraction = new Neo4jInteraction(configurationBuilder);
     }
 
     public Injector<OutboundSocketBinding> getOutboundSocketBindingInjector(String name) {
@@ -91,7 +91,11 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
         //if (configurationBuilder.getDescription() != null) {
             // neo4jInteraction.withClusterName(configurationBuilder.getDescription());
         // }
-        driver = neo4jInteraction.build();
+        try {
+            driver = neo4jInteraction.build();
+        } catch (Throwable throwable) {
+            throw new RuntimeException("could not setup ServerAddress for " + configurationBuilder.getDescription(), throwable);
+        }
 
         if (TransactionEnlistmentType.ONEPHASECOMMIT.equals(configurationBuilder.getTransactionEnlistment())) {
             driver = onePhaseCommitWrapper(
@@ -102,8 +106,11 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
 
     }
 
-    private Driver onePhaseCommitWrapper(Driver driver, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
-        return Neo4jOnePhaseCommitDriver.wrap(driver, transactionManager, transactionSynchronizationRegistry, configurationBuilder.getDescription(), configurationBuilder.getJNDIName());
+    private Object /* Driver */ onePhaseCommitWrapper(Object driver, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry) {
+            return Proxy.newProxyInstance(
+                    neo4jInteraction.getDriverClass().getClassLoader(),
+                    new Class[] { neo4jInteraction.getDriverClass()},
+                    new DriverProxy(driver, transactionManager, transactionSynchronizationRegistry, configurationBuilder.getDescription(), configurationBuilder.getJNDIName()));
     }
 
     @Override
@@ -124,13 +131,13 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
         return this;
     }
 
-    public Driver getDriver() {
+    public Object getDriver() {
         return driver;
     }
 
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        if ( Driver.class.isAssignableFrom( clazz ) ) {
+        if ( neo4jInteraction.getDriverClass().isAssignableFrom( clazz ) ) {
             return (T) driver;
         }
         //if ( Session.class.isAssignableFrom( clazz)) {

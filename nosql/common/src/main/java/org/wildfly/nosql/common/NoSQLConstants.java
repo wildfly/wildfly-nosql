@@ -17,6 +17,7 @@ public class NoSQLConstants {
     // Neo4j constants
     public static final String NEO4JCDIEXTENSIONMODULE = "org.wildfly.extension.nosql.neo4j";
     public static final String NEO4JDRIVERCLASS = "org.neo4j.driver.v1.Driver";
+    public static final String NEO4JGRAPHDATABASECLASS = "org.neo4j.driver.v1.GraphDatabase";
     public static final String NEO4JCDIEXTENSIONCLASS = "org.wildfly.extension.nosql.cdi.Neo4jExtension";
 
     // OrientDB constants
