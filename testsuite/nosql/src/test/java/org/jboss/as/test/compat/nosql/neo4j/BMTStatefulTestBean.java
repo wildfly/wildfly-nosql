@@ -28,8 +28,6 @@ import javax.annotation.Resource;
 import javax.ejb.TransactionManagement;
 import javax.ejb.TransactionManagementType;
 import javax.ejb.Stateful;
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.transaction.UserTransaction;
 import javax.transaction.Status;
 

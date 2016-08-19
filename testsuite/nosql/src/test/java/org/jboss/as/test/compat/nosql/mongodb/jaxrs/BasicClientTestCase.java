@@ -26,7 +26,6 @@ import java.net.URL;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
 
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.container.test.api.RunAsClient;
@@ -76,8 +75,7 @@ public class BasicClientTestCase {
     }
 
     @AfterClass
-    public static void close()
-    {
+    public static void close() {
         client.close();
     }
 

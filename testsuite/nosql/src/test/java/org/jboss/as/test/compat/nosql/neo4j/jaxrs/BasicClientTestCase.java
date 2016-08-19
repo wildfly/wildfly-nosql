@@ -76,8 +76,7 @@ public class BasicClientTestCase {
     }
 
     @AfterClass
-    public static void close()
-    {
+    public static void close() {
         client.close();
     }
 
