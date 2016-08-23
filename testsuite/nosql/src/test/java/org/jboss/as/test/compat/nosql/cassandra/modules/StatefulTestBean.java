@@ -1,0 +1,90 @@
+/*
+ * JBoss, Home of Professional Open Source.
+ * Copyright 2016, Red Hat, Inc., and individual contributors
+ * as indicated by the @author tags. See the copyright.txt file in the
+ * distribution for a full listing of individual contributors.
+ *
+ * This is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as
+ * published by the Free Software Foundation; either version 2.1 of
+ * the License, or (at your option) any later version.
+ *
+ * This software is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+ * Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this software; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+ * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ */
+
+package org.jboss.as.test.compat.nosql.cassandra.modules;
+
+import javax.annotation.Resource;
+import javax.ejb.Stateful;
+
+import com.datastax.driver.core.Cluster;
+import com.datastax.driver.core.ResultSet;
+import com.datastax.driver.core.Row;
+import com.datastax.driver.core.Session;
+
+/**
+ * StatefulTestBean
+ *
+ * @author Scott Marlow
+ */
+@Stateful
+public class StatefulTestBean {
+
+    @Resource(lookup = "java:jboss/cassandradriver/test")
+    private Cluster cluster;
+    private Session session;
+
+    public String query() {
+        openConnection();
+        try {
+            session.execute("CREATE TABLE employee (lastname varchar primary key, firstname varchar, age int, city varchar, email varchar)");
+            session.execute("INSERT INTO employee (lastname, firstname, age, city, email) VALUES ('Smith','Leanne', 30, 'Boston', 'lea@yahoo.com')");
+            ResultSet results = session.execute("SELECT * FROM employee WHERE lastname='Smith'");
+            for (Row row : results) {
+                System.out.format("%s %d\n", row.getString("firstname"), row.getInt("age"));
+            }
+            session.execute("update employee set age = 36 where lastname = 'Smith'");
+            // Select and show the change
+            results = session.execute("select * from employee where lastname='Smith'");
+            for (Row row : results) {
+                return row.getString("firstname");
+            }
+        } finally {
+            try {
+                session.execute("DROP TABLE employee");
+            } catch (Throwable ignore) {
+                return "error dropping employee table " + ignore.getMessage();
+            }
+
+            closeConnection();
+        }
+        return null;
+    }
+
+    public ClassLoader getNoSQLClassLoader() {
+            return Cluster.class.getClassLoader();
+        }
+
+    private void openConnection() {
+        session = cluster.connect();
+        session.execute("CREATE KEYSPACE testspace WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
+        session = cluster.connect("testspace");
+    }
+
+
+    private void closeConnection() {
+        session.execute("DROP KEYSPACE testspace");
+        session.close();
+        session = null;
+    }
+
+
+}

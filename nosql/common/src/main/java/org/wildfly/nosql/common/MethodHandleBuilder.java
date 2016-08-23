@@ -136,7 +136,7 @@ public class MethodHandleBuilder {
 
     public MethodHandle staticMethod(String name, MethodType methodType) {
         try {
-            return lookup.findStatic(targetClass, name, methodType);
+            return lookup.unreflect(targetClass.getMethod(name, methodType.parameterArray()));
         } catch (NoSuchMethodException e) {
             throw new RuntimeException("Could not get static method " + name + " on class " + targetClass.getName(), e);
         } catch (IllegalAccessException e) {

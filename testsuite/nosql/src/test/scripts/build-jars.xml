@@ -70,14 +70,15 @@
 &lt;resources&gt;
 
 &lt;resource-root path="cassandra.jar"&gt;
-&lt;filter&gt;
-&lt;exclude path="javax/**" /&gt;
-&lt;/filter&gt;
 &lt;/resource-root&gt;
 &lt;/resources&gt;
 
 &lt;dependencies&gt;
-&lt;module name="javax.api"/&gt;
+&lt;module name="com.google.guava"/&gt;
+&lt;module name="com.codahale.metrics.metrics-core"/&gt;
+&lt;module name="io.netty"/&gt;
+&lt;module name="javax.transaction.api"/&gt;
+&lt;module name="org.slf4j"/&gt;
 &lt;/dependencies&gt;
 &lt;/module&gt;
     </echo>
