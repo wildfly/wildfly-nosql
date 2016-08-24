@@ -22,22 +22,11 @@
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
 
-<module xmlns="urn:jboss:module:1.3" name="com.orientechnologies">
+<module xmlns="urn:jboss:module:1.3" name="com.tinkerpop.blueprints">
     <properties>
         <property name="jboss.api" value="private"/>
     </properties>
     <resources>
-        <artifact name="${com.orientechnologies:orientdb-core}"/>
-        <artifact name="${com.orientechnologies:orientdb-graphdb}"/>
-        <artifact name="${com.orientechnologies:orientdb-object}"/>
-        <artifact name="${com.orientechnologies:orientdb-client}"/>
-        <artifact name="${com.orientechnologies:orientdb-enterprise}"/>
+        <artifact name="${com.tinkerpop.blueprints:blueprints-core}"/>
     </resources>
-    <dependencies>
-        <module name="javax.api"/>
-        <module name="sun.jdk"/>
-        <module name="org.javassist"/>
-        <module name="com.googlecode.concurrentlinkedhashmap" export="true"/>
-        <module name="com.tinkerpop.blueprints" export="true"/>
-    </dependencies>
 </module>

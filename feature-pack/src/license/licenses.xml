@@ -3787,5 +3787,86 @@
         </license>
       </licenses>
     </dependency>
+    <dependency>
+      <groupId>com.orientechnologies</groupId>
+      <artifactId>orientdb-core</artifactId>
+      <licenses>
+        <license>
+          <name>Apache Software License, Version 2.0</name>
+          <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+        </license>
+      </licenses>
+    </dependency>
+    <dependency>
+      <groupId>com.orientechnologies</groupId>
+      <artifactId>orientdb-graphdb</artifactId>
+      <licenses>
+        <license>
+          <name>Apache Software License, Version 2.0</name>
+          <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+        </license>
+      </licenses>
+    </dependency>
+    <dependency>
+      <groupId>com.orientechnologies</groupId>
+      <artifactId>orientdb-object</artifactId>
+      <licenses>
+        <license>
+          <name>Apache Software License, Version 2.0</name>
+          <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+        </license>
+      </licenses>
+    </dependency>
+    <dependency>
+      <groupId>com.orientechnologies</groupId>
+      <artifactId>orientdb-client</artifactId>
+      <licenses>
+        <license>
+          <name>Apache Software License, Version 2.0</name>
+          <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+        </license>
+      </licenses>
+    </dependency>
+    <dependency>
+      <groupId>com.orientechnologies</groupId>
+      <artifactId>orientdb-enterprise</artifactId>
+      <licenses>
+        <license>
+          <name>Apache Software License, Version 2.0</name>
+          <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+        </license>
+      </licenses>
+    </dependency>
+    <dependency>
+      <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+      <artifactId>concurrentlinkedhashmap-lru</artifactId>
+      <licenses>
+        <license>
+          <name>Apache Software License, Version 2.0</name>
+          <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+        </license>
+      </licenses>
+    </dependency>
+    <dependency>
+      <groupId>com.tinkerpop.blueprints</groupId>
+      <artifactId>blueprints-core</artifactId>
+      <licenses>
+        <license>
+          <name>The BSD License</name>
+          <url>http://repository.jboss.org/licenses/bsd.txt</url>
+          <distribution>repo</distribution>
+        </license>
+      </licenses>
+    </dependency>
+    <dependency>
+      <groupId>org.neo4j.driver</groupId>
+      <artifactId>neo4j-java-driver</artifactId>
+      <licenses>
+        <license>
+          <name>Apache Software License, Version 2.0</name>
+          <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+        </license>
+      </licenses>
+    </dependency>
   </dependencies>
 </licenseSummary>
