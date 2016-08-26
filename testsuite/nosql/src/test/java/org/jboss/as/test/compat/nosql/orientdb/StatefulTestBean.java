@@ -64,4 +64,8 @@ public class StatefulTestBean {
         return peopleDao.getFriends();
     }
 
+    public ClassLoader getNoSQLClassLoader() {
+        return OPartitionedDatabasePool.class.getClassLoader();
+    }
+
 }

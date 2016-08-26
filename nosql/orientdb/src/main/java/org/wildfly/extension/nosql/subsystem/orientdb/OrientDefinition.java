@@ -112,7 +112,7 @@ final class OrientDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .build();
 
-    static final AttributeDefinition[] ATTRIBUTES = { ID, DATABASE, JNDI_NAME, USER_NAME, PASSWORD,
+    static final AttributeDefinition[] ATTRIBUTES = { ID, DATABASE, JNDI_NAME, MODULE ,USER_NAME, PASSWORD,
             MAX_PARTITION_SIZE, MAX_POOL_SIZE };
 
     static final OrientDefinition INSTANCE = new OrientDefinition();

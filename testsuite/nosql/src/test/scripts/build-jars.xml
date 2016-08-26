@@ -83,5 +83,31 @@
 &lt;/module&gt;
     </echo>
     
+    <!-- add OrientDB module -->
+    <copy file="${com.orientechnologies:orientdb-core:jar}"    tofile="${tests.output.dir}/modules/com/orientechnologies/test/orientdb-core.jar"/>
+    <copy file="${com.orientechnologies:orientdb-enterprise:jar}"    tofile="${tests.output.dir}/modules/com/orientechnologies/test/orientdb-enterprise.jar"/>
+    <copy file="${com.orientechnologies:orientdb-client:jar}"    tofile="${tests.output.dir}/modules/com/orientechnologies/test/orientdb-client.jar"/>
+    <copy file="${com.orientechnologies:orientdb-object:jar}"    tofile="${tests.output.dir}/modules/com/orientechnologies/test/orientdb-object.jar"/>
+    <copy file="${com.orientechnologies:orientdb-graphdb:jar}"    tofile="${tests.output.dir}/modules/com/orientechnologies/test/orientdb-graphdb.jar"/>
+    <echo file="${tests.output.dir}/modules/com/orientechnologies/test/module.xml" append="false">&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;module xmlns="urn:jboss:module:1.1" name="com.orientechnologies" slot="test"&gt;
+&lt;resources&gt;
+
+&lt;resource-root path="orientdb-core.jar"/&gt;
+&lt;resource-root path="orientdb-graphdb.jar"/&gt;
+&lt;resource-root path="orientdb-object.jar"/&gt;
+&lt;resource-root path="orientdb-client.jar"/&gt;
+&lt;resource-root path="orientdb-enterprise.jar"/&gt;
+&lt;/resources&gt;
+
+&lt;dependencies&gt;
+&lt;module name="javax.api"/&gt;
+&lt;module name="sun.jdk"/&gt;
+&lt;module name="org.javassist"/&gt;
+&lt;module name="com.googlecode.concurrentlinkedhashmap" export="true"/&gt;
+&lt;module name="com.tinkerpop.blueprints" export="true"/&gt;
+&lt;/dependencies&gt;
+&lt;/module&gt;
+    </echo>
     </target>
 </project>
