@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OrientSubsystemService implements Service<SubsystemService>, SubsystemService {
 
     public static final ServiceName SERVICE_NAME = ServiceName.JBOSS.append("orientdbsubsystem");
+    private static final String VENDORKEY = "OrientDB";
 
     private final Map<String, String> jndiNameToModuleName = new ConcurrentHashMap<>();
 
@@ -72,6 +73,11 @@ public class OrientSubsystemService implements Service<SubsystemService>, Subsys
     @Override
     public Collection<String> profileNames() {
         return profileNameToModuleName.keySet();
+    }
+
+    @Override
+    public String vendorKey() {
+        return VENDORKEY;
     }
 
     public void addModuleNameFromJndi(String jndiName, String module) {

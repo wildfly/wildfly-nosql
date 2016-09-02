@@ -40,6 +40,8 @@ import org.jboss.msc.service.StopContext;
  */
 public class CassandraSubsystemService implements Service<SubsystemService>, SubsystemService {
 
+    private static final String VENDORKEY = "Cassandra";
+
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("cassandrasubsystem");
 
     // JNDI name to module name for resolving the Cassandra module to inject into deployments
@@ -83,6 +85,11 @@ public class CassandraSubsystemService implements Service<SubsystemService>, Sub
     @Override
     public Collection<String> profileNames() {
         return profileNameToModuleName.keySet();
+    }
+
+    @Override
+    public String vendorKey() {
+        return VENDORKEY;
     }
 
     @Override

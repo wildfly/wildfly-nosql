@@ -32,6 +32,9 @@
                 <property name="writeConcern" value="ACKNOWLEDGED"/>
             </properties>
         </mongo>
+        <mongo name="default2" id="mongodbsales" jndi-name="java:jboss/mongodb/sales" database="mongotestdb">
+              <host name="default2" outbound-socket-binding-ref="mongotesthost"/>
+          </mongo>
     </subsystem>
     <outbound-socket-binding name="mongotesthost">
         <remote-destination host="localhost" port="27017"/>

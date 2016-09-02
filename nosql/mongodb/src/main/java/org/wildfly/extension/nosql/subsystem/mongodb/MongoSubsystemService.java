@@ -41,6 +41,7 @@ import org.jboss.msc.service.StopContext;
 public class MongoSubsystemService implements Service<SubsystemService>, SubsystemService {
 
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("mongodbsubsystem");
+    private static final String VENDORKEY = "MongoDB";
 
     // JNDI name to module name for resolving the MongoDB module to inject into deployments
     private final Map<String, String> jndiNameToModuleName = new ConcurrentHashMap<>();
@@ -82,6 +83,11 @@ public class MongoSubsystemService implements Service<SubsystemService>, Subsyst
 
     public Collection<String> profileNames() {
         return profileNameToModuleName.keySet();
+    }
+
+    @Override
+    public String vendorKey() {
+        return VENDORKEY;
     }
 
     @Override

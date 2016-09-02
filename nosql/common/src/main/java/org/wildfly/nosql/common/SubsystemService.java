@@ -48,4 +48,11 @@ public interface SubsystemService {
      */
     Collection<String> profileNames();
 
+    /**
+     * get vendor key that can be used as a key.
+     *
+     * @return unique key identifying the NoSQL database vendor (e.g. MongoDB/Cassandra/OrientDB/Neo4j)
+     */
+    String vendorKey();
+
 }

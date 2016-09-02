@@ -26,7 +26,9 @@ import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.annotation.Resources;
@@ -66,9 +68,9 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
     private static final DotName RESOURCE_ANNOTATION_NAME = DotName.createSimple(Resource.class.getName());
     private static final DotName RESOURCES_ANNOTATION_NAME = DotName.createSimple(Resources.class.getName());
     private static final DotName NAMED_ANNOTATION_NAME = DotName.createSimple(Named.class.getName());
-    // there should be no more than one NoSQL module referenced (there can be many references to that module but only
-    // one version of NoSQL should be included per application deployment).
-    private static final AttachmentKey<String> perModuleNameKey = AttachmentKey.create(String.class);
+    // no more than one NoSQL (per backend database type) driver module can be used by an deployment.
+    // For example, you cannot include two different/separate MongoDB driver modules in a deployment.
+    private static final AttachmentKey<Map<String, String>> perModuleNameKey = AttachmentKey.create(Map.class);
 
     private ServiceName serviceName;
 
@@ -139,9 +141,10 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         if (isEmpty(profile)) {
             throw ROOT_LOGGER.annotationAttributeMissing("@Named", "value");
         }
-        String moduleName = getService().moduleNameFromProfile(profile);
+        SubsystemService service = getService();
+        String moduleName = service.moduleNameFromProfile(profile);
         if (moduleName != null) {
-            savePerDeploymentModuleName(deploymentUnit, moduleName);
+            savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
         }
     }
 
@@ -150,24 +153,26 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         if (!methodName.startsWith("set") || methodInfo.args().length != 1) {
             throw ROOT_LOGGER.setterMethodOnly("@Named", methodInfo);
         }
+        SubsystemService service = getService();
         String moduleName = getService().moduleNameFromProfile(profile);
         if (moduleName != null) {
-            savePerDeploymentModuleName(deploymentUnit, moduleName);
+            savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
         }
     }
 
     private void processFieldNamedQualifier(DeploymentUnit deploymentUnit, String profile) {
+        SubsystemService service = getService();
         String moduleName = getService().moduleNameFromProfile(profile);
         if (moduleName != null) {
-            savePerDeploymentModuleName(deploymentUnit, moduleName);
+            savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
         }
     }
 
     protected void processFieldResource(final DeploymentUnit deploymentUnit, String lookup) throws DeploymentUnitProcessingException {
-
+        SubsystemService service = getService();
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {
-            savePerDeploymentModuleName(deploymentUnit, moduleName);
+            savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
         }
     }
 
@@ -176,9 +181,10 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         if (!methodName.startsWith("set") || methodInfo.args().length != 1) {
             throw ROOT_LOGGER.setterMethodOnly("@Resource", methodInfo);
         }
+        SubsystemService service = getService();
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {
-            savePerDeploymentModuleName(deploymentUnit, moduleName);
+            savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
         }
     }
 
@@ -186,24 +192,33 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         if (isEmpty(lookup)) {
             throw ROOT_LOGGER.annotationAttributeMissing("@Resource", "lookup");
         }
+        SubsystemService service = getService();
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {
-            savePerDeploymentModuleName(deploymentUnit, moduleName);
+            savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
         }
     }
 
-    private void savePerDeploymentModuleName(DeploymentUnit deploymentUnit, String module) {
+    private void savePerDeploymentModuleName(DeploymentUnit deploymentUnit, String module, String vendorKey) {
         if (deploymentUnit.getParent() != null) {
             deploymentUnit = deploymentUnit.getParent();
         }
         synchronized (deploymentUnit) {
-            String currentValue = deploymentUnit.getAttachment(perModuleNameKey);
-            // saved if not already set by another thread
+            Map currentValue = deploymentUnit.getAttachment(perModuleNameKey);
+            // setup up Map<vendorKey, driver module name) that ensures that only one driver
+            // module per vendor type, is used by deployments.
+            // It is legal for deployments to use one MongoDB driver module and one Cassandra driver Module.
+            // It is illegal for deployments to use two different MongoDB driver modules.
             if (currentValue == null) {
-                deploymentUnit.putAttachment(perModuleNameKey, module);
-            } else if (!module.equals(currentValue)) {
-                throw ROOT_LOGGER.cannotAddReferenceToModule(module, currentValue, deploymentUnit.getName());
+                currentValue = new HashMap();
+                deploymentUnit.putAttachment(perModuleNameKey, currentValue);
             }
+            // check if there are two different NoSQL driver modules being used for the same NoSQL backend vendor
+            if (currentValue.get(vendorKey) != null && !currentValue.get(vendorKey).equals(module)) {
+                // deployment is using two different MongoDB (or whichever database type) driver modules, fail deployment.
+                throw ROOT_LOGGER.cannotAddReferenceToModule(module, currentValue.get(vendorKey), deploymentUnit.getName());
+            }
+            currentValue.put(vendorKey, module);
         }
 
         // register CDI extensions for each NoSQL driver that is used by deployment
@@ -214,7 +229,7 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         orientSetup(deploymentUnit, moduleLoader, module);
     }
 
-    protected static String getPerDeploymentDeploymentModuleName(DeploymentUnit deploymentUnit) {
+    protected static Map<String,String> getPerDeploymentDeploymentModuleName(DeploymentUnit deploymentUnit) {
         if (deploymentUnit.getParent() != null) {
             deploymentUnit = deploymentUnit.getParent();
         }

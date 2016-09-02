@@ -46,6 +46,7 @@ import org.jboss.msc.service.StopContext;
 public class Neo4jSubsystemService implements Service<SubsystemService>, SubsystemService {
 
     private static final ServiceName SERVICENAME = ServiceName.JBOSS.append("neo4jsubsystem");
+    private static final String VENDORKEY = "Neo4j";
 
     // JNDI name to module name for resolving the Ne04J module to inject into deployments
     private final Map<String, String> jndiNameToModuleName = new ConcurrentHashMap<>();
@@ -107,6 +108,11 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
     @Override
     public Collection<String> profileNames() {
         return profileNameToModuleName.keySet();
+    }
+
+    @Override
+    public String vendorKey() {
+        return VENDORKEY;
     }
 
 

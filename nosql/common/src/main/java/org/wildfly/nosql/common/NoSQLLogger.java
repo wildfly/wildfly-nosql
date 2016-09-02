@@ -67,7 +67,7 @@ public interface NoSQLLogger extends BasicLogger {
      */
     @Message(id = 2, value = "Cannot specify NoSQL module '%s' " +
             "when a different module '%s' is already associated with application (%s)")
-    IllegalStateException cannotAddReferenceToModule(String module, String currentValue, String deploymentName);
+    IllegalStateException cannotAddReferenceToModule(String module, Object currentValue, String deploymentName);
 
     /**
      * Creates an exception indicating the {@code annotation} injection target is invalid and only setter methods are

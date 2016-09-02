@@ -22,6 +22,8 @@
 
 package org.wildfly.nosql.common;
 
+import java.util.Map;
+
 import org.jboss.as.server.deployment.Attachments;
 import org.jboss.as.server.deployment.DeploymentPhaseContext;
 import org.jboss.as.server.deployment.DeploymentUnit;
@@ -52,16 +54,20 @@ public class DriverDependencyProcessor implements DeploymentUnitProcessor {
      */
     public void deploy(DeploymentPhaseContext phaseContext) throws DeploymentUnitProcessingException {
         final DeploymentUnit deploymentUnit = phaseContext.getDeploymentUnit();
-        final String nosqlDriverModuleName = DriverScanDependencyProcessor.getPerDeploymentDeploymentModuleName(deploymentUnit);
-
-        if (nosqlDriverModuleName != null) {
-            final ModuleSpecification moduleSpecification = deploymentUnit.getAttachment(Attachments.MODULE_SPECIFICATION);
-            final ModuleLoader moduleLoader = Module.getBootModuleLoader();
-            addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(nosqlDriverModuleName));
-            addMongoCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
-            addCassandraCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
-            addNeo4jCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
-            addOrientCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+        final Map<String, String> nosqlDriverModuleNameMap = DriverScanDependencyProcessor.getPerDeploymentDeploymentModuleName(deploymentUnit);
+        if (nosqlDriverModuleNameMap == null) {
+            return;
+        }
+        for (String nosqlDriverModuleName : nosqlDriverModuleNameMap.values()) {
+            if (nosqlDriverModuleName != null) {
+                final ModuleSpecification moduleSpecification = deploymentUnit.getAttachment(Attachments.MODULE_SPECIFICATION);
+                final ModuleLoader moduleLoader = Module.getBootModuleLoader();
+                addDependency(moduleSpecification, moduleLoader, ModuleIdentifier.fromString(nosqlDriverModuleName));
+                addMongoCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+                addCassandraCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+                addNeo4jCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+                addOrientCDIDependency(moduleSpecification, moduleLoader, nosqlDriverModuleName);
+            }
         }
     }
 

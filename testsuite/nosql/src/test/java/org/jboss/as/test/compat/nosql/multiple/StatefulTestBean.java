@@ -46,8 +46,11 @@ public class StatefulTestBean {
     @Resource(lookup = "java:jboss/mongodb/test")
     MongoDatabase database;
 
+    @Resource(lookup = "java:jboss/mongodb/sales")
+    MongoDatabase salesdatabase;
+
     @Inject
-    @Named("mongodbtestprofile")
+    @Named("mongodbsales")
     MongoDatabase injectedDatabase;
 
     public String addUserComment() {
@@ -77,6 +80,33 @@ public class StatefulTestBean {
         }
     }
 
+    public String addSalesComment() {
+        MongoCollection collection = null;
+        Document query = null;
+        try {
+            // add a comment from Sales department
+            String who = "InsideSalesTeam";
+            Document comment = new Document("_id", who)
+                    .append("name", who)
+                    .append("address", new BasicDBObject("street", "inside sales")
+                            .append("city", "internal")
+                            .append("state", "internal")
+                            .append("zip", 99999))
+                    .append("comment", "Need to sell sell sell");
+            // save the comment
+            collection = database.getCollection("comments");
+            collection.insertOne(comment);
+
+            query = new Document("_id", who);
+            FindIterable cursor = collection.find(query);
+            Object userComment = cursor.first();
+            return userComment.toString();
+        } finally {
+            collection.drop();
+        }
+    }
+
+
     public String addProduct() {
         MongoCollection collection = null;
         Document query = null;
@@ -102,7 +132,4 @@ public class StatefulTestBean {
         }
     }
 
-    public ClassLoader getNoSQLClassLoader() {
-        return database.getClass().getClassLoader();
-    }
 }
