@@ -22,12 +22,6 @@
 
 package org.jboss.as.test.compat.nosql.multiple;
 
-// import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.ADD;
-// import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.NAME;
-// import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP;
-// import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.OP_ADDR;
-// import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.VALUE;
-// import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.WRITE_ATTRIBUTE_OPERATION;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Hashtable;
@@ -43,15 +37,10 @@ import com.mongodb.client.MongoDatabase;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
-// import org.jboss.as.arquillian.api.ServerSetup;
-// import org.jboss.as.arquillian.api.ServerSetupTask;
-// import org.jboss.as.arquillian.container.ManagementClient;
 import org.jboss.as.test.integration.management.base.AbstractMgmtTestBase;
 import org.jboss.as.test.integration.management.base.ContainerResourceMgmtTestBase;
 import org.jboss.as.test.integration.management.util.MgmtOperationException;
-// import org.jboss.as.test.shared.ServerReload;
 import org.jboss.as.test.shared.TestSuiteEnvironment;
-// import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.StringAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -161,73 +150,6 @@ public class CustomModuleTestCase  {
         env.put(Context.PROVIDER_URL, "remote://" + TestSuiteEnvironment.getServerAddress() + ":" + 4447);
         iniCtx = new InitialContext(env);
     }
-
-/*
-    static class TestCaseSetup extends ContainerResourceMgmtTestBase implements ServerSetupTask {
-
-
-        @Override
-        public final void setup(final ManagementClient managementClient, final String containerId) throws Exception {
-            setManagementClient(managementClient);
-            ModelNode address = new ModelNode();
-            address.add("subsystem", "mongodb");
-            address.add("mongo", "default2");
-            address.protect();
-
-//            <mongo name="sales" id="mongodbsales" jndi-name="java:jboss/mongodb/sales" database="mongotestdb">
-//                <host name="default" outbound-socket-binding-ref="mongotesthost"/>
-//                <properties name="sales">
-//                    <property name="writeConcern" value="ACKNOWLEDGED"/>
-//                </properties>
-//            </mongo>
-
-            final ModelNode operation = new ModelNode();
-
-            // operation.get(OP).set(WRITE_ATTRIBUTE_OPERATION);
-            // operation.get(OP_ADDR).add("sales");
-            operation.get(OP).set(ADD);
-            operation.get(OP_ADDR).set(address);
-            operation.get("name").set("sales");
-            operation.get("id").set("mongodbsales");
-            operation.get("jndi-name").set("java:jboss/mongodb/sales");
-            operation.get("database").set("mongotestdb");
-
-
-            operation.get("host").setEmptyList();
-            ModelNode innerItem = new ModelNode("default2");
-            innerItem.setEmptyList();
-            innerItem.get("outbound-socket-binding-ref").set("mongotesthost");
-            operation.get("host").add(innerItem);
-//            executeOperation(operation);
-//            reload();
-        }
-
-        @Override
-        public void tearDown(final ManagementClient managementClient, final String containerId) throws Exception {
-*/
-/*
-            ModelNode address = new ModelNode();
-            address.add("subsystem", "mongodb");
-            address.add("mongo", "default");
-            address.protect();
-
-            final ModelNode operation = new ModelNode();
-            operation.get(OP_ADDR).set(address);
-            operation.get(OP).set(WRITE_ATTRIBUTE_OPERATION);
-            operation.get(NAME).set("module");
-            operation.get(VALUE).set("org.mongodb.driver:main");
-            ModelNode result = executeOperation(operation);
-            reload();
-*//*
-
-        }
-
-        public void reload() throws Exception {
-            ServerReload.executeReloadAndWaitForCompletion(getModelControllerClient(), 50000);
-        }
-
-    }
-*/
 }
 
 
