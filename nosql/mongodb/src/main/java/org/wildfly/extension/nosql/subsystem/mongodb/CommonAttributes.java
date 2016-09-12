@@ -38,4 +38,5 @@ public interface CommonAttributes {
     String PROPERTIES = "properties";
     String PROPERTY = "property";
     String WRITE_CONCERN = "writeConcern";
+    String SECURITY_DOMAIN = "security-domain";
 }

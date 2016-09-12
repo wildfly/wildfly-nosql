@@ -26,8 +26,13 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
+import javax.resource.spi.security.PasswordCredential;
+import javax.security.auth.Subject;
 
 import org.jboss.modules.ModuleIdentifier;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.nosql.common.MethodHandleBuilder;
 import org.wildfly.nosql.common.NoSQLConstants;
 
@@ -47,6 +52,7 @@ public class MongoInteraction {
     private final MethodHandle closeMethod;
     private final MethodHandle getDatabaseMethod;
     private final MethodHandle mongoClientCtorMethod;
+    private final MethodHandle mongoClientSecurityCtorMethod;
 
     private final MethodHandle builderCtorMethod;
     private final MethodHandle descriptionMethod;
@@ -57,6 +63,10 @@ public class MongoInteraction {
 
     private final MethodHandle serverAddressHostCtor;
     private final MethodHandle serverAddressHostPortCtor;
+
+    private final Class mongoCredentialClass;
+    private final MethodHandle mongoCredentialCreateCredential;
+    private volatile SubjectFactory subjectFactory;
 
     public MongoInteraction(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
@@ -71,6 +81,8 @@ public class MongoInteraction {
         closeMethod = methodHandleBuilder.method("close");
         getDatabaseMethod = methodHandleBuilder.declaredMethod("getDatabase", String.class);
         mongoClientCtorMethod = methodHandleBuilder.declaredConstructor(List.class, mongoClientOptionsClass);
+        // MongoClient(final List<ServerAddress> seeds, final List<MongoCredential> credentialsList, final MongoClientOptions options)
+        mongoClientSecurityCtorMethod = methodHandleBuilder.declaredConstructor(List.class, List.class, mongoClientOptionsClass);
 
         Class mongoWriteConcernClass = methodHandleBuilder.className(NoSQLConstants.MONGOWRITECONCERNCLASS).getTargetClass();
         writeConcernValueOfMethod = methodHandleBuilder.method("valueOf", String.class);
@@ -86,6 +98,11 @@ public class MongoInteraction {
         serverAddressHostPortCtor = methodHandleBuilder.constructor(MethodType.methodType(void.class, String.class, int.class));
 
         mongoDatabaseClass = methodHandleBuilder.className(NoSQLConstants.MONGODATABASECLASS).getTargetClass();
+
+        mongoCredentialClass = methodHandleBuilder.className(NoSQLConstants.MONGOCREDENTIALCLASS).getTargetClass();
+        // public static MongoCredential createCredential(final String userName, final String database, final char[] password) {
+        mongoCredentialCreateCredential = methodHandleBuilder.staticMethod
+                ("createCredential", MethodType.methodType(mongoCredentialClass, String.class, String.class, char[].class));
     }
 
     public void hostPort(String host, int port) throws Throwable {
@@ -98,7 +115,11 @@ public class MongoInteraction {
 
     public Object /*MongoClient*/ mongoClient() throws Throwable {
         Object mongoClientOptions = mongoClientOptions();
-        return mongoClient(serverAddressArrayList, mongoClientOptions);
+        List mongoCredential = null;
+        if (configurationBuilder.getSecurityDomain() != null) {
+            mongoCredential = mongoCredential();
+        }
+        return mongoClient(serverAddressArrayList, mongoClientOptions, mongoCredential);
     }
 
     public Object getDB() throws Throwable {
@@ -126,11 +147,34 @@ public class MongoInteraction {
         return mongoClientOptions;
     }
 
+    // public <U> Class<? extends U> asSubclass(Class<U> clazz) {
+    public List /* MongoCredential */ mongoCredential() throws Throwable {
+        List resultList = null;
+        if (configurationBuilder.getSecurityDomain() != null && subjectFactory != null) {
+            Subject subject = subjectFactory.createSubject(configurationBuilder.getSecurityDomain());
+            Set<PasswordCredential> passwordCredentials = subject.getPrivateCredentials(PasswordCredential.class);
+            PasswordCredential passwordCredential = passwordCredentials.iterator().next();
+            // public static MongoCredential createCredential(final String userName, final String database, final char[] password) {
+            if (resultList == null) {
+                resultList = new ArrayList();
+            }
+            Object result = mongoCredentialCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword());
+            resultList.add(result);
+        }
+        return resultList;
+    }
+
     // MongoClient(final List<ServerAddress> seeds, final MongoClientOptions mongoClientOptions) {
     // mongoClientOptions = MongoClientOptionsBuilderInteraction.mongoClientOptions()
-    public Object mongoClient(Object serverAddressList, Object mongoClientOptions) throws Throwable {
-        // return mongoClientCtorMethod.invokeExact(serverAddressList, mongoClientOptions);
-        clientInstance = mongoClientCtorMethod.invoke(serverAddressList, mongoClientOptions);
+    public Object mongoClient(Object serverAddressList, Object mongoClientOptions, List mongoCredential) throws Throwable {
+
+        if (mongoCredential != null && mongoCredential.size() > 0) {
+            clientInstance = mongoClientSecurityCtorMethod.invoke(serverAddressList, castCollection(mongoCredential, mongoCredentialClass), mongoClientOptions);
+        }
+        else {
+            // return mongoClientCtorMethod.invokeExact(serverAddressList, mongoClientOptions);
+            clientInstance = mongoClientCtorMethod.invoke(serverAddressList, mongoClientOptions);
+        }
         return clientInstance;
     }
 
@@ -162,4 +206,16 @@ public class MongoInteraction {
         return mongoDatabaseClass;
     }
 
+    public void subjectFactory(SubjectFactory subjectFactory) {
+        this.subjectFactory = subjectFactory;
+    }
+
+    private <X> List<X> castCollection(List srcList, Class<X> xClass) {
+        List<X> arrayList = new ArrayList<X>();
+        for (Object srcObject : srcList) {
+            if (srcObject != null && xClass.isAssignableFrom(srcObject.getClass()))
+                arrayList.add(xClass.cast(srcObject));
+        }
+        return arrayList;
+    }
 }

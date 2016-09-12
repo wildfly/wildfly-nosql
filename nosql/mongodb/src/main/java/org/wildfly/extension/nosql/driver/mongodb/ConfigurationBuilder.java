@@ -36,6 +36,16 @@ public class ConfigurationBuilder {
     private String moduleName = // name of MongoDB module
             defaultModuleName;
     private String writeConcern;
+    private String securityDomain;
+
+    public String getSecurityDomain() {
+        return securityDomain;
+    }
+
+    public ConfigurationBuilder setSecurityDomain(String securityDomain) {
+        this.securityDomain = securityDomain;
+        return this;
+    }
 
     public ConfigurationBuilder setDescription(String description) {
         this.description = description;
@@ -46,8 +56,9 @@ public class ConfigurationBuilder {
         return description;
     }
 
-    public void setJNDIName(String JNDIName) {
+    public ConfigurationBuilder setJNDIName(String JNDIName) {
         this.JNDIName = JNDIName;
+        return this;
     }
 
     public String getJNDIName() {
@@ -58,12 +69,14 @@ public class ConfigurationBuilder {
         return database;
     }
 
-    public void setDatabase(String database) {
+    public ConfigurationBuilder setDatabase(String database) {
         this.database = database;
+        return this;
     }
 
-    public void setModuleName(String moduleName) {
+    public ConfigurationBuilder setModuleName(String moduleName) {
         this.moduleName = moduleName;
+        return this;
     }
 
     public String getModuleName() {

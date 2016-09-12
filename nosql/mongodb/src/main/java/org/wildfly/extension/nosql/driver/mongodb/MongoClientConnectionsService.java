@@ -35,6 +35,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.subsystem.mongodb.MongoSubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
@@ -50,6 +51,11 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
     private Object /* MongoClient */ client;
     private Object /* MongoDatabase */ database;
     private MongoInteraction mongoInteraction;
+    private final InjectedValue<SubjectFactory> subjectFactory = new InjectedValue<>();
+
+    public InjectedValue<SubjectFactory> getSubjectFactoryInjector() {
+        return subjectFactory;
+    }
 
     public InjectedValue<MongoSubsystemService> getMongoSubsystemServiceInjectedValue() {
         return mongoSubsystemServiceInjectedValue;
@@ -78,6 +84,9 @@ public class MongoClientConnectionsService implements Service<MongoClientConnect
             } catch (Throwable throwable) {
                 throw new RuntimeException("could not setup ServerAddress for " + target.getUnresolvedDestinationAddress() + " " + target.getDestinationPort(),throwable);
             }
+        }
+        if (subjectFactory.getOptionalValue() != null) {
+            mongoInteraction.subjectFactory(subjectFactory.getOptionalValue());
         }
         try {
             client = mongoInteraction.mongoClient();
