@@ -49,6 +49,7 @@
             <xs:attribute name="id" type="xs:string" use="required"/>
             <xs:attribute name="jndi-name" type="xs:string" use="required"/>
             <xs:attribute name="name" type="xs:string" use="required"/>
+            <xs:attribute name="security-domain" type="xs:string"/>
         </xs:complexType>
     </xs:element>
     <xs:complexType name="propertiesType">
