@@ -32,6 +32,8 @@ public class NoSQLConstants {
     public static final String MONGODATABASECLASS = "com.mongodb.client.MongoDatabase";
     public static final String MONGOBUILDERCLASS = "com.mongodb.MongoClientOptions$Builder";
     public static final String MONGOWRITECONCERNCLASS = "com.mongodb.WriteConcern";
+    public static final String MONGOREADCONCERNCLASS = "com.mongodb.ReadConcern";
+    public static final String MONGOREADCONCERNLEVELCLASS = "com.mongodb.ReadConcernLevel";
     public static final String MONGOSERVERADDRESSCLASS = "com.mongodb.ServerAddress";
     public static final String MONGOCREDENTIALCLASS = "com.mongodb.MongoCredential";
     public static final String MONGOCDIEXTENSIONMODULE = "org.wildfly.extension.nosql.mongodb";

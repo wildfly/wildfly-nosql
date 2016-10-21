@@ -57,9 +57,12 @@ public class MongoInteraction {
     private final MethodHandle builderCtorMethod;
     private final MethodHandle descriptionMethod;
     private final MethodHandle writeConcernMethod;
+    private final MethodHandle readConcernMethod;
     private final MethodHandle buildMethod;
 
     private final MethodHandle writeConcernValueOfMethod;
+    private final MethodHandle readConcernCtorMethod;
+    private final MethodHandle readConcernLevelFromStringMethod;
 
     private final MethodHandle serverAddressHostCtor;
     private final MethodHandle serverAddressHostPortCtor;
@@ -87,10 +90,17 @@ public class MongoInteraction {
         Class mongoWriteConcernClass = methodHandleBuilder.className(NoSQLConstants.MONGOWRITECONCERNCLASS).getTargetClass();
         writeConcernValueOfMethod = methodHandleBuilder.method("valueOf", String.class);
 
+        Class mongoReadConcernLevelClass = methodHandleBuilder.className(NoSQLConstants.MONGOREADCONCERNLEVELCLASS).getTargetClass();
+        readConcernLevelFromStringMethod = methodHandleBuilder.method("fromString", String.class);
+
+        Class mongoReadConcernClass = methodHandleBuilder.className(NoSQLConstants.MONGOREADCONCERNCLASS).getTargetClass();
+        readConcernCtorMethod = methodHandleBuilder.declaredConstructor(mongoReadConcernLevelClass);
+
         methodHandleBuilder.className(NoSQLConstants.MONGOBUILDERCLASS);
         builderCtorMethod = methodHandleBuilder.constructor(MethodType.methodType(void.class));
         descriptionMethod = methodHandleBuilder.declaredMethod("description", String.class);
         writeConcernMethod = methodHandleBuilder.method("writeConcern", mongoWriteConcernClass);
+        readConcernMethod = methodHandleBuilder.method("readConcern", mongoReadConcernClass);
         buildMethod = methodHandleBuilder.method("build");
 
         methodHandleBuilder.className(NoSQLConstants.MONGOSERVERADDRESSCLASS);
@@ -140,6 +150,11 @@ public class MongoInteraction {
             // public static WriteConcern valueOf(final String name)
             Object writeConcernValue = writeConcernValueOfMethod.invoke(writeConcernName);
             writeConcernMethod.invoke(builder, writeConcernValue);
+        }
+        if (configurationBuilder.getReadConcern() != null) {
+            Object readConcernLevelValue = readConcernLevelFromStringMethod.invoke(configurationBuilder.getReadConcern());
+            Object readConcernValue = readConcernCtorMethod.invoke(readConcernLevelValue);
+            readConcernMethod.invoke(builder, readConcernValue);
         }
         // MongoClientOptions mongoClientOptions = builder.build();
         // Object mongoClientOptions = buildMethod.invokeExact(builder);

@@ -20,24 +20,19 @@
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
  */
 
-package org.wildfly.extension.nosql.subsystem.mongodb;
+package org.wildfly.extension.nosql.driver.mongodb;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * CommonAttributes
- *
- * @author Scott Marlow
+ * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
  */
-public interface CommonAttributes {
-    String DATABASE = "database";
-    String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
-    String HOST_DEF = "host";
-    String ID_NAME = "id";
-    String JNDI_NAME = "jndi-name";
-    String MODULE_NAME = "module";
-    String PROFILE = "mongo";
-    String PROPERTIES = "properties";
-    String PROPERTY = "property";
-    String WRITE_CONCERN = "writeConcern";
-    String READ_CONCERN = "readConcern";
-    String SECURITY_DOMAIN = "security-domain";
+public enum ReadConcernType {
+
+    LOCAL,
+    MAJORITY;
+
+    public static final List<String> NAMES = Arrays.asList("LOCAL", "MAJORITY");
+
 }

@@ -29,6 +29,7 @@
             <host name="default" outbound-socket-binding-ref="mongotesthost"/>
             <properties name="default">
                 <property name="writeConcern" value="ACKNOWLEDGED"/>
+                <property name="readConcern" value="LOCAL"/>
             </properties>
         </mongo>
         <mongo name="default2" id="mongodbsales" jndi-name="java:jboss/mongodb/sales" database="mongotestdb" security-domain="mongoRealm">

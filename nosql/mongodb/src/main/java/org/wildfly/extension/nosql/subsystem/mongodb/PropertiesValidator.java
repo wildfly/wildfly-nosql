@@ -26,6 +26,7 @@ import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.operations.validation.ParameterValidator;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.Property;
+import org.wildfly.extension.nosql.driver.mongodb.ReadConcernType;
 import org.wildfly.extension.nosql.driver.mongodb.WriteConcernType;
 
 import java.util.HashMap;
@@ -41,6 +42,7 @@ class PropertiesValidator implements ParameterValidator {
 
     static {
         VALID_PROPERTIES.put(CommonAttributes.WRITE_CONCERN, WriteConcernType.NAMES);
+        VALID_PROPERTIES.put(CommonAttributes.READ_CONCERN, ReadConcernType.NAMES);
     }
 
     @Override

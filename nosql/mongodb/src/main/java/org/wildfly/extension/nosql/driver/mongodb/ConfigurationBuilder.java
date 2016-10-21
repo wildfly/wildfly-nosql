@@ -36,6 +36,7 @@ public class ConfigurationBuilder {
     private String moduleName = // name of MongoDB module
             defaultModuleName;
     private String writeConcern;
+    private String readConcern;
     private String securityDomain;
 
     public String getSecurityDomain() {
@@ -89,6 +90,15 @@ public class ConfigurationBuilder {
 
     public ConfigurationBuilder setWriteConcern(String writeConcern) {
         this.writeConcern = writeConcern;
+        return this;
+    }
+
+    public String getReadConcern() {
+        return readConcern;
+    }
+
+    public ConfigurationBuilder setReadConcern(String readConcern) {
+        this.readConcern = readConcern;
         return this;
     }
 }

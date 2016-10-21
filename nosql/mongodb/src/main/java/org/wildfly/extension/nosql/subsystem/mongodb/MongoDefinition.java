@@ -64,6 +64,7 @@ import org.jboss.msc.value.ImmediateValue;
 import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.driver.mongodb.ConfigurationBuilder;
 import org.wildfly.extension.nosql.driver.mongodb.MongoClientConnectionsService;
+import org.wildfly.extension.nosql.driver.mongodb.ReadConcernType;
 import org.wildfly.extension.nosql.driver.mongodb.WriteConcernType;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
 
@@ -194,8 +195,9 @@ public class MongoDefinition extends PersistentResourceDefinition {
                         if (propertyModels.hasDefined(CommonAttributes.PROPERTY)) {
                             for (Property property : propertyModels.get(CommonAttributes.PROPERTY).asPropertyList()) {
                                 if (property.getName().equals(CommonAttributes.WRITE_CONCERN)) {
-                                    builder.setWriteConcern(
-                                            WriteConcernType.valueOf(property.getValue().asString()).name());
+                                    builder.setWriteConcern(WriteConcernType.valueOf(property.getValue().asString()).name());
+                                } else if (property.getName().equals(CommonAttributes.READ_CONCERN)) {
+                                    builder.setReadConcern(ReadConcernType.valueOf(property.getValue().asString()).name());
                                 }
                             }
                         }
