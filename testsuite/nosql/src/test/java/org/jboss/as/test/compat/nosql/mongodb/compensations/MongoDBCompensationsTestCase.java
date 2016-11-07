@@ -3,21 +3,22 @@ package org.jboss.as.test.compat.nosql.mongodb.compensations;
 import org.bson.Document;
 import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.narayana.compensations.impl.BAControllerFactory;
+import org.jboss.narayana.compensations.api.TransactionCompensatedException;
 import org.jboss.shrinkwrap.api.Archive;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import javax.inject.Inject;
 
-import java.time.LocalTime;
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author <a href="mailto:gytis@redhat.com">Gytis Trikleris</a>
@@ -25,52 +26,51 @@ import static org.junit.Assert.assertEquals;
 @RunWith(Arquillian.class)
 public class MongoDBCompensationsTestCase {
 
-    private static final String ARCHIVE_NAME = MongoDBCompensationsTestCase.class.getSimpleName() + "_test";
+    @Inject
+    private AccountDao accountDao;
 
     @Inject
-    private EntriesService entriesService;
+    private BankingService bankingService;
 
     @Deployment
     public static Archive<?> deploy() throws Exception {
-        return ShrinkWrap.create(JavaArchive.class, ARCHIVE_NAME + ".jar")
+        return ShrinkWrap.create(JavaArchive.class, MongoDBCompensationsTestCase.class.getSimpleName() + ".jar")
                 .addPackage(MongoDBCompensationsTestCase.class.getPackage())
                 .addAsManifestResource(EmptyAsset.INSTANCE, "beans.xml");
     }
 
+    @Before
+    public void before() {
+        accountDao.insert(new Document("name", "A").append("balance", 1000));
+        accountDao.insert(new Document("name", "B").append("balance", 1000));
+    }
+
     @After
     public void after() {
-        entriesService.cleanup();
+        accountDao.clear();
     }
 
     @Test
-    public void shouldAddEntryToTheDatabaseAndConfirmTransaction() throws Exception {
-        String entry = getEntry();
-        BAControllerFactory.getInstance().beginBusinessActivity();
-        entriesService.insert(entry);
-        assertSingleEntry(entry, false); // Transaction is not yet completed. Entry should exist, but shouldn't be confirmed.
-        BAControllerFactory.getInstance().closeBusinessActivity();
-        assertSingleEntry(entry, true); // Transaction was completed. A confirmed entry should exist.
+    public void testSuccess() {
+        bankingService.transferMoney("A", "B", 100);
+        assertBalance("A", 900);
+        assertBalance("B", 1100);
     }
 
     @Test
-    public void shouldAddEntryToTheDatabaseAndCancelTransaction() throws Exception {
-        String entry = getEntry();
-        BAControllerFactory.getInstance().beginBusinessActivity();
-        entriesService.insert(entry);
-        assertSingleEntry(entry, false); // Transaction is not yet completed. Entry should exist, but shouldn't be confirmed.
-        BAControllerFactory.getInstance().cancelBusinessActivity();
-        assertEquals("Unexpected entries", 0, entriesService.getAll().size()); // Transaction was canceled. Entry shouldn't exist.
+    public void testFailure() {
+        try {
+            bankingService.transferMoney("A", "B", 600);
+        } catch (TransactionCompensatedException ignored) {
+        }
+        assertBalance("A", 1000);
+        assertBalance("B", 1000);
     }
 
-    private void assertSingleEntry(String entry, boolean isConfirmed) {
-        List<Document> documents = entriesService.getAll();
-        assertEquals("One entry is expected.", 1, documents.size());
-        assertEquals("Wrong entry.", entry, documents.get(0).getString("entry"));
-        assertEquals("Wrong confirmation status.", isConfirmed, documents.get(0).getBoolean("confirmed"));
-    }
-
-    private String getEntry() {
-        return "TestEntry at " + LocalTime.now();
+    private void assertBalance(String accountName, int expectedBalance) {
+        Optional<Document> account = accountDao.get(accountName);
+        assertTrue(account.isPresent());
+        assertEquals(expectedBalance, account.get().get("balance"));
     }
 
 }
