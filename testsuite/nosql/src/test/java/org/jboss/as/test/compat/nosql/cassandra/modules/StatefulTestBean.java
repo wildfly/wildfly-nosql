@@ -75,7 +75,7 @@ public class StatefulTestBean {
 
     private void openConnection() {
         session = cluster.connect();
-        session.execute("CREATE KEYSPACE testspace WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
+        session.execute("CREATE KEYSPACE IF NOT EXISTS testspace WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
         session = cluster.connect("testspace");
     }
 

@@ -77,7 +77,7 @@ public class ClientResource {
             throw new RuntimeException("failed to get connection to NoSQL database using @javax.annotation.Resource");
         }
         session = cluster.connect();
-        session.execute("CREATE KEYSPACE testspace WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
+        session.execute("CREATE KEYSPACE IF NOT EXISTS testspace WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 };");
         session = cluster.connect("testspace");
     }
 
