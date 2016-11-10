@@ -22,6 +22,8 @@
 
 package org.wildfly.extension.nosql.driver.mongodb;
 
+import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 import java.util.ArrayList;
@@ -166,15 +168,23 @@ public class MongoInteraction {
     public List /* MongoCredential */ mongoCredential() throws Throwable {
         List resultList = null;
         if (configurationBuilder.getSecurityDomain() != null && subjectFactory != null) {
-            Subject subject = subjectFactory.createSubject(configurationBuilder.getSecurityDomain());
-            Set<PasswordCredential> passwordCredentials = subject.getPrivateCredentials(PasswordCredential.class);
-            PasswordCredential passwordCredential = passwordCredentials.iterator().next();
-            // public static MongoCredential createCredential(final String userName, final String database, final char[] password) {
-            if (resultList == null) {
-                resultList = new ArrayList();
+            try {
+                Subject subject = subjectFactory.createSubject(configurationBuilder.getSecurityDomain());
+                Set<PasswordCredential> passwordCredentials = subject.getPrivateCredentials(PasswordCredential.class);
+                PasswordCredential passwordCredential = passwordCredentials.iterator().next();
+                // public static MongoCredential createCredential(final String userName, final String database, final char[] password) {
+                if (resultList == null) {
+                    resultList = new ArrayList();
+                }
+                Object result = mongoCredentialCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword());
+                resultList.add(result);
+            } catch(Throwable problem) {
+                if (ROOT_LOGGER.isTraceEnabled()) {
+                    ROOT_LOGGER.tracef(problem,"could not create subject for security domain '%s' with database '%s'",
+                            configurationBuilder.getSecurityDomain(), configurationBuilder.getDatabase());
+                }
+                throw problem;
             }
-            Object result = mongoCredentialCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword());
-            resultList.add(result);
         }
         return resultList;
     }
