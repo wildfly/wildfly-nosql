@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<!-- <?xml version="1.0" encoding="UTF-8"?> -->
 <!--
   ~ JBoss, Home of Professional Open Source.
   ~ Copyright 2015, Red Hat, Inc., and individual contributors
@@ -28,15 +28,51 @@
 
     <parent>
         <groupId>org.wildfly</groupId>
-        <artifactId>wildfly-nosql</artifactId>
+        <artifactId>wildfly-parent</artifactId>
         <version>11.0.0.Alpha1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.wildfly</groupId>
-    <artifactId>wildfly-cassandrasubsystem</artifactId>
+    <artifactId>wildfly-nosql-common</artifactId>
+    <version>11.0.0.Alpha1-SNAPSHOT</version>
 
-    <name>WildFly: Cassandra subsystem</name>
+    <name>WildFly: NoSQL common</name>
 
+    <licenses>
+        <license>
+            <name>apache2</name>
+            <url>http://repository.jboss.org/licenses/apache-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:${jboss.as.scm.connection}</connection>
+        <developerConnection>scm:git:${jboss.as.scm.connection}</developerConnection>
+        <url>${jboss.as.scm.url}</url>
+    </scm>
+
+        <properties>
+        <!-- Release Info -->
+        <jboss.as.release.version>${project.version}</jboss.as.release.version>
+        <jboss.as.release.codename>N/A</jboss.as.release.codename>
+        <jboss.as.scm.url>https://github.com/wildfly/wildfly</jboss.as.scm.url>
+        <jboss.as.scm.connection>git@github.com:wildfly/wildfly.git</jboss.as.scm.connection>
+
+        <!--
+            Build configuration.  Override JBoss Parent settings as necessary.
+            For example: <version.surefire.plugin>2.11</version.surefire.plugin>
+          -->
+        <maven.min.version>3.2.5</maven.min.version>
+
+        <version.surefire.plugin>2.18</version.surefire.plugin>
+        <!-- use older version of checkstyle as otherwise lots of checks fail -->
+        <version.checkstyle>6.8</version.checkstyle>
+        
+        <version.wildfly>11.0.0.Alpha1-SNAPSHOT</version.wildfly>
+    </properties>
+
+    
     <dependencies>
         <dependency>
             <groupId>org.jboss.msc</groupId>
@@ -96,6 +132,13 @@
         </dependency>
 
         <dependency>
+            <groupId>javax.enterprise</groupId>
+            <artifactId>cdi-api</artifactId>
+        </dependency>
+
+
+
+        <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
         </dependency>
@@ -112,7 +155,11 @@
         </dependency>
         <dependency>
             <groupId>org.wildfly</groupId>
-            <artifactId>wildfly-nosql-common</artifactId>
+            <artifactId>wildfly-ee</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.wildfly</groupId>
+            <artifactId>wildfly-weld</artifactId>
         </dependency>
 
     </dependencies>

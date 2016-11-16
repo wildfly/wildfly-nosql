@@ -28,12 +28,13 @@
 
     <parent>
         <groupId>org.wildfly</groupId>
-        <artifactId>wildfly-nosql</artifactId>
+        <artifactId>wildfly-parent</artifactId>
         <version>11.0.0.Alpha1-SNAPSHOT</version>
     </parent>
 
     <groupId>org.wildfly</groupId>
     <artifactId>wildfly-mongodbsubsystem</artifactId>
+
 
     <name>WildFly: MongoDB subsystem</name>
 
