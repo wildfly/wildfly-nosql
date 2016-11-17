@@ -34,6 +34,7 @@
 
     <artifactId>wildfly-orientdbsubsystem</artifactId>
     <name>WildFly: OrientDB subsystem</name>
+    <version>11.0.0.Alpha1-SNAPSHOT</version>
 
     <dependencies>
         <dependency>
