@@ -27,12 +27,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.wildfly</groupId>
+        <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>11.0.0.Alpha1-SNAPSHOT</version>
+        <version>1.0.0.Alpha1-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.wildfly</groupId>
+    <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-mongodb-parent</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
     <name>WildFly: MongoDB</name>
@@ -46,8 +46,7 @@
 
    <properties>
         <version.mongodb.driver>3.2.2</version.mongodb.driver>
-        <version.org.wildfly.wildfly-parent>11.0.0.Alpha1-SNAPSHOT</version.org.wildfly.wildfly-parent>
-    </properties>
+   </properties>
 
     <dependencies>
         <dependency>
@@ -56,6 +55,4 @@
             <version>${version.mongodb.driver}</version>
         </dependency>
     </dependencies>
-
-
 </project>

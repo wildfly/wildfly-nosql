@@ -27,12 +27,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.wildfly</groupId>
+        <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>11.0.0.Alpha1-SNAPSHOT</version>
+        <version>1.0.0.Alpha1-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.wildfly</groupId>
+    <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-nosql-common</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
 

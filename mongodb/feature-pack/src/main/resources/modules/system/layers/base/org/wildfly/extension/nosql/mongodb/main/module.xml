@@ -32,7 +32,7 @@
     </exports>
 
     <resources>
-        <artifact name="${org.wildfly:wildfly-mongodbsubsystem}"/>
+        <artifact name="${org.wildfly.nosql:wildfly-mongodbsubsystem}"/>
     </resources>
 
     <dependencies>

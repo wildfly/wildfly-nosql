@@ -27,14 +27,14 @@
     <modelVersion>4.0.0</modelVersion>
 
      <parent>
-        <groupId>org.wildfly</groupId>
+        <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-mongodb-parent</artifactId>
         <version>1.0.0.Alpha1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
 
-    <groupId>org.wildfly</groupId>
+    <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-mongodb-feature-pack</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
     <name>WildFly: MongoDB Feature Pack</name>
@@ -67,7 +67,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.wildfly</groupId>
+            <groupId>org.wildfly.nosql</groupId>
             <artifactId>wildfly-mongodbsubsystem</artifactId>
             <version>1.0.0.Alpha1-SNAPSHOT</version>
             <exclusions>
@@ -79,7 +79,7 @@
         </dependency>
 
 	<dependency>
-	    <groupId>org.wildfly</groupId>
+	    <groupId>org.wildfly.nosql</groupId>
 	    <artifactId>wildfly-nosql-common</artifactId>
 	    <version>${version.wildfly-nosql-common}</version>
         </dependency>

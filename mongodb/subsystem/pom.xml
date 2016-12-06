@@ -27,12 +27,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.wildfly</groupId>
+        <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-mongodb-parent</artifactId>
         <version>1.0.0.Alpha1-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.wildfly</groupId>
+    <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-mongodbsubsystem</artifactId>
     <version>1.0.0.Alpha1-SNAPSHOT</version>
 
@@ -101,7 +101,7 @@
         </dependency>
 
         <dependency>
-            <groupId>org.wildfly</groupId>
+            <groupId>org.wildfly.nosql</groupId>
             <artifactId>wildfly-nosql-common</artifactId>
             <version>${version.wildfly-nosql-common}</version>
         </dependency>

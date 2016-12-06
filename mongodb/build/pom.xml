@@ -27,9 +27,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.wildfly</groupId>
+        <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-mongodb-parent</artifactId>
-        <version>11.0.0.Alpha1-SNAPSHOT</version>
+        <version>1.0.0.Alpha1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
