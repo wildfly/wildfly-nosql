@@ -177,7 +177,8 @@
 
         <dependency>
             <groupId>org.wildfly</groupId>
-            <artifactId>wildfly-weld-common</artifactId>        
+<!--             <artifactId>wildfly-weld-common</artifactId>        -->
+            <artifactId>wildfly-weld</artifactId>        
             <version>${version.wildfly}</version>
         </dependency>
         
