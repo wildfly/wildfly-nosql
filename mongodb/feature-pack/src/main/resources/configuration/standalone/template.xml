@@ -17,6 +17,18 @@
                     <properties path="mgmt-groups.properties" relative-to="jboss.server.config.dir"/>
                 </authorization>
             </security-realm>
+
+           <security-realm name="mongoRealm">  
+               <authentication>  
+                   <login-module code="ConfiguredIdentity" flag="required">  
+                       <module-option name="userName" value="devuser"/>  
+                       <module-option name="principal" value="devuser"/>  
+                       <module-option name="password" value="changethis"/>  
+                   </login-module>  
+               </authentication>  
+           </security-realm>  
+
+
             <security-realm name="ApplicationRealm">
                 <server-identities>
                     <ssl>
