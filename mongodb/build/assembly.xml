@@ -12,6 +12,8 @@
 			<includes>
 				<include>docs/**/standalone-mongodb.xml</include>
 				<include>modules/**/mongodb/main/*.*</include>
+				<include>modules/**/nosql/common/main/*.*</include>
+                                <include>modules/**/mongodb/driver/main/*.*</include>
 			</includes>
 		</fileSet>
 	</fileSets>
