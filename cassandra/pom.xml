@@ -27,59 +27,38 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.wildfly</groupId>
-        <artifactId>wildfly-parent</artifactId>
-        <version>11.0.0.Alpha1-SNAPSHOT</version>
+        <groupId>org.wildfly.nosql</groupId>
+        <artifactId>wildfly-nosql-parent</artifactId>
+        <version>1.0.0.Alpha1-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.wildfly</groupId>
-    <artifactId>wildfly-cassandrasubsystem</artifactId>
-    <version>11.0.0.Alpha1-SNAPSHOT</version>
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-cassandra-parent</artifactId>
+    <version>1.0.0.Alpha1-SNAPSHOT</version>
+    <name>WildFly: Cassandra</name>
+    <packaging>pom</packaging>
 
-    <name>WildFly: Cassandra subsystem</name>
+    <modules>
+         <module>subsystem</module>
+         <module>feature-pack</module>
+         <module>build</module>
+    </modules>
+
+   <properties>
+        <version.cassandra.driver>3.0.0</version.cassandra.driver>
+        <version.com.codahale.metrics.metrics-core>3.0.2</version.com.codahale.metrics.metrics-core>
+   </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-annotations</artifactId>
-            <!-- This is a compile-time dependency of this project, but is not needed at compile or runtime by other
-                                   projects that depend on this project.-->
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging-processor</artifactId>
-            <!-- This is a compile-time dependency of this project, but is not needed at compile or runtime by other
-                                   projects that depend on this project.-->
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.logging</groupId>
-            <artifactId>jboss-logging</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.datastax.cassandra</groupId>
             <artifactId>cassandra-driver-core</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
+            <version>${version.cassandra.driver}</version>
         </dependency>
         <dependency>
-            <groupId>org.wildfly</groupId>
-            <artifactId>wildfly-nosql-common</artifactId>
+            <groupId>com.codahale.metrics</groupId>
+            <artifactId>metrics-core</artifactId>
+            <version>${version.com.codahale.metrics.metrics-core}</version>
         </dependency>
-
     </dependencies>
 </project>
