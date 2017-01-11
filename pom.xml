@@ -272,6 +272,7 @@
     <modules>
         <module>cassandra</module>
         <module>mongodb</module>
+        <module>orientdb</module>
         <module>common</module>
     </modules>
 
