@@ -20,24 +20,18 @@
   ~ Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
   ~ 02110-1301 USA, or see the FSF site: http://www.fsf.org.
   -->
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>org.wildfly.nosql</groupId>
-        <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Alpha1-SNAPSHOT</version>
-    </parent>
-
-    <artifactId>wildfly-orientdb-parent</artifactId>
-    <name>WildFly: OrientDB</name>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>subsystem</module>
-        <module>feature-pack</module>
-        <module>build</module>
-    </modules>
-</project>
+<assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>feature-pack</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <includeBaseDirectory>false</includeBaseDirectory>
+    <fileSets>
+        <fileSet>
+            <directory>target/wildfly-orientdb-${version}</directory>
+            <outputDirectory/>
+        </fileSet>
+    </fileSets>
+</assembly>
