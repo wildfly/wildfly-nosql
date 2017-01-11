@@ -271,6 +271,7 @@
 
     <modules>
         <module>mongodb</module>
+        <module>orientdb</module>
         <module>common</module>
     </modules>
 
