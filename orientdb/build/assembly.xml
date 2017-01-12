@@ -36,6 +36,8 @@
                 <include>modules/**/nosql/orientdb/main/*.*</include>
                 <include>modules/**/nosql/common/main/*.*</include>
                 <include>modules/**/orientechnologies/main/*.*</include>
+                <include>modules/**/concurrentlinkedhashmap/main/*.*</include>
+                <include>modules/**/tinkerpop/blueprints/main/*.*</include>
             </includes>
         </fileSet>
     </fileSets>
