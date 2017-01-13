@@ -40,12 +40,12 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
  */
 public class CassandraDriverExtension implements Extension {
 
-    public static final String SUBSYSTEM_NAME = "cassandra";
+    public static final String SUBSYSTEM_NAME = "cassandradriver";
 
     protected static final PathElement PROFILE_PATH = PathElement.pathElement(CommonAttributes.PROFILE);
     protected static final PathElement HOST_PATH = PathElement.pathElement(CommonAttributes.HOST_DEF);
 
-    public static final String NAMESPACE = "urn:jboss:domain:cassandra:1.0";
+    public static final String NAMESPACE = "urn:jboss:domain:cassandradriver:1.0";
     public static final Namespace CURRENT = Namespace.CASSANDRA_1_0;
     public static final String RESOURCE_NAME = CassandraDriverExtension.class.getPackage().getName() + ".LocalDescriptions";
 

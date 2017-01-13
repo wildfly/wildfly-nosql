@@ -31,7 +31,7 @@ import java.util.Map;
 enum Namespace {
     // must be first
     UNKNOWN(null),
-    CASSANDRA_1_0("urn:jboss:domain:cassandra:1.0"),;
+    CASSANDRA_1_0("urn:jboss:domain:cassandradriver:1.0"),;
 
     private final String name;
 
