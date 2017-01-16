@@ -40,12 +40,12 @@ import org.jboss.as.controller.registry.ManagementResourceRegistration;
  */
 public class Neo4jDriverExtension implements Extension {
 
-    public static final String SUBSYSTEM_NAME = "neo4j";
+    public static final String SUBSYSTEM_NAME = "neo4jdriver";
 
     protected static final PathElement PROFILE_PATH = PathElement.pathElement(CommonAttributes.PROFILE);
     protected static final PathElement HOST_PATH = PathElement.pathElement(CommonAttributes.HOST_DEF);
 
-    public static final String NAMESPACE = "urn:jboss:domain:neo4j:1.0";
+    public static final String NAMESPACE = "urn:jboss:domain:neo4jdriver:1.0";
     public static final Namespace CURRENT = Namespace.NEO4J_1_0;
     public static final String RESOURCE_NAME = Neo4jDriverExtension.class.getPackage().getName() + ".LocalDescriptions";
 

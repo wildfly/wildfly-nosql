@@ -32,7 +32,7 @@ import java.util.Map;
 enum Namespace {
     // must be first
     UNKNOWN(null),
-    NEO4J_1_0("urn:jboss:domain:neo4j:1.0"),;
+    NEO4J_1_0("urn:jboss:domain:neo4jdriver:1.0"),;
 
     private final String name;
 
