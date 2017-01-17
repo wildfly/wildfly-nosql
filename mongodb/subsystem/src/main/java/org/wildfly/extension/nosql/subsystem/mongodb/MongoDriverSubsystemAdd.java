@@ -62,10 +62,12 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
         runtimeValidator.validate(operation.resolve());
         context.addStep(new AbstractDeploymentChainStep() {
             protected void execute(DeploymentProcessorTarget processorTarget) {
-                // TODO: create Phase.PARSE_MONGO_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 10 hack
-                processorTarget.addDeploymentProcessor(MongoDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, Phase.PARSE_PERSISTENCE_UNIT + 10, new DriverScanDependencyProcessor("mongodbsubsystem"));
-                // TODO: create Phase.DEPENDENCIES_MONGO_DRIVER to use instead of phase.DEPENDENCIES_PERSISTENCE_ANNOTATION+10 hack
-                processorTarget.addDeploymentProcessor(MongoDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, Phase.DEPENDENCIES_PERSISTENCE_ANNOTATION + 10, DriverDependencyProcessor.getInstance());
+                final int PARSE_MONGO_DRIVER                          = 0x4C03;
+                final int DEPENDENCIES_MONGO_DRIVER                   = 0x1F13;
+                // TODO: use Phase.PARSE_MONGO_DRIVER
+                processorTarget.addDeploymentProcessor(MongoDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, PARSE_MONGO_DRIVER, new DriverScanDependencyProcessor("mongodbsubsystem"));
+                // TODO: use Phase.DEPENDENCIES_MONGO_DRIVER
+                processorTarget.addDeploymentProcessor(MongoDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, DEPENDENCIES_MONGO_DRIVER, DriverDependencyProcessor.getInstance());
             }
         }, OperationContext.Stage.RUNTIME);
 
