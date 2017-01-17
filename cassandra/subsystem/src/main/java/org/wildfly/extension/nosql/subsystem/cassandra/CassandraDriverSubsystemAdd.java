@@ -62,10 +62,12 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
         runtimeValidator.validate(operation.resolve());
         context.addStep(new AbstractDeploymentChainStep() {
             protected void execute(DeploymentProcessorTarget processorTarget) {
-                // TODO: create Phase.PARSE_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 1 hack
-                processorTarget.addDeploymentProcessor(CassandraDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, Phase.PARSE_PERSISTENCE_UNIT + 1, new DriverScanDependencyProcessor("cassandrasubsystem"));
-                // TODO: create Phase.DEPENDENCIES_CASSANDRA_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 1 hack
-                processorTarget.addDeploymentProcessor(CassandraDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, Phase.DEPENDENCIES_PERSISTENCE_ANNOTATION + 1, DriverDependencyProcessor.getInstance());
+                final int PARSE_CASSANDRA_DRIVER                      = 0x4C02;
+                final int DEPENDENCIES_CASSANDRA_DRIVER               = 0x1F12;
+                // TODO: use Phase.PARSE_CASSANDRA_DRIVER
+                processorTarget.addDeploymentProcessor(CassandraDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, PARSE_CASSANDRA_DRIVER, new DriverScanDependencyProcessor("cassandrasubsystem"));
+                // TODO: use Phase.DEPENDENCIES_CASSANDRA_DRIVER
+                processorTarget.addDeploymentProcessor(CassandraDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, DEPENDENCIES_CASSANDRA_DRIVER, DriverDependencyProcessor.getInstance());
             }
         }, OperationContext.Stage.RUNTIME);
 

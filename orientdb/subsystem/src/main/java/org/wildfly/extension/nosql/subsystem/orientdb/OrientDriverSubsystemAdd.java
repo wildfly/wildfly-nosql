@@ -52,12 +52,14 @@ final class OrientDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
         runtimeValidator.validate(operation.resolve());
         context.addStep(new AbstractDeploymentChainStep() {
             protected void execute(DeploymentProcessorTarget processorTarget) {
-                // TODO: create Phase.PARSE_ORIENT_DRIVER
+                final int PARSE_ORIENT_DRIVER                         = 0x4C01;
+                final int DEPENDENCIES_ORIENT_DRIVER                  = 0x1F11;
+                // TODO: use Phase.PARSE_ORIENT_DRIVER
                 processorTarget.addDeploymentProcessor(OrientDriverExtension.SUBSYSTEM_NAME, Phase.PARSE,
-                        Phase.PARSE_PERSISTENCE_UNIT + 5, new DriverScanDependencyProcessor("orientdbsubsystem"));
-                // TODO: create Phase.DEPENDENCIES_ORIENT_DRIVER
+                        PARSE_ORIENT_DRIVER, new DriverScanDependencyProcessor("orientdbsubsystem"));
+                // TODO: use Phase.DEPENDENCIES_ORIENT_DRIVER
                 processorTarget.addDeploymentProcessor(OrientDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES,
-                        Phase.DEPENDENCIES_PERSISTENCE_ANNOTATION + 5, DriverDependencyProcessor.getInstance());
+                        DEPENDENCIES_ORIENT_DRIVER, DriverDependencyProcessor.getInstance());
             }
         }, OperationContext.Stage.RUNTIME);
 

@@ -66,10 +66,12 @@ public class Neo4jDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
         runtimeValidator.validate(operation.resolve());
         context.addStep(new AbstractDeploymentChainStep() {
             protected void execute(DeploymentProcessorTarget processorTarget) {
-                // TODO: create Phase.PARSE_NEO4J_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
-                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, Phase.PARSE_PERSISTENCE_UNIT + 4, new DriverScanDependencyProcessor("neo4jsubsystem"));
-                // TODO: create Phase.DEPENDENCIES_NEO4J_DRIVER to use instead of phase.PARSE_PERSISTENCE_UNIT + 4 hack
-                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, Phase.DEPENDENCIES_PERSISTENCE_ANNOTATION + 4, DriverDependencyProcessor.getInstance());
+                final int PARSE_NEO4J_DRIVER                          = 0x4C00;
+                final int DEPENDENCIES_NEO4J_DRIVER                   = 0x1F10;
+                // TODO: use Phase.PARSE_NEO4J_DRIVER
+                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.PARSE, PARSE_NEO4J_DRIVER, new DriverScanDependencyProcessor("neo4jsubsystem"));
+                // TODO: use Phase.DEPENDENCIES_NEO4J_DRIVER
+                processorTarget.addDeploymentProcessor(Neo4jDriverExtension.SUBSYSTEM_NAME, Phase.DEPENDENCIES, DEPENDENCIES_NEO4J_DRIVER, DriverDependencyProcessor.getInstance());
             }
         }, OperationContext.Stage.RUNTIME);
 
