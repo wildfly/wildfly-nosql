@@ -12,8 +12,8 @@
             <includes>
                 <include>docs/**/standalone-neo4j.xml</include>
                 <include>modules/**/neo4j/main/*.*</include>
-                <include>modules/**/neo4j/driver/main/*.*</include>
                 <include>modules/**/nosql/common/main/*.*</include>
+                <include>modules/**/neo4j/driver/main/*.*</include>
             </includes>
         </fileSet>
     </fileSets>
