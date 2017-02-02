@@ -35,4 +35,5 @@ public interface CommonAttributes {
     String JNDI_NAME = "jndi-name";
     String MODULE_NAME = "module";
     String PROFILE = "cassandra";
+    String SECURITY_DOMAIN = "security-domain";
 }

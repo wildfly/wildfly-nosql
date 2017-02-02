@@ -31,6 +31,7 @@ public class ConfigurationBuilder {
     private String description; //
     private String JNDIName;    // required global jndi name
     private String keyspace;    // optional Cassandra keyspace
+    private String securityDomain;
 
     private static final String defaultModuleName = "com.datastax.cassandra.driver-core";
     private String moduleName = // name of Cassandra static module
@@ -42,6 +43,10 @@ public class ConfigurationBuilder {
 
     public void setJNDIName(String JNDIName) {
         this.JNDIName = JNDIName;
+    }
+
+    public void setSecurityDomain(String securityDomain) {
+        this.securityDomain = securityDomain;
     }
 
     public void setKeyspace(String keyspace) {
@@ -66,5 +71,9 @@ public class ConfigurationBuilder {
 
     public String getModuleName() {
         return moduleName;
+    }
+
+    public String getSecurityDomain() {
+        return securityDomain;
     }
 }

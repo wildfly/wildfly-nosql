@@ -35,6 +35,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.subsystem.cassandra.CassandraSubsystemService;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
@@ -54,12 +55,17 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
     private Object cluster;  // represents connection into Cassandra
     private Object session;  // only set if keyspaceName is specified
     private final InjectedValue<CassandraSubsystemService> cassandraSubsystemServiceInjectedValue = new InjectedValue<>();
+    private final InjectedValue<SubjectFactory> subjectFactory = new InjectedValue<>();
 
     public CassandraClientConnectionsService(ConfigurationBuilder configurationBuilder) {
         this.configurationBuilder = configurationBuilder;
         cassandraInteraction = new CassandraInteraction(configurationBuilder);
         clusterClass = cassandraInteraction.getClusterClass();
         sessionClass = cassandraInteraction.getSessionClass();
+    }
+
+    public InjectedValue<SubjectFactory> getSubjectFactoryInjector() {
+        return subjectFactory;
     }
 
     public Injector<OutboundSocketBinding> getOutboundSocketBindingInjector(String name) {
@@ -86,6 +92,10 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
                 if (target.getUnresolvedDestinationAddress() != null) {
                     cassandraInteraction.addContactPoint(target.getUnresolvedDestinationAddress());
                 }
+            }
+
+            if (subjectFactory.getOptionalValue() != null) {
+                cassandraInteraction.subjectFactory(subjectFactory.getOptionalValue());
             }
 
             if (configurationBuilder.getDescription() != null) {

@@ -48,6 +48,7 @@ import org.jboss.as.naming.ValueManagedReferenceFactory;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.naming.service.BinderService;
 import org.jboss.as.network.OutboundSocketBinding;
+import org.jboss.as.security.service.SubjectFactoryService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.inject.CastingInjector;
@@ -57,6 +58,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.ImmediateValue;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.driver.cassandra.CassandraClientConnectionsService;
 import org.wildfly.extension.nosql.driver.cassandra.ConfigurationBuilder;
 import org.wildfly.nosql.common.ConnectionServiceAccess;
@@ -100,12 +102,18 @@ public class CassandraDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(false)
                     .build();
 
+    protected static final SimpleAttributeDefinition SECURITY_DOMAIN =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.SECURITY_DOMAIN, ModelType.STRING, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setAllowExpression(false)
+                    .build();
 
     protected static List<SimpleAttributeDefinition> ATTRIBUTES = Arrays.asList(
             ID_NAME,
             JNDI_NAME,
             DATABASE,
-            MODULE);
+            MODULE,
+            SECURITY_DOMAIN);
 
     static final Map<String, AttributeDefinition> ATTRIBUTES_MAP = new HashMap<>();
 
@@ -172,6 +180,9 @@ public class CassandraDefinition extends PersistentResourceDefinition {
                     }
                 }
             }
+            if (profileEntry.hasDefined(CommonAttributes.SECURITY_DOMAIN)) {
+                builder.setSecurityDomain(profileEntry.get(CommonAttributes.SECURITY_DOMAIN).asString());
+            }
             startCassandraDriverService(context, builder, outboundSocketBindings);
         }
 
@@ -205,6 +216,12 @@ public class CassandraDefinition extends PersistentResourceDefinition {
                     final ServiceName outboundSocketBindingDependency = context.getCapabilityServiceName(CassandraDriverDefinition.OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, outboundSocketBinding, OutboundSocketBinding.class);
                     serviceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingDependency, OutboundSocketBinding.class, cassandraClientConnectionsService.getOutboundSocketBindingInjector(outboundSocketBinding));
                 }
+
+                if (builder.getSecurityDomain() != null) {
+                    serviceBuilder.addDependency(SubjectFactoryService.SERVICE_NAME, SubjectFactory.class,
+                            cassandraClientConnectionsService.getSubjectFactoryInjector());
+                }
+
                 serviceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
             }
         }

@@ -22,10 +22,17 @@
 
 package org.wildfly.extension.nosql.driver.cassandra;
 
+import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
+import java.util.Set;
+
+import javax.resource.spi.security.PasswordCredential;
+import javax.security.auth.Subject;
 
 import org.jboss.modules.ModuleIdentifier;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.nosql.common.MethodHandleBuilder;
 import org.wildfly.nosql.common.NoSQLConstants;
 
@@ -46,9 +53,11 @@ public class CassandraInteraction {
     private final MethodHandle builderBuildMethod;
     private final MethodHandle builderWithClusterNameMethod;
     private final MethodHandle builderWithPortMethod;
+    private final MethodHandle builderWithCredentials;
     private final MethodHandle builderAddContactPointMethod;
     private final MethodHandle sessionCloseMethod;
     private Object clusterBuilder;
+    private volatile SubjectFactory subjectFactory;
 
     public CassandraInteraction(ConfigurationBuilder configurationBuilder) {
         MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
@@ -56,6 +65,7 @@ public class CassandraInteraction {
         clusterBuilderClass = methodHandleBuilder.className(NoSQLConstants.CASSANDRACLUSTERBUILDERCLASS).getTargetClass();
         builderBuildMethod = methodHandleBuilder.method("build");
         builderWithClusterNameMethod = methodHandleBuilder.method("withClusterName", String.class);
+        builderWithCredentials = methodHandleBuilder.method("withCredentials", String.class, String.class);
         builderWithPortMethod = methodHandleBuilder.method("withPort", int.class);
         builderAddContactPointMethod = methodHandleBuilder.method("addContactPoint", String.class);
         clusterClass = methodHandleBuilder.className(NoSQLConstants.CASSANDRACLUSTERCLASS).getTargetClass();
@@ -89,6 +99,28 @@ public class CassandraInteraction {
         builderWithPortMethod.invoke(getBuilder(), port);
     }
 
+    protected void setCredential(String securityDomain) throws Throwable {
+        if (securityDomain != null && subjectFactory != null) {
+            try {
+                Subject subject = subjectFactory.createSubject(securityDomain);
+                Set<PasswordCredential> passwordCredentials = subject.getPrivateCredentials(PasswordCredential.class);
+                PasswordCredential passwordCredential = passwordCredentials.iterator().next();
+                withCredentials(passwordCredential.getUserName(), new String(passwordCredential.getPassword()));
+            } catch(Throwable problem) {
+                if (ROOT_LOGGER.isTraceEnabled()) {
+                    ROOT_LOGGER.tracef(problem,"could not create subject for security domain '%s'",
+                            securityDomain);
+                }
+                throw problem;
+            }
+        }
+    }
+
+
+    private void withCredentials(String user, String password) throws Throwable {
+        builderWithCredentials.invoke(getBuilder(), user, password);
+    }
+
     protected void addContactPoint(String host) throws Throwable {
         builderAddContactPointMethod.invoke(getBuilder(), host);
     }
@@ -109,4 +141,7 @@ public class CassandraInteraction {
         return sessionClass;
     }
 
+    public void subjectFactory(SubjectFactory optionalValue) {
+        this.subjectFactory = subjectFactory;
+    }
 }
