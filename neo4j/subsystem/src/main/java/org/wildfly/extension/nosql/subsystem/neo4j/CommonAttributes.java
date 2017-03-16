@@ -35,4 +35,5 @@ public interface CommonAttributes {
     String MODULE_NAME = "module";
     String PROFILE = "neo4j";
     String TRANSACTION = "transaction";
+    String SECURITY_DOMAIN = "security-domain";
 }

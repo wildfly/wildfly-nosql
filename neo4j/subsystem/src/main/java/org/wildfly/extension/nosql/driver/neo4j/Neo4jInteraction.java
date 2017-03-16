@@ -27,6 +27,7 @@ import java.lang.invoke.MethodType;
 
 import org.jboss.modules.ModuleIdentifier;
 import org.jboss.msc.service.StartException;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.nosql.common.MethodHandleBuilder;
 import org.wildfly.nosql.common.NoSQLConstants;
 
@@ -41,6 +42,7 @@ public class Neo4jInteraction {
     private final Class driverClass;
     private final MethodHandle closeDriverMethod;
     private final MethodHandle buildMethod;
+    private volatile SubjectFactory subjectFactory;
 
     public Neo4jInteraction(ConfigurationBuilder configurationBuilder) {
         MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
@@ -50,6 +52,10 @@ public class Neo4jInteraction {
         closeDriverMethod = methodHandleBuilder.method("close");
         methodHandleBuilder.className(NoSQLConstants.NEO4JGRAPHDATABASECLASS);
         buildMethod = methodHandleBuilder.staticMethod("driver", MethodType.methodType(driverClass, String.class));
+    }
+
+    public void subjectFactory(SubjectFactory subjectFactory) {
+        this.subjectFactory = subjectFactory;
     }
 
     protected Object /* Driver */ build() throws Throwable {
@@ -80,5 +86,6 @@ public class Neo4jInteraction {
     protected Class getDriverClass() {
         return driverClass;
     }
+
 
 }

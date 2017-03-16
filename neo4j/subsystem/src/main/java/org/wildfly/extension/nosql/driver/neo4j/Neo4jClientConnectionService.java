@@ -39,6 +39,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.driver.neo4j.transaction.DriverProxy;
 import org.wildfly.extension.nosql.driver.neo4j.transaction.TransactionEnlistmentType;
 import org.wildfly.extension.nosql.subsystem.neo4j.Neo4jSubsystemService;
@@ -57,6 +58,11 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
     private final Neo4jInteraction neo4jInteraction;
     private Object /* Driver */ driver;  // Driver is thread safe but Session is not
     private final InjectedValue<Neo4jSubsystemService> neo4jSubsystemServiceInjectedValue = new InjectedValue<>();
+    private final InjectedValue<SubjectFactory> subjectFactory = new InjectedValue<>();
+
+    public InjectedValue<SubjectFactory> getSubjectFactoryInjector() {
+        return subjectFactory;
+    }
 
     public InjectedValue<Neo4jSubsystemService> getNeo4jSubsystemServiceInjectedValue() {
         return neo4jSubsystemServiceInjectedValue;
@@ -84,6 +90,9 @@ public class Neo4jClientConnectionService implements Service<Neo4jClientConnecti
             }
             if (target.getDestinationPort() > 0) {
                 neo4jInteraction.withPort(target.getDestinationPort());
+            }
+            if (subjectFactory.getOptionalValue() != null) {
+                neo4jInteraction.subjectFactory(subjectFactory.getOptionalValue());
             }
 
         }
