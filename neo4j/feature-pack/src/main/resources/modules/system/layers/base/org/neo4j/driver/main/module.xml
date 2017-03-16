@@ -29,6 +29,7 @@
 
     <dependencies>
         <module name="javax.api"/>
+        <module name="org.picketbox"/>
     </dependencies>
 
 </module>
