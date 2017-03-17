@@ -60,11 +60,14 @@ public class OrientInteraction {
     }
 
     <T> T getDatabasePool() {
+        String username = null;
+        String password = null;
         try {
-            return (T)oPartitionedDatabasePoolCtorMethod.invoke(configuration.getDatabaseUrl(), configuration.getUserName(),
-                    configuration.getPassword(), configuration.getMaxPartitionSize(), configuration.getMaxPoolSize());
+
+            return (T)oPartitionedDatabasePoolCtorMethod.invoke(configuration.getDatabaseUrl(), username,
+                    password, configuration.getMaxPartitionSize(), configuration.getMaxPoolSize());
         } catch (Throwable throwable) {
-            throw new RuntimeException("could not create partitioned database connection pool for " + configuration.getDatabaseUrl() + " " + configuration.getUserName(), throwable);
+            throw new RuntimeException("could not create partitioned database connection pool for " + configuration.getDatabaseUrl() + " " + username, throwable);
         }
     }
 

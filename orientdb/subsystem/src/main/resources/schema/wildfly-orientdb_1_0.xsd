@@ -44,8 +44,7 @@
         <xs:attribute name="id" type="xs:string" use="required"/>
         <xs:attribute name="database" type="xs:string" use="required"/>
         <xs:attribute name="jndi-name" type="xs:string" use="required"/>
-        <xs:attribute name="user-name" type="xs:string"/>
-        <xs:attribute name="password" type="xs:string"/>
+        <xs:attribute name="security-domain" type="xs:string"/>
         <xs:attribute name="max-partition-size" type="xs:integer"/>
         <xs:attribute name="max-pool-size" type="xs:integer"/>
     </xs:complexType>
