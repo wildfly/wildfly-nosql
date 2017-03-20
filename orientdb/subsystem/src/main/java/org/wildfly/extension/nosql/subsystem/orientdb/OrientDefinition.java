@@ -38,6 +38,7 @@ import org.jboss.as.naming.ValueManagedReferenceFactory;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.naming.service.BinderService;
 import org.jboss.as.network.OutboundSocketBinding;
+import org.jboss.as.security.service.SubjectFactoryService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.inject.CastingInjector;
@@ -47,6 +48,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.ImmediateValue;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.driver.Configuration;
 import org.wildfly.extension.nosql.driver.OrientClientConnectionsService;
 import org.wildfly.extension.nosql.driver.OrientInteraction;
@@ -161,6 +163,11 @@ final class OrientDefinition extends PersistentResourceDefinition {
             connectionsServiceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingServiceName,
                     new CastingInjector<>(connectionsService.getOutboundSocketBindingInjectedValue(),
                             OutboundSocketBinding.class));
+            if (configuration.getSecurityDomain() != null) {
+                connectionsServiceBuilder.addDependency(SubjectFactoryService.SERVICE_NAME, SubjectFactory.class,
+                        connectionsService.getSubjectFactoryInjector());
+            }
+
             connectionsServiceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
             bindJndi(context, connectionsServiceName, configuration.getJndiName(), orientInteraction.getDatabasePoolClass());
         }
