@@ -37,6 +37,7 @@ public class ConfigurationBuilder {
     private String moduleName = // name of static module
             defaultModuleName;
     private TransactionEnlistmentType transactionEnlistment;
+    private String securityDomain;
 
     public void setDescription(String description) {
         this.description = description;
@@ -68,5 +69,13 @@ public class ConfigurationBuilder {
 
     public TransactionEnlistmentType getTransactionEnlistment() {
         return transactionEnlistment;
+    }
+
+    public void setSecurityDomain(String securityDomain) {
+        this.securityDomain = securityDomain;
+    }
+
+    public String getSecurityDomain() {
+        return securityDomain;
     }
 }

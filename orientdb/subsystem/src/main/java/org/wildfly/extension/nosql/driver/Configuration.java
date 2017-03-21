@@ -33,9 +33,7 @@ public class Configuration {
 
     private String database = "";
 
-    private String userName = "root";
-
-    private String password = "";
+    private String securityDomain;
 
     private int maxPartitionSize = 64;
 
@@ -54,8 +52,7 @@ public class Configuration {
     private Configuration(Configuration configuration) {
         this.databaseUrl = configuration.getDatabaseUrl();
         this.database = configuration.getDatabase();
-        this.userName = configuration.getUserName();
-        this.password = configuration.getPassword();
+        this.securityDomain = configuration.getSecurityDomain();
         this.maxPartitionSize = configuration.getMaxPartitionSize();
         this.maxPoolSize = configuration.getMaxPoolSize();
         this.jndiName = configuration.getJndiName();
@@ -71,12 +68,8 @@ public class Configuration {
         return database;
     }
 
-    public String getUserName() {
-        return userName;
-    }
-
-    public String getPassword() {
-        return password;
+    public String getSecurityDomain() {
+        return securityDomain;
     }
 
     public int getMaxPartitionSize() {
@@ -125,13 +118,8 @@ public class Configuration {
             return this;
         }
 
-        public Builder userName(String userName) {
-            configuration.userName = userName;
-            return this;
-        }
-
-        public Builder password(String password) {
-            configuration.password = password;
+        public Builder securityDomain(String securityDomain) {
+            configuration.securityDomain = securityDomain;
             return this;
         }
 

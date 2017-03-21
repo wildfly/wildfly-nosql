@@ -38,6 +38,7 @@ import org.jboss.as.naming.ValueManagedReferenceFactory;
 import org.jboss.as.naming.deployment.ContextNames;
 import org.jboss.as.naming.service.BinderService;
 import org.jboss.as.network.OutboundSocketBinding;
+import org.jboss.as.security.service.SubjectFactoryService;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 import org.jboss.msc.inject.CastingInjector;
@@ -47,6 +48,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.ImmediateValue;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.driver.Configuration;
 import org.wildfly.extension.nosql.driver.OrientClientConnectionsService;
 import org.wildfly.extension.nosql.driver.OrientInteraction;
@@ -88,14 +90,8 @@ final class OrientDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(false)
                     .build();
 
-    private static final SimpleAttributeDefinition USER_NAME =
-            new SimpleAttributeDefinitionBuilder(CommonAttributes.USER_NAME, ModelType.STRING, true)
-                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
-                    .setAllowExpression(true)
-                    .build();
-
-    private static final SimpleAttributeDefinition PASSWORD =
-            new SimpleAttributeDefinitionBuilder(CommonAttributes.PASSWORD, ModelType.STRING, true)
+    private static final SimpleAttributeDefinition SECURITY_DOMAIN =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.SECURITY_DOMAIN, ModelType.STRING, true)
                     .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
                     .setAllowExpression(true)
                     .build();
@@ -112,7 +108,7 @@ final class OrientDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .build();
 
-    static final AttributeDefinition[] ATTRIBUTES = { ID, DATABASE, JNDI_NAME, MODULE ,USER_NAME, PASSWORD,
+    static final AttributeDefinition[] ATTRIBUTES = { ID, DATABASE, JNDI_NAME, MODULE , SECURITY_DOMAIN,
             MAX_PARTITION_SIZE, MAX_POOL_SIZE };
 
     static final OrientDefinition INSTANCE = new OrientDefinition();
@@ -167,6 +163,11 @@ final class OrientDefinition extends PersistentResourceDefinition {
             connectionsServiceBuilder.addDependency(ServiceBuilder.DependencyType.REQUIRED, outboundSocketBindingServiceName,
                     new CastingInjector<>(connectionsService.getOutboundSocketBindingInjectedValue(),
                             OutboundSocketBinding.class));
+            if (configuration.getSecurityDomain() != null) {
+                connectionsServiceBuilder.addDependency(SubjectFactoryService.SERVICE_NAME, SubjectFactory.class,
+                        connectionsService.getSubjectFactoryInjector());
+            }
+
             connectionsServiceBuilder.setInitialMode(ServiceController.Mode.ACTIVE).install();
             bindJndi(context, connectionsServiceName, configuration.getJndiName(), orientInteraction.getDatabasePoolClass());
         }
@@ -209,11 +210,8 @@ final class OrientDefinition extends PersistentResourceDefinition {
             if (profileEntry.hasDefined(CommonAttributes.MODULE_NAME)) {
                 builder.moduleName(profileEntry.get(CommonAttributes.MODULE_NAME).asString());
             }
-            if (profileEntry.hasDefined(CommonAttributes.USER_NAME)) {
-                builder.userName(profileEntry.get(CommonAttributes.USER_NAME).asString());
-            }
-            if (profileEntry.hasDefined(CommonAttributes.PASSWORD)) {
-                builder.password(profileEntry.get(CommonAttributes.PASSWORD).asString());
+            if (profileEntry.hasDefined(CommonAttributes.SECURITY_DOMAIN)) {
+                builder.securityDomain(profileEntry.get(CommonAttributes.SECURITY_DOMAIN).asString());
             }
             if (profileEntry.hasDefined(CommonAttributes.MAX_PARTITION_SIZE)) {
                 builder.maxPartitionSize(profileEntry.get(CommonAttributes.MAX_PARTITION_SIZE).asInt());

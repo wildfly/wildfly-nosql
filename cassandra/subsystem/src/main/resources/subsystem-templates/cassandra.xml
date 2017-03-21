@@ -25,7 +25,7 @@
 <config>
     <extension-module>org.wildfly.extension.nosql.cassandra</extension-module>
     <subsystem xmlns="urn:jboss:domain:cassandradriver:1.0">
-        <cassandra name="default" id="cassandratestprofile" jndi-name="java:jboss/cassandradriver/test">
+        <cassandra name="default" id="cassandratestprofile" jndi-name="java:jboss/cassandradriver/test" security-domain="cassandrasecuritydomain">
             <host name="default" outbound-socket-binding-ref="casstesthost"/>
         </cassandra>
     </subsystem>

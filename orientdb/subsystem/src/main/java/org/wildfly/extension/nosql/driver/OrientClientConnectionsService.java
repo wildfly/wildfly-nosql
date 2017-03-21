@@ -28,6 +28,7 @@ import org.jboss.msc.service.StartContext;
 import org.jboss.msc.service.StartException;
 import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
+import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.subsystem.orientdb.OrientSubsystemService;
 import org.wildfly.nosql.common.NoSQLLogger;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
@@ -44,6 +45,8 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
     private final InjectedValue<OrientSubsystemService> orientSubsystemServiceInjectedValue = new InjectedValue<>();
 
     private final InjectedValue<OutboundSocketBinding> outboundSocketBindingInjectedValue = new InjectedValue<>();
+
+    private final InjectedValue<SubjectFactory> subjectFactory = new InjectedValue<>();
 
     public OrientClientConnectionsService(Configuration configuration, OrientInteraction orientInteraction) {
         this.configuration = configuration;
@@ -84,6 +87,10 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
         return outboundSocketBindingInjectedValue;
     }
 
+    public InjectedValue<SubjectFactory> getSubjectFactoryInjector() {
+            return subjectFactory;
+        }
+
     private void initOrientSubsystemService() {
         orientSubsystemServiceInjectedValue.getValue().addModuleNameFromJndi(configuration.getJndiName(),
                 configuration.getModuleName());
@@ -97,6 +104,10 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
         // TODO: Eliminate the extra Configuration/ConfigurationBuilder instances
         Configuration extraConfiguration = configurationBuilder.build();
         configuration.setDatabaseUrl(extraConfiguration.getDatabaseUrl());
+        if (subjectFactory.getOptionalValue() != null) {
+            orientInteraction.subjectFactory(subjectFactory.getOptionalValue());
+        }
+
     }
 
     private String getDatabaseUrl(OutboundSocketBinding target, Configuration configuration) {

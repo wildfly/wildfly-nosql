@@ -58,6 +58,7 @@ public class CassandraInteraction {
     private final MethodHandle sessionCloseMethod;
     private Object clusterBuilder;
     private volatile SubjectFactory subjectFactory;
+    private final String securityDomain;
 
     public CassandraInteraction(ConfigurationBuilder configurationBuilder) {
         MethodHandleBuilder methodHandleBuilder = new MethodHandleBuilder();
@@ -74,6 +75,7 @@ public class CassandraInteraction {
         clusterBuilderMethod = methodHandleBuilder.staticMethod("builder", MethodType.methodType(clusterBuilderClass));
         sessionClass = methodHandleBuilder.className(NoSQLConstants.CASSANDRASESSIONCLASS).getTargetClass();
         sessionCloseMethod = methodHandleBuilder.method("close");
+        securityDomain = configurationBuilder.getSecurityDomain();
     }
 
     private Object getBuilder() throws Throwable {
@@ -141,7 +143,8 @@ public class CassandraInteraction {
         return sessionClass;
     }
 
-    public void subjectFactory(SubjectFactory optionalValue) {
+    public void subjectFactory(SubjectFactory subjectFactory) throws Throwable {
         this.subjectFactory = subjectFactory;
+        setCredential(securityDomain);
     }
 }

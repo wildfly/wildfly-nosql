@@ -34,8 +34,7 @@ interface CommonAttributes {
     String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
     String HOST = "host";
     String DATABASE = "database";
-    String USER_NAME = "user-name";
-    String PASSWORD = "password";
+    String SECURITY_DOMAIN = "security-domain";
     String MAX_PARTITION_SIZE = "max-partition-size";
     String MAX_POOL_SIZE = "max-pool-size";
 

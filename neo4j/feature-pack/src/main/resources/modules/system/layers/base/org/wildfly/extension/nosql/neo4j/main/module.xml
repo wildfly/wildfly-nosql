@@ -46,6 +46,8 @@
         <module name="org.jboss.as.naming"/>
         <module name="org.wildfly.extension.nosql.common"/>
         <module name="org.wildfly.security.manager"/>
+        <module name="org.jboss.as.security"/>
+        <module name="org.picketbox"/>
         <module name="org.jboss.as.network"/>
         <module name="org.jboss.as.server"/>
         <module name="org.jboss.as.threads"/>
