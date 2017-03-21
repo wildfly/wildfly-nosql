@@ -104,6 +104,10 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
         // TODO: Eliminate the extra Configuration/ConfigurationBuilder instances
         Configuration extraConfiguration = configurationBuilder.build();
         configuration.setDatabaseUrl(extraConfiguration.getDatabaseUrl());
+        if (subjectFactory.getOptionalValue() != null) {
+            orientInteraction.subjectFactory(subjectFactory.getOptionalValue());
+        }
+
     }
 
     private String getDatabaseUrl(OutboundSocketBinding target, Configuration configuration) {
