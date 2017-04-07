@@ -71,6 +71,11 @@ public class MongoInteraction {
 
     private final Class mongoCredentialClass;
     private final MethodHandle mongoCredentialCreateCredential;
+    private final MethodHandle mongoCredentialGSSAPICreateCredential;
+    private final MethodHandle mongoCredentialMongoCRCreateCredential;
+    private final MethodHandle mongoCredentialX509CreateCredential;
+    private final MethodHandle mongoCredentialPlainCreateCredential;
+    private final MethodHandle mongoCredentialScramSha1CreateCredential;
     private volatile SubjectFactory subjectFactory;
 
     public MongoInteraction(ConfigurationBuilder configurationBuilder) {
@@ -115,6 +120,21 @@ public class MongoInteraction {
         // public static MongoCredential createCredential(final String userName, final String database, final char[] password) {
         mongoCredentialCreateCredential = methodHandleBuilder.staticMethod
                 ("createCredential", MethodType.methodType(mongoCredentialClass, String.class, String.class, char[].class));
+        // public static MongoCredential createGSSAPICredential(final String userName) {
+        mongoCredentialGSSAPICreateCredential = methodHandleBuilder.staticMethod
+                ( "createGSSAPICredential", MethodType.methodType(mongoCredentialClass, String.class));
+        // public static MongoCredential createMongoCRCredential(final String userName, final String database, final char[] password) {
+        mongoCredentialMongoCRCreateCredential = methodHandleBuilder.staticMethod
+                ("createMongoCRCredential", MethodType.methodType(mongoCredentialClass, String.class, String.class, char[].class));
+        // public static MongoCredential createMongoX509Credential(final String userName) {
+        mongoCredentialX509CreateCredential = methodHandleBuilder.staticMethod
+                ( "createMongoX509Credential", MethodType.methodType(mongoCredentialClass, String.class));
+        // public static MongoCredential createPlainCredential(final String userName, final String database, final char[] password) {
+        mongoCredentialPlainCreateCredential = methodHandleBuilder.staticMethod
+                ("createPlainCredential", MethodType.methodType(mongoCredentialClass, String.class, String.class, char[].class));
+        // public static MongoCredential createScramSha1Credential(final String userName, final String database, final char[] password) {
+        mongoCredentialScramSha1CreateCredential = methodHandleBuilder.staticMethod
+                ("createScramSha1Credential", MethodType.methodType(mongoCredentialClass, String.class, String.class, char[].class));
     }
 
     public void hostPort(String host, int port) throws Throwable {
@@ -126,12 +146,7 @@ public class MongoInteraction {
     }
 
     public Object /*MongoClient*/ mongoClient() throws Throwable {
-        Object mongoClientOptions = mongoClientOptions();
-        List mongoCredential = null;
-        if (configurationBuilder.getSecurityDomain() != null) {
-            mongoCredential = mongoCredential();
-        }
-        return mongoClient(serverAddressArrayList, mongoClientOptions, mongoCredential);
+        return mongoClient(serverAddressArrayList, mongoClientOptions(), mongoCredential());
     }
 
     public Object getDB() throws Throwable {
@@ -166,18 +181,42 @@ public class MongoInteraction {
 
     // public <U> Class<? extends U> asSubclass(Class<U> clazz) {
     public List /* MongoCredential */ mongoCredential() throws Throwable {
-        List resultList = null;
+
         if (configurationBuilder.getSecurityDomain() != null && subjectFactory != null) {
             try {
                 Subject subject = subjectFactory.createSubject(configurationBuilder.getSecurityDomain());
                 Set<PasswordCredential> passwordCredentials = subject.getPrivateCredentials(PasswordCredential.class);
                 PasswordCredential passwordCredential = passwordCredentials.iterator().next();
                 // public static MongoCredential createCredential(final String userName, final String database, final char[] password) {
-                if (resultList == null) {
-                    resultList = new ArrayList();
+                List resultList = new ArrayList();
+                if(configurationBuilder.getAuthType() == null || AuthType.DEFAULT.equals(configurationBuilder.getAuthType())) {
+                    resultList.add(mongoCredentialCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    return resultList;
                 }
-                Object result = mongoCredentialCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword());
-                resultList.add(result);
+                else if(AuthType.GSSAPI.equals(configurationBuilder.getAuthType())) {
+                    // createGSSAPICredential( final String username )
+                    resultList.add(mongoCredentialGSSAPICreateCredential.invoke(passwordCredential.getUserName()));
+                    return resultList;
+                }
+                else if(AuthType.MONGODB_CR.equals(configurationBuilder.getAuthType())) {
+                    resultList.add(mongoCredentialMongoCRCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    return resultList;
+                }
+                else if(AuthType.MONGODB_X509.equals(configurationBuilder.getAuthType())) {
+                    resultList.add(mongoCredentialX509CreateCredential.invoke(passwordCredential.getUserName()));
+                    return resultList;
+                }
+                else if(AuthType.PLAIN_SASL.equals(configurationBuilder.getAuthType())) {
+                    resultList.add(mongoCredentialPlainCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    return resultList;
+                }
+                else if(AuthType.SCRAM_SHA_1.equals(configurationBuilder.getAuthType())) {
+                    resultList.add(mongoCredentialScramSha1CreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    return resultList;
+                }
+                else {
+                    throw new RuntimeException("unhandled auth-type " + configurationBuilder.getAuthType().toString());
+                }
             } catch(Throwable problem) {
                 if (ROOT_LOGGER.isTraceEnabled()) {
                     ROOT_LOGGER.tracef(problem,"could not create subject for security domain '%s' with database '%s'",
@@ -186,7 +225,7 @@ public class MongoInteraction {
                 throw problem;
             }
         }
-        return resultList;
+        return null;
     }
 
     // MongoClient(final List<ServerAddress> seeds, final MongoClientOptions mongoClientOptions) {

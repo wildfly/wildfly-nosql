@@ -47,7 +47,8 @@ final class MongoDriverSubsystemParser extends PersistentResourceXMLParser {
                                         MongoDefinition.JNDI_NAME,
                                         MongoDefinition.DATABASE,
                                         MongoDefinition.MODULE,
-                                        MongoDefinition.SECURITY_DOMAIN
+                                        MongoDefinition.SECURITY_DOMAIN,
+                                        MongoDefinition.AUTH_TYPE
                                 )
                                 .addChild(builder(HostDefinition.INSTANCE)
                                         .addAttributes(

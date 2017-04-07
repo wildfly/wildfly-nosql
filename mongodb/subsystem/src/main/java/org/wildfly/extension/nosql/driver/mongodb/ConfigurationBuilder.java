@@ -38,6 +38,16 @@ public class ConfigurationBuilder {
     private String writeConcern;
     private String readConcern;
     private String securityDomain;
+    private AuthType authType;
+
+    public AuthType getAuthType() {
+        return authType;
+    }
+
+    public ConfigurationBuilder setAuthType(AuthType authType) {
+        this.authType = authType;
+        return this;
+    }
 
     public String getSecurityDomain() {
         return securityDomain;

@@ -43,6 +43,7 @@ import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
 import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
+import org.jboss.as.controller.operations.validation.EnumValidator;
 import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.as.controller.registry.Resource;
 import org.jboss.as.naming.ServiceBasedNamingStore;
@@ -62,6 +63,7 @@ import org.jboss.msc.service.ServiceController;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.ImmediateValue;
 import org.jboss.security.SubjectFactory;
+import org.wildfly.extension.nosql.driver.mongodb.AuthType;
 import org.wildfly.extension.nosql.driver.mongodb.ConfigurationBuilder;
 import org.wildfly.extension.nosql.driver.mongodb.MongoClientConnectionsService;
 import org.wildfly.extension.nosql.driver.mongodb.ReadConcernType;
@@ -114,13 +116,22 @@ public class MongoDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(false)
                     .build();
 
+    protected static final SimpleAttributeDefinition AUTH_TYPE =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.AUTH_TYPE, ModelType.STRING, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setValidator(new EnumValidator<>(AuthType.class,true,true))
+                    .setDefaultValue(new ModelNode(AuthType.DEFAULT.toString()))
+                    .setAllowExpression(false)
+                    .build();
+
 
     protected static List<SimpleAttributeDefinition> ATTRIBUTES = Arrays.asList(
             ID_NAME,
             JNDI_NAME,
             DATABASE,
             MODULE,
-            SECURITY_DOMAIN);
+            SECURITY_DOMAIN,
+            AUTH_TYPE);
 
     static final Map<String, AttributeDefinition> ATTRIBUTES_MAP = new HashMap<>();
 
@@ -177,6 +188,10 @@ public class MongoDefinition extends PersistentResourceDefinition {
             }
             if (profileEntry.hasDefined(CommonAttributes.SECURITY_DOMAIN)) {
                 builder.setSecurityDomain(profileEntry.get(CommonAttributes.SECURITY_DOMAIN).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.AUTH_TYPE)) {
+                AuthType authType = AuthType.valueOf(profileEntry.get(CommonAttributes.AUTH_TYPE).asString());
+                builder.setAuthType(authType);
             }
             if (profileEntry.hasDefined(CommonAttributes.HOST_DEF)) {
                 ModelNode hostModels = profileEntry.get(CommonAttributes.HOST_DEF);
