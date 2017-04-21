@@ -31,7 +31,6 @@
         <artifact name="${com.orientechnologies:orientdb-graphdb}"/>
         <artifact name="${com.orientechnologies:orientdb-object}"/>
         <artifact name="${com.orientechnologies:orientdb-client}"/>
-        <artifact name="${com.orientechnologies:orientdb-enterprise}"/>
     </resources>
     <dependencies>
         <module name="javax.api"/>

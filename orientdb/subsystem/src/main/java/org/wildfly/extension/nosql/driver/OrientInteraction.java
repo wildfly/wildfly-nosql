@@ -92,6 +92,7 @@ public class OrientInteraction {
             return (T)oPartitionedDatabasePoolCtorMethod.invoke(configuration.getDatabaseUrl(), username,
                     password, configuration.getMaxPartitionSize(), configuration.getMaxPoolSize());
         } catch (Throwable throwable) {
+            username = password = null;
             throw new RuntimeException("could not create partitioned database connection pool for " + configuration.getDatabaseUrl() + " " + username, throwable);
         }
     }
