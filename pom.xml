@@ -209,7 +209,7 @@
         <version.mongodb.driver>3.2.2</version.mongodb.driver>
         <version.cassandra.driver>3.0.0</version.cassandra.driver>
         <version.com.codahale.metrics.metrics-core>3.0.2</version.com.codahale.metrics.metrics-core>
-        <version.neo4j.driver>1.0.1</version.neo4j.driver>
+        <version.neo4j.driver>1.2.1</version.neo4j.driver>
         <version.com.orientechnologies>2.2.9</version.com.orientechnologies>
         <version.com.googlecode.concurrentlinkedhashmap>1.4.1</version.com.googlecode.concurrentlinkedhashmap>
         <version.com.tinkerpop.blueprints>2.6.0</version.com.tinkerpop.blueprints>
