@@ -76,6 +76,11 @@ public class OrientSubsystemService implements Service<SubsystemService>, Subsys
     }
 
     @Override
+    public Collection<String> jndiNames() {
+        return jndiNameToModuleName.keySet();
+    }
+
+    @Override
     public String vendorKey() {
         return VENDORKEY;
     }

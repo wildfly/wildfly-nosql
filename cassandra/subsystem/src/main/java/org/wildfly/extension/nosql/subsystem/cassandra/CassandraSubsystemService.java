@@ -88,6 +88,11 @@ public class CassandraSubsystemService implements Service<SubsystemService>, Sub
     }
 
     @Override
+    public Collection<String> jndiNames() {
+        return jndiNameToModuleName.keySet();
+    }
+
+    @Override
     public String vendorKey() {
         return VENDORKEY;
     }
