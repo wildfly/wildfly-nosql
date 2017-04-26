@@ -44,7 +44,8 @@ final class CassandraDriverSubsystemParser extends PersistentResourceXMLParser {
                                         CassandraDefinition.ID_NAME,
                                         CassandraDefinition.JNDI_NAME,
                                         CassandraDefinition.DATABASE,
-                                        CassandraDefinition.MODULE
+                                        CassandraDefinition.MODULE,
+                                        CassandraDefinition.SSL
                                 )
                                 .addChild(builder(HostDefinition.INSTANCE)
                                         .addAttributes(
