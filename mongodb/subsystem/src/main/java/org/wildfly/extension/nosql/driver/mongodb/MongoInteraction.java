@@ -60,6 +60,7 @@ public class MongoInteraction {
     private final MethodHandle descriptionMethod;
     private final MethodHandle writeConcernMethod;
     private final MethodHandle readConcernMethod;
+    private final MethodHandle sslEnabledMethod;
     private final MethodHandle buildMethod;
 
     private final MethodHandle writeConcernValueOfMethod;
@@ -108,6 +109,7 @@ public class MongoInteraction {
         descriptionMethod = methodHandleBuilder.declaredMethod("description", String.class);
         writeConcernMethod = methodHandleBuilder.method("writeConcern", mongoWriteConcernClass);
         readConcernMethod = methodHandleBuilder.method("readConcern", mongoReadConcernClass);
+        sslEnabledMethod = methodHandleBuilder.method("sslEnabled", boolean.class);
         buildMethod = methodHandleBuilder.method("build");
 
         methodHandleBuilder.className(NoSQLConstants.MONGOSERVERADDRESSCLASS);
@@ -172,6 +174,9 @@ public class MongoInteraction {
             Object readConcernLevelValue = readConcernLevelFromStringMethod.invoke(configurationBuilder.getReadConcern());
             Object readConcernValue = readConcernCtorMethod.invoke(readConcernLevelValue);
             readConcernMethod.invoke(builder, readConcernValue);
+        }
+        if (configurationBuilder.isSSL()) {
+            sslEnabledMethod.invoke(builder,true);
         }
         // MongoClientOptions mongoClientOptions = builder.build();
         // Object mongoClientOptions = buildMethod.invokeExact(builder);

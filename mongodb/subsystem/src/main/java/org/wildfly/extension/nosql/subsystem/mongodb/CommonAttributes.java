@@ -41,4 +41,5 @@ public interface CommonAttributes {
     String READ_CONCERN = "readConcern";
     String SECURITY_DOMAIN = "security-domain";
     String AUTH_TYPE = "auth-type";
+    String SSL = "ssl";
 }

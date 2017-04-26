@@ -39,6 +39,7 @@ public class ConfigurationBuilder {
     private String readConcern;
     private String securityDomain;
     private AuthType authType;
+    private boolean SSL;
 
     public AuthType getAuthType() {
         return authType;
@@ -101,6 +102,7 @@ public class ConfigurationBuilder {
     public ConfigurationBuilder setWriteConcern(String writeConcern) {
         this.writeConcern = writeConcern;
         return this;
+
     }
 
     public String getReadConcern() {
@@ -111,4 +113,13 @@ public class ConfigurationBuilder {
         this.readConcern = readConcern;
         return this;
     }
+
+    public void setSSL(boolean SSL) {
+        this.SSL = SSL;
+    }
+
+    public boolean isSSL() {
+        return SSL;
+    }
+
 }

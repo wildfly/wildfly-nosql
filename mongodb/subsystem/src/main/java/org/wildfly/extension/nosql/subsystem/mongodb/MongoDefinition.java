@@ -124,6 +124,11 @@ public class MongoDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(false)
                     .build();
 
+    protected static final SimpleAttributeDefinition SSL =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.SSL, ModelType.BOOLEAN, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setAllowExpression(true)
+                    .build();
 
     protected static List<SimpleAttributeDefinition> ATTRIBUTES = Arrays.asList(
             ID_NAME,
@@ -131,7 +136,8 @@ public class MongoDefinition extends PersistentResourceDefinition {
             DATABASE,
             MODULE,
             SECURITY_DOMAIN,
-            AUTH_TYPE);
+            AUTH_TYPE,
+            SSL);
 
     static final Map<String, AttributeDefinition> ATTRIBUTES_MAP = new HashMap<>();
 
@@ -193,6 +199,10 @@ public class MongoDefinition extends PersistentResourceDefinition {
                 AuthType authType = AuthType.valueOf(profileEntry.get(CommonAttributes.AUTH_TYPE).asString());
                 builder.setAuthType(authType);
             }
+            if (profileEntry.hasDefined(CommonAttributes.SSL)) {
+                builder.setSSL(profileEntry.get(CommonAttributes.SSL).asBoolean());
+            }
+
             if (profileEntry.hasDefined(CommonAttributes.HOST_DEF)) {
                 ModelNode hostModels = profileEntry.get(CommonAttributes.HOST_DEF);
                 for (ModelNode host : hostModels.asList()) {
