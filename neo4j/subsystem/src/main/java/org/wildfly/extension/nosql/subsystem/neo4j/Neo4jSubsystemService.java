@@ -111,6 +111,11 @@ public class Neo4jSubsystemService implements Service<SubsystemService>, Subsyst
     }
 
     @Override
+    public Collection<String> jndiNames() {
+        return jndiNameToModuleName.keySet();
+    }
+
+    @Override
     public String vendorKey() {
         return VENDORKEY;
     }

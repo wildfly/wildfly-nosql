@@ -55,6 +55,7 @@ public class CassandraInteraction {
     private final MethodHandle builderWithPortMethod;
     private final MethodHandle builderWithCredentials;
     private final MethodHandle builderAddContactPointMethod;
+    private final MethodHandle builderwithSSLMethod;
     private final MethodHandle sessionCloseMethod;
     private Object clusterBuilder;
     private volatile SubjectFactory subjectFactory;
@@ -69,6 +70,8 @@ public class CassandraInteraction {
         builderWithCredentials = methodHandleBuilder.method("withCredentials", String.class, String.class);
         builderWithPortMethod = methodHandleBuilder.method("withPort", int.class);
         builderAddContactPointMethod = methodHandleBuilder.method("addContactPoint", String.class);
+        builderwithSSLMethod = methodHandleBuilder.method("withSSL");
+
         clusterClass = methodHandleBuilder.className(NoSQLConstants.CASSANDRACLUSTERCLASS).getTargetClass();
         clusterConnectMethod = methodHandleBuilder.method("connect", String.class);
         clusterCloseMethod = methodHandleBuilder.method("close");
@@ -99,6 +102,10 @@ public class CassandraInteraction {
 
     protected void withPort(int port) throws Throwable {
         builderWithPortMethod.invoke(getBuilder(), port);
+    }
+
+    protected void withSSL() throws Throwable {
+        builderwithSSLMethod.invoke(getBuilder());
     }
 
     protected void setCredential(String securityDomain) throws Throwable {

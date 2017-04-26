@@ -32,6 +32,7 @@ public class ConfigurationBuilder {
     private String JNDIName;    // required global jndi name
     private String keyspace;    // optional Cassandra keyspace
     private String securityDomain;
+    private boolean withSSL;
 
     private static final String defaultModuleName = "com.datastax.cassandra.driver-core";
     private String moduleName = // name of Cassandra static module
@@ -76,4 +77,13 @@ public class ConfigurationBuilder {
     public String getSecurityDomain() {
         return securityDomain;
     }
+
+    public boolean isWithSSL() {
+        return withSSL;
+    }
+
+    public void setWithSSL(boolean withSSL) {
+        this.withSSL = withSSL;
+    }
+
 }

@@ -49,6 +49,12 @@ public interface SubsystemService {
     Collection<String> profileNames();
 
     /**
+     * get jndi names.
+     * @return collection of NoSQL defined jndi names.
+     */
+    Collection<String> jndiNames();
+
+    /**
      * get vendor key that can be used as a key.
      *
      * @return unique key identifying the NoSQL database vendor (e.g. MongoDB/Cassandra/OrientDB/Neo4j)

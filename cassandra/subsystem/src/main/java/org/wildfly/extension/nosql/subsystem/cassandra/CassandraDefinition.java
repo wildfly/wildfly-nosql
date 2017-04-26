@@ -108,12 +108,19 @@ public class CassandraDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(false)
                     .build();
 
+    protected static final SimpleAttributeDefinition SSL =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.SSL, ModelType.BOOLEAN, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setAllowExpression(true)
+                    .build();
+
     protected static List<SimpleAttributeDefinition> ATTRIBUTES = Arrays.asList(
             ID_NAME,
             JNDI_NAME,
             DATABASE,
             MODULE,
-            SECURITY_DOMAIN);
+            SECURITY_DOMAIN,
+            SSL);
 
     static final Map<String, AttributeDefinition> ATTRIBUTES_MAP = new HashMap<>();
 
@@ -168,6 +175,9 @@ public class CassandraDefinition extends PersistentResourceDefinition {
             }
             if (profileEntry.hasDefined(CommonAttributes.DATABASE)) {
                 builder.setKeyspace(profileEntry.get(CommonAttributes.DATABASE).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.SSL)) {
+                builder.setWithSSL(profileEntry.get(CommonAttributes.SSL).asBoolean());
             }
             if (profileEntry.hasDefined(CommonAttributes.HOST_DEF)) {
                 ModelNode hostModels = profileEntry.get(CommonAttributes.HOST_DEF);

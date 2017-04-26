@@ -36,4 +36,5 @@ public interface CommonAttributes {
     String MODULE_NAME = "module";
     String PROFILE = "cassandra";
     String SECURITY_DOMAIN = "security-domain";
+    String SSL = "ssl";
 }

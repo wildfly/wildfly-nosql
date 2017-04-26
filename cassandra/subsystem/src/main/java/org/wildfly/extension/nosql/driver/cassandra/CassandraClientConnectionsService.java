@@ -101,6 +101,11 @@ public class CassandraClientConnectionsService implements Service<CassandraClien
             if (configurationBuilder.getDescription() != null) {
                 cassandraInteraction.withClusterName(configurationBuilder.getDescription());
             }
+
+            if (configurationBuilder.isWithSSL()) {
+                cassandraInteraction.withSSL();
+            }
+
             cluster = cassandraInteraction.build();
 
             String keySpace = configurationBuilder.getKeySpace();
