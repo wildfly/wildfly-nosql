@@ -61,6 +61,5 @@
         <module name="org.jboss.metadata.common"/>
         <module name="org.jboss.vfs"/>
         <module name="org.jboss.weld.core"/>
-        <module name="org.mongodb.driver"/>
     </dependencies>
 </module>

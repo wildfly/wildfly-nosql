@@ -83,18 +83,6 @@
 	    <artifactId>wildfly-nosql-common</artifactId>
 	    <version>${version.wildfly-nosql-common}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
     </dependencies>
 
 
