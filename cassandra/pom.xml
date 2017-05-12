@@ -44,17 +44,4 @@
         <version.cassandra.driver>3.0.0</version.cassandra.driver>
         <version.com.codahale.metrics.metrics-core>3.0.2</version.com.codahale.metrics.metrics-core>
    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>com.datastax.cassandra</groupId>
-            <artifactId>cassandra-driver-core</artifactId>
-            <version>${version.cassandra.driver}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.codahale.metrics</groupId>
-            <artifactId>metrics-core</artifactId>
-            <version>${version.com.codahale.metrics.metrics-core}</version>
-        </dependency>
-    </dependencies>
 </project>
