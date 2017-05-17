@@ -112,6 +112,7 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
         }
 
         String databaseUrl = "remote:" + target.getUnresolvedDestinationAddress();
+
         if (target.getDestinationPort() > 0) {
             databaseUrl += ":" + target.getDestinationPort();
         }

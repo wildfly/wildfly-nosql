@@ -29,7 +29,6 @@
         <artifact name="${org.wildfly.nosql:wildfly-orientdbsubsystem}"/>
     </resources>
     <dependencies>
-        <module name="com.orientechnologies"/>
         <module name="org.wildfly.extension.nosql.common"/>
         <module name="javax.annotation.api"/>
         <module name="javax.api"/>
