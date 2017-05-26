@@ -18,7 +18,9 @@
   ~  */
   -->
 
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+       targetNamespace="urn:jboss:domain:mongodb:1.0"
+       xmlns="urn:jboss:domain:mongodb:1.0">
     <xs:element name="config">
         <xs:complexType>
             <xs:sequence>
@@ -38,16 +40,147 @@
     <xs:element name="mongo">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="host"/>
-                <xs:element name="properties" type="propertiesType" maxOccurs="1" minOccurs="0"/>
+                <xs:element ref="host">
+                    <xs:annotation>
+                      <xs:documentation>
+                        <![CDATA[[
+                          server host name(s) + port numbers
+                        ]]>
+                      </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
+                <xs:element name="properties" type="propertiesType" maxOccurs="1" minOccurs="0">
+                    <xs:annotation>
+                      <xs:documentation>
+                        <![CDATA[[
+                          writeConcern/readConcern settings to be used when obtaining connections to specified MongoDB server(s)
+                          Property writeConcern may be { ACKNOWLEDGED, UNACKNOWLEDGED, JOURNALED, MAJORITY }
+                          Property readConcern may be { LOCAL, MAJORITY }
+                        ]]>
+                      </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
+
             </xs:sequence>
-            <xs:attribute name="database" type="xs:string" use="required"/>
-            <xs:attribute name="id" type="xs:string" use="required"/>
-            <xs:attribute name="jndi-name" type="xs:string" use="required"/>
+
+            <xs:attribute name="id" type="xs:string" use="required">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      identify (unique) name of profile that can be used in @Inject.
+                      Ex:
+                      @Inject @Named("MyMongoDB") MongoDatabase database;
+                      ...
+                      <mongo name="default" id="MyMongoDB" ...>
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="database" type="xs:string" use="required">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      Database to connect to.
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="jndi-name" type="xs:string" use="required">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      JNDI lookup name.
+                      Ex:
+                      @Resource(lookup = "java:jboss/mongodb/MyDB") MongoDatabase database;
+                      ...
+                      <mongo ... jndi-name="java:jboss/mongodb/MyDB" ...>
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute name="name" type="xs:string" use="required"/>
-            <xs:attribute name="security-domain" type="xs:string"/>
-            <xs:attribute name="auth-type" type="xs:string"/>
-            <xs:attribute name="ssl" type="xs:string"/>
+
+            <xs:attribute name="module" type="xs:string" use="optional" default="org.mongodb.driver">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      Specify the module name that contains the NoSQL driver.
+                      Ex:
+                      <module>org.mongodb.driver.latest</module>
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="security-domain" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      Indicates Subject (from security domain) used for database server authorization when obtaining connections.
+                      This is the name of the separately defined security domain.
+                      Ex:
+                      <security-domain>MongoDbRealm</security-domain>
+                      ...
+                      <subsystem xmlns="urn:jboss:domain:security:1.2">
+                          <security-domains>
+                              <security-domain name="MongoDbRealm">
+                                <authentication>
+                                    <login-module code="ConfiguredIdentity" flag="required">
+                                        <module-option name="userName" value="changethis"/>
+                                        <module-option name="principal" value="changethis"/>
+                                        <module-option name="password" value="changethis"/>
+                                    </login-module>
+                                </authentication>
+                              </security-domain>
+                          </security-domains>
+                          ...
+                        ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="auth-type" type="xs:string" default="DEFAULT">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      Connection authorization type, must be one of the following:
+
+                          DEFAULT - negotiate the best mechanism based on the server version,
+                                    same as MongoCredential.createCredential(String userName, String database, char[] password)
+
+                          GSSAPI - use GSSAPI SASL mechanism,
+                                   same as MongoCredential.createGSSAPICredential(String userName)
+
+                          PLAIN_SASL - use PLAIN SASL mechanism,
+                                       same as MongoCredential.createPlainCredential(String userName, String database, char[] password)
+
+                          SCRAM_SHA_1 - use SCRAM-SHA-1 SASL mechanism,
+                                        same as MongoCredential.createScramSha1Credential(String userName, String database, char[] password)
+
+                          MONGODB_CR - use MongoDB Challenge Response protocol,
+                                       same as MongoCredential.createMongoCRCredential(String userName, String database, char[] password)
+
+                          MONGODB_X509 - use MongoDB X.509 protocol,
+                                         same as MongoCredential.createMongoX509Credential(String userName)
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="ssl" type="xs:string" default="false">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      enable transport level security (SSL) for database connection.
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
 
         </xs:complexType>
     </xs:element>

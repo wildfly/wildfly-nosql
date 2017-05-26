@@ -31,9 +31,9 @@ public class Configuration {
 
     private String securityDomain;
 
-    private int maxPartitionSize = 64;
+    private int maxPartitionSize = -1;  // let OrientDB driver determine defaults
 
-    private int maxPoolSize = -1;
+    private int maxPoolSize = -1;       // let OrientDB driver determine defaults
 
     private String jndiName = "";
 

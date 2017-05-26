@@ -38,6 +38,7 @@ public class OrientInteraction {
     private final Configuration configuration;
     private final Class oPartitionedDatabasePool;  // com.orientechnologies.orient.core.db.OPartitionedDatabasePool
     private MethodHandle oPartitionedDatabasePoolCtorMethod;
+    private MethodHandle oPartitionedDatabasePoolDefaultSizeCtorMethod;
     private volatile SubjectFactory subjectFactory;
 
     public OrientInteraction(Configuration configuration) {
@@ -49,7 +50,8 @@ public class OrientInteraction {
         // OPartitionedDatabasePool(String url, String userName, String password, int maxPartitionSize, int maxPoolSize)
         oPartitionedDatabasePoolCtorMethod = methodHandleBuilder.declaredConstructor(
                 String.class, String.class, String.class, int.class, int.class);
-
+        oPartitionedDatabasePoolDefaultSizeCtorMethod = methodHandleBuilder.declaredConstructor(
+                        String.class, String.class, String.class);
         methodHandleBuilder.className(NoSQLConstants.ORIENTDBDATABASERECORDTHREADLOCALCLASS);
         MethodHandle oDatabaseRecordThreadLocalInstanceField = methodHandleBuilder.staticField("INSTANCE");
         MethodHandle isDefinedMethod = methodHandleBuilder.method("isDefined");
@@ -84,9 +86,12 @@ public class OrientInteraction {
             }
         }
         try {
-
-            return (T)oPartitionedDatabasePoolCtorMethod.invoke(configuration.getDatabaseUrl(), username,
+            if(configuration.getMaxPartitionSize() > 0 || configuration.getMaxPoolSize() > 0)
+                return (T)oPartitionedDatabasePoolCtorMethod.invoke(configuration.getDatabaseUrl(), username,
                     password, configuration.getMaxPartitionSize(), configuration.getMaxPoolSize());
+            else
+                return (T)oPartitionedDatabasePoolDefaultSizeCtorMethod.invoke(configuration.getDatabaseUrl(), username,
+                                    password);
         } catch (Throwable throwable) {
             username = password = null;
             throw new RuntimeException("could not create partitioned database connection pool for " + configuration.getDatabaseUrl() + " " + username, throwable);
