@@ -18,7 +18,9 @@
   ~  */
   -->
 
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+       targetNamespace="urn:jboss:domain:neo4jdriver:1.0"
+       xmlns="urn:jboss:domain:neo4jdriver:1.0">
     <xs:element name="config">
         <xs:complexType>
             <xs:sequence>
@@ -38,12 +40,86 @@
     <xs:element name="neo4j">
         <xs:complexType>
             <xs:sequence>
-                <xs:element ref="host"/>
+                <xs:element ref="host">
+                    <xs:annotation>
+                      <xs:documentation>
+                        <![CDATA[[
+                          server host name(s) + port numbers
+                        ]]>
+                      </xs:documentation>
+                    </xs:annotation>
+                </xs:element>
             </xs:sequence>
-            <xs:attribute name="id" type="xs:string" use="required"/>
-            <xs:attribute name="jndi-name" type="xs:string" use="required"/>
+            <xs:attribute name="id" type="xs:string" use="required">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      identify (unique) name of profile that can be used in @Inject.
+                      Ex:
+                      @Inject @Named("MyNeo4j") Driver database;
+                      ...
+                      <neo4j name="default" id="MyNeo4j" ...>
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+            <xs:attribute name="jndi-name" type="xs:string" use="required">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      JNDI lookup name.
+                      Ex:
+                      @Resource(lookup = "java:jboss/neo4j/MyDB") Driver database;
+                      ...
+                      <neo4j ... jndi-name="java:jboss/neo4j/MyDB" ...>
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
             <xs:attribute name="name" type="xs:string" use="required"/>
-            <xs:attribute name="security-domain" type="xs:string"/>
+
+            <xs:attribute name="module" type="xs:string" use="optional" default="org.neo4j.driver">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      Specify the module name that contains the NoSQL driver.
+                      Ex:
+                      <module>org.neo4j.driver.latest</module>
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
+
+            <xs:attribute name="security-domain" type="xs:string">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      Indicates Subject (from security domain) used for database server authorization when obtaining connections.
+                      This is the name of the separately defined security domain.
+                      Ex:
+                      <security-domain>Neo4jDbRealm</security-domain>
+                      ...
+                      <subsystem xmlns="urn:jboss:domain:security:1.2">
+                          <security-domains>
+                              <security-domain name="Neo4jDbRealm">
+                                <authentication>
+                                    <login-module code="ConfiguredIdentity" flag="required">
+                                        <module-option name="userName" value="changethis"/>
+                                        <module-option name="principal" value="changethis"/>
+                                        <module-option name="password" value="changethis"/>
+                                    </login-module>
+                                </authentication>
+                              </security-domain>
+                          </security-domains>
+                          ...
+                        ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:attribute>
+
         </xs:complexType>
     </xs:element>
     <xs:element name="host">

@@ -18,7 +18,9 @@
   ~  */
   -->
 
-<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+       targetNamespace="urn:jboss:domain:orientdb:1.0"
+       xmlns="urn:jboss:domain:orientdb:1.0">
     <xs:element name="config" type="configType"/>
     <xs:complexType name="configType">
         <xs:sequence>
@@ -34,15 +36,117 @@
     </xs:complexType>
     <xs:complexType name="orientType">
         <xs:sequence>
-            <xs:element name="host" type="hostType" maxOccurs="1"/>
+            <xs:element name="host" type="hostType" maxOccurs="1">
+                <xs:annotation>
+                  <xs:documentation>
+                    <![CDATA[[
+                      server host name(s) + port numbers
+                    ]]>
+                  </xs:documentation>
+                </xs:annotation>
+            </xs:element>
         </xs:sequence>
         <xs:attribute name="name" type="xs:string" use="required"/>
-        <xs:attribute name="id" type="xs:string" use="required"/>
-        <xs:attribute name="database" type="xs:string" use="required"/>
-        <xs:attribute name="jndi-name" type="xs:string" use="required"/>
-        <xs:attribute name="security-domain" type="xs:string"/>
-        <xs:attribute name="max-partition-size" type="xs:integer"/>
-        <xs:attribute name="max-pool-size" type="xs:integer"/>
+        <xs:attribute name="id" type="xs:string" use="required">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                  identify (unique) name of profile that can be used in @Inject, which represents
+                  the OrientDB database connection pool.
+                  The max-partition-size + max-pool-size, determine the pool size.
+                  Ex:
+                  @Inject @Named("MyOrientDBPool") OPartitionedDatabasePool pool;
+                  ...
+                  <orient name="default" id="MyOrientDBPool" ...>
+                ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="database" type="xs:string" use="required">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                  Database to connect to.
+                ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="jndi-name" type="xs:string" use="required">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                  JNDI lookup name.
+                  Ex:
+                  @Resource(lookup = "java:jboss/orientdb/MyDB")  OPartitionedDatabasePool pool;
+                  ...
+                  <orient ... jndi-name="java:jboss/orientdb/MyDB" ...>
+                ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="module" type="xs:string" use="optional" default="com.orientechnologies">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                  Specify the module name that contains the NoSQL driver.
+                  Ex:
+                  <module>com.orientechnologies.latest</module>
+                ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="security-domain" type="xs:string">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                  Indicates Subject (from security domain) used for database server authorization when obtaining connections.
+                  This is the name of the separately defined security domain.
+                  Ex:
+                  <security-domain>OrientDbRealm</security-domain>
+                  ...
+                  <subsystem xmlns="urn:jboss:domain:security:1.2">
+                      <security-domains>
+                          <security-domain name="OrientDbRealm">
+                            <authentication>
+                                <login-module code="ConfiguredIdentity" flag="required">
+                                    <module-option name="userName" value="changethis"/>
+                                    <module-option name="principal" value="changethis"/>
+                                    <module-option name="password" value="changethis"/>
+                                </login-module>
+                            </authentication>
+                          </security-domain>
+                      </security-domains>
+                      ...
+                    ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="max-partition-size" type="xs:integer" default="-1">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                  If greater than zero, specifies the max number of connections per partition
+                  (pool will have multiple partitions, as determined by OrientDB driver).
+                ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
+        <xs:attribute name="max-pool-size" type="xs:integer" default="-1">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                If greater than zero, determines max number of connections in pool. Has precedence over max-partition-size setting.
+                ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
     </xs:complexType>
     <xs:complexType name="hostType">
         <xs:attribute name="name" type="xs:string" use="required"/>

@@ -21,7 +21,8 @@
 <config>
     <extension-module>org.wildfly.extension.nosql.orientdb</extension-module>
     <subsystem xmlns="urn:jboss:domain:orientdb:1.0">
-        <orient name="default" id="orientdbtestprofile" database="test" jndi-name="java:jboss/orientdb/test" security-domain="orientsecuritydomain"
+        <orient name="default" id="orientdbtestprofile" database="test" jndi-name="java:jboss/orientdb/test"
+                security-domain="orientsecuritydomain"
                 max-partition-size="64" max-pool-size="-1">
             <host name="default" outbound-socket-binding-ref="orienttesthost"/>
         </orient>
