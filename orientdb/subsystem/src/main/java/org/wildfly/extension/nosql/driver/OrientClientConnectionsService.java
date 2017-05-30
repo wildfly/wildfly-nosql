@@ -18,6 +18,8 @@
 
 package org.wildfly.extension.nosql.driver;
 
+import static org.wildfly.nosql.common.NoSQLLogger.ROOT_LOGGER;
+
 import org.jboss.as.network.OutboundSocketBinding;
 import org.jboss.msc.service.Service;
 import org.jboss.msc.service.StartContext;
@@ -26,7 +28,6 @@ import org.jboss.msc.service.StopContext;
 import org.jboss.msc.value.InjectedValue;
 import org.jboss.security.SubjectFactory;
 import org.wildfly.extension.nosql.subsystem.orientdb.OrientSubsystemService;
-import org.wildfly.nosql.common.NoSQLLogger;
 import org.wildfly.nosql.common.spi.NoSQLConnection;
 
 /**
@@ -44,6 +45,8 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
 
     private final InjectedValue<SubjectFactory> subjectFactory = new InjectedValue<>();
 
+    private volatile Object databasePool;
+
     public OrientClientConnectionsService(Configuration configuration, OrientInteraction orientInteraction) {
         this.configuration = configuration;
         this.orientInteraction = orientInteraction;
@@ -53,12 +56,20 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
     public void start(StartContext startContext) throws StartException {
         initOrientSubsystemService();
         initDatabaseUrl();
+        databasePool = orientInteraction.getDatabasePool();
     }
 
     @Override
     public void stop(StopContext stopContext) {
         orientSubsystemServiceInjectedValue.getValue().removeModuleNameFromJndi(configuration.getJndiName());
         orientSubsystemServiceInjectedValue.getValue().removeModuleNameFromProfile(configuration.getProfileName());
+        try {
+            orientInteraction.close(databasePool);
+        } catch (Throwable throwable) {
+            ROOT_LOGGER.driverFailedToStop(throwable);
+        } finally {
+            databasePool = null;
+        }
     }
 
     @Override
@@ -70,9 +81,9 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
     @Override
     public <T> T unwrap(Class<T> clazz) {
         if (orientInteraction.getDatabasePoolClass().isAssignableFrom(clazz)) {
-            return (T) orientInteraction.getDatabasePool();
+            return (T) databasePool;
         }
-        throw NoSQLLogger.ROOT_LOGGER.unassignable(clazz);
+        throw ROOT_LOGGER.unassignable(clazz);
     }
 
     public InjectedValue<OrientSubsystemService> getOrientSubsystemServiceInjectedValue() {
