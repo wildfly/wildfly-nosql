@@ -39,6 +39,7 @@ public class OrientInteraction {
     private final Class oPartitionedDatabasePool;  // com.orientechnologies.orient.core.db.OPartitionedDatabasePool
     private MethodHandle oPartitionedDatabasePoolCtorMethod;
     private MethodHandle oPartitionedDatabasePoolDefaultSizeCtorMethod;
+    private MethodHandle oPartitionedDatabasePoolCloseMethod;
     private volatile SubjectFactory subjectFactory;
 
     public OrientInteraction(Configuration configuration) {
@@ -52,6 +53,7 @@ public class OrientInteraction {
                 String.class, String.class, String.class, int.class, int.class);
         oPartitionedDatabasePoolDefaultSizeCtorMethod = methodHandleBuilder.declaredConstructor(
                         String.class, String.class, String.class);
+        oPartitionedDatabasePoolCloseMethod = methodHandleBuilder.method("close");
         methodHandleBuilder.className(NoSQLConstants.ORIENTDBDATABASERECORDTHREADLOCALCLASS);
         MethodHandle oDatabaseRecordThreadLocalInstanceField = methodHandleBuilder.staticField("INSTANCE");
         MethodHandle isDefinedMethod = methodHandleBuilder.method("isDefined");
@@ -98,7 +100,14 @@ public class OrientInteraction {
         }
     }
 
+    void close(Object databasePool) throws Throwable {
+        if(databasePool != null) {
+            oPartitionedDatabasePoolCloseMethod.invoke(databasePool);
+        }
+    }
+
     public Class getDatabasePoolClass() {
         return oPartitionedDatabasePool;
     }
+
 }
