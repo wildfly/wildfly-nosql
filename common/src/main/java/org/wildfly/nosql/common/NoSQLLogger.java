@@ -19,11 +19,12 @@
 package org.wildfly.nosql.common;
 
 import static org.jboss.logging.Logger.Level.ERROR;
+import static org.jboss.logging.Logger.Level.INFO;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import org.jboss.as.controller.OperationFailedException;
-import org.jboss.jandex.MethodInfo;
 import org.jboss.logging.BasicLogger;
 import org.jboss.logging.Logger;
 import org.jboss.logging.annotations.Cause;
@@ -66,29 +67,35 @@ public interface NoSQLLogger extends BasicLogger {
     IllegalStateException cannotAddReferenceToModule(String module, Object currentValue, String deploymentName);
 
     /**
-     * Creates an exception indicating the {@code annotation} injection target is invalid and only setter methods are
-     * allowed.
-     *
-     * @param annotation the annotation.
-     * @param methodInfo the method information.
-     * @return an {@link IllegalArgumentException} for the error.
-     */
-    @Message(id = 3, value = "%s injection target is invalid.  Only setter methods are allowed: %s")
-    IllegalArgumentException setterMethodOnly(String annotation, MethodInfo methodInfo);
-
-    /**
      * Creates an exception indicating the annotation must provide the attribute.
      *
      * @param annotation the annotation.
      * @param attribute  the attribute.
      * @return an {@link IllegalArgumentException} for the exception.
      */
-    @Message(id = 4, value = "%s annotations must provide a %s.")
+    @Message(id = 3, value = "%s annotations must provide a %s.")
     IllegalArgumentException annotationAttributeMissing(String annotation, String attribute);
 
-    @Message(id = 5, value = "Cannot unwrap class '%s'.")
+    @Message(id = 4, value = "Cannot unwrap class '%s'.")
     IllegalArgumentException unassignable(Class clazz);
 
-    @Message(id = 6, value = "Cannot set %s to %s.  Instead set to one of %s")
+    @Message(id = 5, value = "Cannot set %s to %s.  Instead set to one of %s")
     OperationFailedException invalidParameter(String transaction, String str, ArrayList arrayList);
+
+    @LogMessage(level = INFO)
+    @Message(id = 6, value = "Ignored @Inject @Named(%s), does not reference known NoSQL profile name. Known NoSQL profile names=%s")
+    void ignoringNamedQualifier(String profile, Collection<String> strings);
+
+    @LogMessage(level = INFO)
+    @Message(id = 7, value = "Scanned @Inject @Named reference to NoSQL profile %s, which refers to NoSQL module %s")
+    void scannedNamedQualifier(String profile, String moduleName);
+
+    @LogMessage(level = INFO)
+    @Message(id = 8, value = "Ignored @Resource lookup %s, does not reference known NoSQL jndi-name. Known NoSQL jndi-names=%s")
+    void ignoringResourceLookup(String lookup, Collection<String> strings);
+
+    @LogMessage(level = INFO)
+    @Message(id = 9, value = "Scanned @Resource lookup %s, which refers to NoSQL module %s")
+    void scannedResourceLookup(String lookup, String moduleName);
+
 }

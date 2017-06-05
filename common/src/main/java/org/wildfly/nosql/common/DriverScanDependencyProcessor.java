@@ -141,24 +141,23 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         String moduleName = service.moduleNameFromProfile(profile);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
+            ROOT_LOGGER.scannedNamedQualifier(profile, moduleName);
         } else {
-            ROOT_LOGGER.tracef("@Inject @Named(%s) does not reference a known NoSQL profile name, known NoSQL profile names=%s",profile,getService().profileNames());
+            ROOT_LOGGER.ignoringNamedQualifier(profile,getService().profileNames());
         }
 
 
     }
 
     private void processMethodNamedQualifier(DeploymentUnit deploymentUnit, MethodInfo methodInfo, String profile) {
-        final String methodName = methodInfo.name();
-        if (!methodName.startsWith("set") || methodInfo.args().length != 1) {
-            throw ROOT_LOGGER.setterMethodOnly("@Named", methodInfo);
-        }
+
         SubsystemService service = getService();
         String moduleName = getService().moduleNameFromProfile(profile);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
+            ROOT_LOGGER.scannedNamedQualifier(profile, moduleName);
         } else {
-            ROOT_LOGGER.tracef("@Inject @Named(%s) does not reference a known NoSQL profile name, known NoSQL profile names=%s",profile,getService().profileNames());
+            ROOT_LOGGER.ignoringNamedQualifier(profile,getService().profileNames());
         }
 
     }
@@ -168,8 +167,9 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         String moduleName = getService().moduleNameFromProfile(profile);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
+            ROOT_LOGGER.scannedNamedQualifier(profile, moduleName);
         } else {
-            ROOT_LOGGER.tracef("@Inject @Named(%s) does not reference a known NoSQL profile name, known NoSQL profile names=%s",profile,getService().profileNames());
+            ROOT_LOGGER.ignoringNamedQualifier(profile,getService().profileNames());
         }
     }
 
@@ -178,23 +178,21 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
+            ROOT_LOGGER.scannedResourceLookup(lookup, moduleName);
         } else {
-            ROOT_LOGGER.tracef("@Resource lookup (%s) does not match any NoSQL profile JNDI names, known NoSQL profile JNDI names=%s",lookup, getService().jndiNames());
+            ROOT_LOGGER.ignoringResourceLookup(lookup, getService().jndiNames());
         }
 
     }
 
     protected void processMethodResource(final DeploymentUnit deploymentUnit, final MethodInfo methodInfo, final String lookup) throws DeploymentUnitProcessingException {
-        final String methodName = methodInfo.name();
-        if (!methodName.startsWith("set") || methodInfo.args().length != 1) {
-            throw ROOT_LOGGER.setterMethodOnly("@Resource", methodInfo);
-        }
         SubsystemService service = getService();
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
+            ROOT_LOGGER.scannedResourceLookup(lookup, moduleName);
         } else {
-            ROOT_LOGGER.tracef("@Resource lookup (%s) does not match any NoSQL profile JNDI names, known NoSQL profile JNDI names=%s",lookup, getService().jndiNames());
+            ROOT_LOGGER.ignoringResourceLookup(lookup, getService().jndiNames());
         }
     }
 
@@ -206,8 +204,9 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {
             savePerDeploymentModuleName(deploymentUnit, moduleName, service.vendorKey());
+            ROOT_LOGGER.scannedResourceLookup(lookup, moduleName);
         } else {
-            ROOT_LOGGER.tracef("@Resource lookup (%s) does not match any NoSQL profile JNDI names, known NoSQL profile JNDI names=%s",lookup, getService().jndiNames());
+            ROOT_LOGGER.ignoringResourceLookup(lookup, getService().jndiNames());
         }
     }
 
