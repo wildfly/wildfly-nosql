@@ -271,6 +271,8 @@
         <module>neo4j</module>
         <module>orientdb</module>
         <module>common</module>
+        <module>server</module>
+        <module>drivers</module>
     </modules>
 
     <build>
