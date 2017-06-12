@@ -1,0 +1,201 @@
+= WildFly NoSQL 
+
+== Introduction
+The goal of wildfly-nosql, is no-nonsense improvements focused on making the developer’s
+life easier when using NoSQL on https://github.com/wildfly/wildfly +
+https://github.com/wildfly-swarm/wildfly-swarm.
+In particular, not to hide and abstract the underlying NoSQL APIs but to give
+simple and natural access to them. The configuration allows NoSQL database connection profiles to be defined, to be used by applications. The CDI access simplifies application access to the defined NoSQL database connection profiles.
+
+=== Connection pooling
+Connections to NoSQL database servers are managed by the underlying native NoSQL drivers.
+Connection pooling is provided directly by the native NoSQL drivers.
+
+== Define NoSQL connection profiles
+
+Each NoSQL connection profile uniquely names the profile *id*, which can be used to *@Inject @Named("id")*
+the connection into your application code.  
+[source,java]
+----
+   @Inject @Named("MyMongoDB") MongoDatabase database;
+   @Inject @Named("MyCassandra") Cluster cluster;
+   @Inject @Named("MyOrientDBPool") OPartitionedDatabasePool pool;
+   @Inject @Named("MyNeo4j") Driver database;
+----
+
+Each NoSQL connection uniquely names the JNDI lookup *jndi-name*, which can be easily used by
+application code.
+[source,java]
+----
+   @Resource(lookup = "java:jboss/cassandra/MyDB")  Cluster cluster;
+   @Resource(lookup = "java:jboss/mongodb/MyDB") MongoDatabase database;
+   @Resource(lookup = "java:jboss/neo4j/MyDB") Driver database;
+   @Resource(lookup = "java:jboss/orientdb/MyDB")  OPartitionedDatabasePool pool;
+----
+
+=== WildFly
+Each defined connection profile, is shared by all applications deployed to the
+WildFly application server.
+
+=== WildFly Swarm
+WildFly Swarm has one deployment per app server instance, therefore, the defined
+connection profiles are only used by application deployment.
+
+You get to bring your own NoSQL driver. In fact, you must bring your own NoSQL driver.
+All that’s required though is just adding it as a normal Maven dependency to your project.
+
+[source,xml]
+----
+  <dependencies>
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>mongodb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongo-java-driver</artifactId>
+      <version>${version.mongodb.driver}</version>
+    </dependency>
+  </dependencies>
+----
+
+[source,xml]
+----
+ <dependencies>
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>cassandra</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.datastax.cassandra</groupId>
+      <artifactId>cassandra-driver-core</artifactId>
+      <version>${version.cassandra.driver}</version>
+    </dependency>
+  </dependencies>
+----
+
+
+[source,xml]
+----
+ <dependencies>
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>neo4j</artifactId>
+ </dependency>
+    <dependency>
+      <groupId>org.neo4j.driver</groupId>
+      <artifactId>neo4j-java-driver</artifactId>
+      <version>${version.neo4j.driver}</version>
+    </dependency>
+ </dependencies>
+----
+
+
+[source,xml]
+----
+    <dependencies>
+        <dependency>
+            <groupId>org.wildfly.swarm</groupId>
+            <artifactId>orientdb</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-graphdb</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-object</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.orientechnologies</groupId>
+            <artifactId>orientdb-client</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.tinkerpop.blueprints</groupId>
+            <artifactId>blueprints-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.googlecode.concurrentlinkedhashmap</groupId>
+            <artifactId>concurrentlinkedhashmap-lru</artifactId>
+        </dependency>
+----
+
+=== Connecting to MongoDB from WildFly
+
+The *mongodb* subsystem may define multiple MongoDB connection profiles, that are used to obtain com.mongodb.MongoClient +
+com.mongodb.client.MongoDatabase class instances that represent each defined profile.  The MongoClient/MongoDatabase classes
+are thread safe and can be shared by multiple deployed applications.  If the defined profiles are updated
+while deployed applications are using them, the applications will be restarted.
+
+https://github.com/wildfly/wildfly-nosql/blob/master/mongodb/subsystem/src/main/resources/schema/wildfly-mongodb_1_0.xsd[MongoDB subsystem syntax]
+
+[source,xml]
+<!-- example of WildFly MongoDB client subsystem defining two profiles. -->
+<subsystem xmlns="urn:jboss:domain:mongodb:1.0">
+    <mongo name="default" id="mongodbtestprofile" jndi-name="java:jboss/mongodb/test" database="mongotestdb" security-domain="mongoRealm" auth-type="DEFAULT" ssl="false" >
+        <host name="default" outbound-socket-binding-ref="mongotesthost"/>
+        <properties name="default">
+            <property name="writeConcern" value="ACKNOWLEDGED"/>
+            <property name="readConcern" value="LOCAL"/>
+        </properties>
+    </mongo>
+    <mongo name="default2" id="mongodbsales" jndi-name="java:jboss/mongodb/sales" database="mongotestdb" security-domain="mongoRealm" auth-type="DEFAULT" ssl="false" >
+        <host name="default2" outbound-socket-binding-ref="mongotesthost"/>
+    </mongo>
+</subsystem>
+
+----
+
+=== Connecting to MongoDB from WildFly Swarm
+
+=== Connecting to Cassandra from WildFly
+
+=== Connecting to Cassandra from WildFly Swarm
+
+=== Connecting to OrientDB from WildFly
+
+=== Connecting to OrientDB from WildFly Swarm
+
+=== Connecting to Neo4j from WildFly
+
+=== Connecting to Neo4j from WildFly Swarm
+
+
+== CDI Injection
+
+== JNDI lookup
+
+== Troubleshooting
+
+=== Logging categories
+
+=== Common issues
+1. Incorrectly spelled profile name causes CDI injection or JNDI lookup, to fail.
+   Symptoms:
+    Example error message.
+    Logging messages to look for.
+    How to correct:
+
+2.
+
+== Community
+
+=== Issue tracking
+Report issues via https://issues.jboss.org/browse/WFNOSQL.
+
+=== Dicussion forum
+Discussion forum is https://groups.google.com/d/forum/wildfly-nosql.
+
+=== IRC chat
+Also find us on freenode irc room #wildfly-nosql.
+
