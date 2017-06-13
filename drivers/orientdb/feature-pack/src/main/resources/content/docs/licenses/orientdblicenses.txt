@@ -1,0 +1,32 @@
+Third party software licenses:
+
+groupId: com.orientechnologies
+artifactId: orientdb-core
+license: Apache Software License, Version 2.0
+url: http://repository.jboss.org/licenses/apache-2.0.txt
+
+groupId: com.orientechnologies
+artifactId: orientdb-graphdb
+license: Apache Software License, Version 2.0
+url: http://repository.jboss.org/licenses/apache-2.0.txt
+
+groupId: com.orientechnologies
+artifactId: orientdb-object
+license: Apache Software License, Version 2.0
+url: http://repository.jboss.org/licenses/apache-2.0.txt
+
+groupId: com.orientechnologies
+artifactId: orientdb-client
+license: Apache Software License, Version 2.0
+url: http://repository.jboss.org/licenses/apache-2.0.txt
+
+groupId: com.tinkerpop.blueprints
+artifactId: blueprints-core
+license: BSD 3-clause "New" or "Revised" License. A permissive license similar to the BSD 2-Clause License, but with a 3rd clause that prohibits others from using the name of the project or its contributors to promote derived products without written consent. 
+url: http://github.com/tinkerpop/blueprints/blob/master/LICENSE.txt
+
+groupId: com.googlecode.concurrentlinkedhashmap
+artifactId: concurrentlinkedhashmap-lru
+license: Apache Software License, Version 2.0
+url: http://repository.jboss.org/licenses/apache-2.0.txt
+
