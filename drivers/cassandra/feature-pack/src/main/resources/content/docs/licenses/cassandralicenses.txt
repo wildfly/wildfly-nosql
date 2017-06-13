@@ -1,0 +1,7 @@
+Third party software licenses:
+
+groupId: com.datastax.cassandra
+artifactId: cassandra-driver-core
+license: Apache Software License, Version 2.0
+url: http://repository.jboss.org/licenses/apache-2.0.txt
+

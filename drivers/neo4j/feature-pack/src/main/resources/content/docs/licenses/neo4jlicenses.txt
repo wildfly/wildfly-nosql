@@ -1,0 +1,6 @@
+Third party software licenses:
+
+groupId: org.neo4j.driver
+artifactId: neo4j-java-driver
+license: Apache Software License, Version 2.0
+url: http://repository.jboss.org/licenses/apache-2.0.txt
