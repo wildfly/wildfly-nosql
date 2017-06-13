@@ -1,4 +1,5 @@
 = WildFly NoSQL 
+:toc:
 
 == Introduction
 The goal of wildfly-nosql, is no-nonsense improvements focused on making the developer’s
@@ -42,7 +43,8 @@ WildFly Swarm has one deployment per app server instance, therefore, the defined
 connection profiles are only used by application deployment.
 
 You get to bring your own NoSQL driver. In fact, you must bring your own NoSQL driver.
-All that’s required though is just adding it as a normal Maven dependency to your project.
+All that’s required though is just adding it as a normal Maven dependency to your project (
+check the below Java driver version table to make sure it will work).
 
 [source,xml]
 ----
@@ -130,6 +132,31 @@ All that’s required though is just adding it as a normal Maven dependency to y
         </dependency>
 ----
 
+=== MongoDB Java driver versions
+
+.MongoDB Java driver (org.mongodb:mongo-java-driver).
+|===
+|  Version  |  WildFly  |  WildFly Swarm
+
+|3.0.3
+|NO
+|YES
+
+|3.2.2
+|YES
+|YES
+
+|3.3.0
+|NO
+|YES
+
+|3.4.2
+|NO
+|YES
+
+|===
+
+
 === Connecting to MongoDB from WildFly
 
 The *mongodb* subsystem may define multiple MongoDB connection profiles, that are used to obtain com.mongodb.MongoClient +
@@ -140,6 +167,7 @@ while deployed applications are using them, the applications will be restarted.
 https://github.com/wildfly/wildfly-nosql/blob/master/mongodb/subsystem/src/main/resources/schema/wildfly-mongodb_1_0.xsd[MongoDB subsystem syntax]
 
 [source,xml]
+----
 <!-- example of WildFly MongoDB client subsystem defining two profiles. -->
 <subsystem xmlns="urn:jboss:domain:mongodb:1.0">
     <mongo name="default" id="mongodbtestprofile" jndi-name="java:jboss/mongodb/test" database="mongotestdb" security-domain="mongoRealm" auth-type="DEFAULT" ssl="false" >
@@ -153,10 +181,229 @@ https://github.com/wildfly/wildfly-nosql/blob/master/mongodb/subsystem/src/main/
         <host name="default2" outbound-socket-binding-ref="mongotesthost"/>
     </mongo>
 </subsystem>
+----
+=== Connecting to MongoDB from WildFly Swarm
+
+Refer to Wildfly Swarm documentation for org.wildfly.swarm.mongodb.MongoDBFraction
+
+Minimal example:
+[source,java]
+----
+// Main.java
+package org.wildflynosql.demo.rest;
+
+import java.util.HashMap;
+
+import org.wildfly.swarm.Swarm;
+import org.wildfly.swarm.config.mongodb.Mongo;
+import org.wildfly.swarm.config.mongodb.mongo.Host;
+import org.wildfly.swarm.config.security.Flag;
+import org.wildfly.swarm.config.security.SecurityDomain;
+import org.wildfly.swarm.config.security.security_domain.ClassicAuthentication;
+import org.wildfly.swarm.config.security.security_domain.authentication.LoginModule;
+import org.wildfly.swarm.mongodb.MongoDBFraction;
+import org.wildfly.swarm.security.SecurityFraction;
+import org.wildfly.swarm.spi.api.OutboundSocketBinding;
+
+public class Main {
+
+    public static void main(String... args) throws Exception {
+        Swarm swarm = new Swarm(args)
+            .outboundSocketBinding("standard-sockets",
+                new OutboundSocketBinding("mongotesthost")
+                    .remoteHost("localhost")
+                    .remotePort(27017))
+            .fraction(SecurityFraction.defaultSecurityFraction()
+                .securityDomain(
+                    new SecurityDomain("mongoRealm")
+                        .classicAuthentication(
+                            new ClassicAuthentication().loginModule(
+                                new LoginModule("ConfiguredIdentity").code("ConfiguredIdentity")
+                                    .flag(Flag.REQUIRED)
+                                    .moduleOptions(new HashMap<Object, Object>() {
+                                       {
+                                           put("principal", "devuser");
+                                           put("username", "devuser");
+                                           put("password", "changethis");
+                                       }
+                                   }
+                                )
+                            )
+                        )
+                    )
+                )
+            .fraction(new MongoDBFraction()
+                .mongo(new Mongo("mongodbtestprofile")
+                    .host(new Host("mongotesthost")
+                        .outboundSocketBindingRef("mongotesthost")
+                        )
+                    .database("mongotestdb")
+                    .jndiName("java:jboss/mongodb/test")
+                    .id("mongodbtestprofile")
+                    .securityDomain("mongoRealm")
+                        // .authType(Mongo.AuthType.GSSAPI)
+                        // .authType(Mongo.AuthType.PLAIN_SASL)
+                        // .authType(Mongo.AuthType.SCRAM_SHA_1)
+                        // .authType(Mongo.AuthType.MONGODB_CR)
+                        // .authType(Mongo.AuthType.MONGODB_X509)
+                        .authType(Mongo.AuthType.DEFAULT)
+                        .ssl(false)
+                    )
+            ).fraction(new org.wildfly.swarm.ee.EEFraction())
+            .start()
+            .deploy();
+    }
+}
 
 ----
 
-=== Connecting to MongoDB from WildFly Swarm
+[source,java]
+----
+// HelloWorldEndpoint.java
+package org.wildflynosql.demo.rest;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.Response;
+
+import com.mongodb.client.MongoDatabase;
+
+@ApplicationScoped
+@Path("/hello")
+public class HelloWorldEndpoint {
+
+    @Inject @Named("mongodbtestprofile")
+    MongoDatabase database;
+
+    @GET
+    @Produces("text/plain")
+    public Response doGet() {
+        return Response.ok("Hello from WildFly Swarm! database = " + database).build();
+    }
+}
+----
+[source,xml]
+----
+<!-- pom.xml -->
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.wildflynosql</groupId>
+  <artifactId>demo</artifactId>
+  <name>WildFly Swarm Example</name>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>war</packaging>
+
+  <properties>
+    <version.wildfly.swarm>2017.6.0-SNAPSHOT</version.wildfly.swarm>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <failOnMissingWebXml>false</failOnMissingWebXml>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <version.mongodb.driver>3.2.2</version.mongodb.driver>
+    <version.org.glassfish.javax.json>1.0.3</version.org.glassfish.javax.json>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.wildfly.swarm</groupId>
+        <artifactId>bom-all</artifactId>
+        <version>${version.wildfly.swarm}</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <finalName>demo</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.wildfly.swarm</groupId>
+        <artifactId>wildfly-swarm-plugin</artifactId>
+        <version>${version.wildfly.swarm}</version>
+        <configuration>
+          <mainClass>org.wildflynosql.demo.rest.Main</mainClass>
+        </configuration>
+
+        <executions>
+          <execution>
+            <goals>
+              <goal>package</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+  <dependencies>
+    <!-- Java EE 7 dependency -->
+    <dependency>
+      <groupId>javax</groupId>
+      <artifactId>javaee-api</artifactId>
+      <version>7.0</version>
+      <scope>provided</scope>
+    </dependency>
+    <!-- WildFly Swarm Fractions -->
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>jaxrs-jsonp</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>jsonp</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.json</artifactId>
+      <version>${version.org.glassfish.javax.json}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.wildfly.swarm</groupId>
+      <artifactId>mongodb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongo-java-driver</artifactId>
+      <version>${version.mongodb.driver}</version>
+    </dependency>
+
+  </dependencies>
+</project>
+----
+
+[source,xml]
+----
+<!-- empty beans.xml -->
+<beans xmlns="http://java.sun.com/xml/ns/javaee"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:schemaLocation="
+      http://java.sun.com/xml/ns/javaee
+      http://java.sun.com/xml/ns/javaee/beans_1_0.xsd">
+</beans>
+----
+
+
+=== Cassandra Java driver versions
+
+.Cassandra Java driver (com.datastax.cassandra:cassandra-driver-core).
+|===
+|  Version  |  WildFly  |  WildFly Swarm
+
+|3.0.0
+|NO
+|YES
+
+|===
 
 === Connecting to Cassandra from WildFly
 
@@ -175,18 +422,22 @@ https://github.com/wildfly/wildfly-nosql/blob/master/mongodb/subsystem/src/main/
 
 == JNDI lookup
 
-== Troubleshooting
-
 === Logging categories
 
-=== Common issues
-1. Incorrectly spelled profile name causes CDI injection or JNDI lookup, to fail.
-   Symptoms:
-    Example error message.
-    Logging messages to look for.
-    How to correct:
+org.wildfly.nosql - Enable NoSQL subsystem logging.
 
-2.
+org.wildfly.swarm.neo4j - Enable Neo4j fraction logging.
+
+org.wildfly.swarm.orientdb - Enable OrientDB fraction logging.
+
+org.wildfly.swarm.cassandra - Enable Cassandra fraction logging.
+
+org.wildfly.swarm.mongodb - Enable MongoDB fraction logging.
+
+=== Common issues
+1. Incorrectly spelled profile name causes CDI injection or JNDI lookup, to fail.  Correct to use
+correct spelling of NoSQL profile name.
+2.  Missing beans.xml leads to deployment failure.
 
 == Community
 
