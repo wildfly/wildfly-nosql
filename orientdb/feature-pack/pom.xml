@@ -24,8 +24,9 @@
 
     <parent>
         <groupId>org.wildfly.nosql</groupId>
-        <artifactId>wildfly-orientdb-parent</artifactId>
+        <artifactId>wildfly-nosql-parent</artifactId>
         <version>1.0.0.Alpha1-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <artifactId>wildfly-orientdb-feature-pack</artifactId>

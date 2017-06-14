@@ -266,13 +266,24 @@
     </properties>
 
     <modules>
-        <module>cassandra</module>
-        <module>mongodb</module>
-        <module>neo4j</module>
-        <module>orientdb</module>
+        <module>cassandra/subsystem</module>
+        <module>cassandra/feature-pack</module>
+        <module>cassandra/build</module>
+        <module>mongodb/subsystem</module>
+        <module>mongodb/feature-pack</module>
+        <module>mongodb/build</module>
+        <module>neo4j/subsystem</module>
+        <module>neo4j/feature-pack</module>
+        <module>neo4j/build</module>
+        <module>orientdb/subsystem</module>
+        <module>orientdb/feature-pack</module>
+        <module>orientdb/build</module>
         <module>common</module>
         <module>server</module>
-        <module>drivers</module>
+        <module>drivers/cassandra/feature-pack</module>
+        <module>drivers/mongodb/feature-pack</module>
+        <module>drivers/neo4j/feature-pack</module>
+        <module>drivers/orientdb/feature-pack</module>
     </modules>
 
     <build>
