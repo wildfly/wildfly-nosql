@@ -23,14 +23,14 @@
      <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Alpha2-SNAPSHOT</version>
+        <version>1.0.0.Alpha2</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-cassandra-feature-pack</artifactId>
-    <version>1.0.0.Alpha2-SNAPSHOT</version>
+    <version>1.0.0.Alpha2</version>
     <name>WildFly: Cassandra Feature Pack</name>
     <packaging>pom</packaging>
 
@@ -63,7 +63,7 @@
         <dependency>
             <groupId>org.wildfly.nosql</groupId>
             <artifactId>wildfly-cassandrasubsystem</artifactId>
-            <version>1.0.0.Alpha2-SNAPSHOT</version>
+            <version>1.0.0.Alpha2</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>

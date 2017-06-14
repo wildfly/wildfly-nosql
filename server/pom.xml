@@ -24,7 +24,7 @@
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Alpha2-SNAPSHOT</version>
+        <version>1.0.0.Alpha2</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
