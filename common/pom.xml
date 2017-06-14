@@ -25,12 +25,12 @@
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Alpha2</version>
+        <version>1.0.1.Alpha2-SNAPSHOT</version>
     </parent>
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-nosql-common</artifactId>
-    <version>1.0.0.Alpha2</version>
+    <version>1.0.1.Alpha2-SNAPSHOT</version>
 
     <name>WildFly: NoSQL common</name>
 
@@ -46,7 +46,7 @@
         <connection>scm:git:${jboss.as.scm.connection}</connection>
         <developerConnection>scm:git:${jboss.as.scm.connection}</developerConnection>
         <url>${jboss.as.scm.url}</url>
-      <tag>wildfly-nosql-parent-1.0.0.Alpha2</tag>
+      <tag>1.0.0.Alpha2-SNAPSHOT:</tag>
   </scm>
 
         <properties>
