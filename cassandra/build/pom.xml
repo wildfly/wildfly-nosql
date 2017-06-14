@@ -23,7 +23,7 @@
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Alpha1-SNAPSHOT</version>
+        <version>1.0.0.Alpha1</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
@@ -62,7 +62,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <executions></executions>
+                <executions />
             </plugin>
             <plugin>
                 <groupId>org.wildfly.build</groupId>
