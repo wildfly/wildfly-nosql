@@ -19,20 +19,18 @@
 <!-- <?xml version="1.0" encoding="UTF-8"?> -->
 
 
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Alpha1-SNAPSHOT</version>
+        <version>1.0.0.Alpha4-SNAPSHOT</version>
     </parent>
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-nosql-common</artifactId>
-    <version>1.0.0.Alpha1-SNAPSHOT</version>
+    <version>1.0.0.Alpha4-SNAPSHOT</version>
 
     <name>WildFly: NoSQL common</name>
 
@@ -48,14 +46,15 @@
         <connection>scm:git:${jboss.as.scm.connection}</connection>
         <developerConnection>scm:git:${jboss.as.scm.connection}</developerConnection>
         <url>${jboss.as.scm.url}</url>
-    </scm>
+      <tag>1.0.0.Alpha2-SNAPSHOT:</tag>
+  </scm>
 
         <properties>
         <!-- Release Info -->
         <jboss.as.release.version>${project.version}</jboss.as.release.version>
         <jboss.as.release.codename>N/A</jboss.as.release.codename>
-        <jboss.as.scm.url>https://github.com/wildfly/wildfly</jboss.as.scm.url>
-        <jboss.as.scm.connection>git@github.com:wildfly/wildfly.git</jboss.as.scm.connection>
+        <jboss.as.scm.url>https://github.com/wildfly/wildfly-nosql</jboss.as.scm.url>
+        <jboss.as.scm.connection>git@github.com:wildfly/wildfly-nosql.git</jboss.as.scm.connection>
 
         <!--
             Build configuration.  Override JBoss Parent settings as necessary.
@@ -175,7 +174,6 @@
 
         <dependency>
             <groupId>org.wildfly</groupId>
-<!--             <artifactId>wildfly-weld-common</artifactId>        -->
             <artifactId>wildfly-weld</artifactId>        
             <version>${version.wildfly}</version>
         </dependency>
