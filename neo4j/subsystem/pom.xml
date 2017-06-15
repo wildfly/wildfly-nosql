@@ -23,13 +23,13 @@
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Alpha3-SNAPSHOT</version>
+        <version>1.0.0.Alpha3</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-neo4jsubsystem</artifactId>
-    <version>1.0.0.Alpha3-SNAPSHOT</version>
+    <version>1.0.0.Alpha3</version>
 
     <name>WildFly: Neo4j subsystem</name>
 
