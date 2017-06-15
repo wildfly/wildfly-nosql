@@ -25,12 +25,12 @@
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.1.Alpha2-SNAPSHOT</version>
+        <version>1.0.0.Alpha3-SNAPSHOT</version>
     </parent>
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-nosql-common</artifactId>
-    <version>1.0.1.Alpha2-SNAPSHOT</version>
+    <version>1.0.0.Alpha3-SNAPSHOT</version>
 
     <name>WildFly: NoSQL common</name>
 
