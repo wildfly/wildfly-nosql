@@ -167,8 +167,7 @@ Example pom.xml dependencies for each NoSQL fraction:
 
 The *mongodb* subsystem may define multiple MongoDB connection profiles, that are used to obtain com.mongodb.MongoClient +
 com.mongodb.client.MongoDatabase class instances that represent each defined profile.  The MongoClient/MongoDatabase classes
-are thread safe and can be shared by multiple deployed applications.  If the defined profiles are updated
-while deployed applications are using them, the applications will be restarted.
+are thread safe and can be shared by multiple deployed applications.
 
 https://github.com/wildfly/wildfly-nosql/blob/master/mongodb/subsystem/src/main/resources/schema/wildfly-mongodb_1_0.xsd[MongoDB subsystem syntax]
 
@@ -413,8 +412,7 @@ public class HelloWorldEndpoint {
 === Connecting to Cassandra from WildFly
 The *cassandradriver* subsystem may define multiple Cassandra connection profiles, that are used to obtain com.datastax.driver.core.Cluster +
 com.datastax.driver.core.Session class instances that represent each defined profile.  The Cluster/Session classes
-are thread safe and can be shared by multiple deployed applications.  If the defined profiles are updated
-while deployed applications are using them, the applications will be restarted.
+are thread safe and can be shared by multiple deployed applications.
 
 https://github.com/wildfly/wildfly-nosql/blob/master/cassandra/subsystem/src/main/resources/schema/wildfly-cassandra_1_0.xsd[Cassandra subsystem syntax]
 
@@ -645,8 +643,7 @@ public class HelloWorldEndpoint {
 === Connecting to OrientDB from WildFly
 The *orientdb* subsystem may define multiple OrientDB connection profiles, that are used to obtain 
 com.orientechnologies.orient.core.db.OPartitionedDatabasePool class instances that represent each defined profile.  The OPartitionedDatabasePool class
-is thread safe and can be shared by multiple deployed applications.  If the defined profiles are updated
-while deployed applications are using them, the applications will be restarted.
+is thread safe and can be shared by multiple deployed applications.  
 
 WARNING: The OrientDB client API, is heavily dependent on keeping one OrientDB database open per Java thread.  When your application is done with the database, *you must close the OrientDB database* to disassociate it from the Java thread, or the open database will still be open by that Java thread, when the Java thread is returned to the Java thread pool.  A max of one OrientDB database can be open per Java thread, so if you open a different database, the current one will be automatically closed first.
 
@@ -901,8 +898,7 @@ public class HelloWorldEndpoint {
 
 === Connecting to Neo4j from WildFly
 The *neo4jdriver* subsystem may define multiple Neo4j connection profiles, that are used to obtain org.neo4j.driver.v1.Driver class instance
-that represent each defined profile.  The Driver class is thread safe and can be shared by multiple deployed applications.  If the defined profiles are updated
-while deployed applications are using them, the applications will be restarted.
+that represent each defined profile.  The Driver class is thread safe and can be shared by multiple deployed applications.  
 
 If *transaction=none* is specified in connection profile, Neo4j connection will not be enlisted into JTA
 transactions.
