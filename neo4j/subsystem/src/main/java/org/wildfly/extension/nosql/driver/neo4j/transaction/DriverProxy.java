@@ -29,11 +29,11 @@ import javax.transaction.TransactionSynchronizationRegistry;
  * @author Scott Marlow
  */
 public class DriverProxy implements InvocationHandler {
-    private Object underlyingDriver;
-    private TransactionManager transactionManager;
-    private TransactionSynchronizationRegistry transactionSynchronizationRegistry;
-    private String profileName;
-    private String jndiName;
+    private final Object underlyingDriver;
+    private final TransactionManager transactionManager;
+    private final TransactionSynchronizationRegistry transactionSynchronizationRegistry;
+    private final String profileName;
+    private final String jndiName;
 
     public DriverProxy(Object driver, TransactionManager transactionManager, TransactionSynchronizationRegistry transactionSynchronizationRegistry, String profileName, String jndiName) {
         this.underlyingDriver = driver;
@@ -56,7 +56,7 @@ public class DriverProxy implements InvocationHandler {
                     return result;
                 }
                 return SessionProxy.registerSessionWithJTATransaction(
-                        method.invoke(underlyingDriver, args),      // pass underlying session
+                        method.invoke(underlyingDriver, args),      // pass underlying driver
                         transactionManager,
                         transactionSynchronizationRegistry,
                         profileName,
