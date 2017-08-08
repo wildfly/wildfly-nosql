@@ -33,9 +33,9 @@ import javax.transaction.TransactionSynchronizationRegistry;
  */
 public class SessionProxy implements InvocationHandler {
 
-    private Object underlyingSession;
-    private Object underlyingTransaction;
-    private String profileName;
+    private volatile Object underlyingSession;
+    private volatile Object underlyingTransaction;
+    private final String profileName;
 
     private static final String SESSION_RESOURCE = "_nosqlSESSPROXY_";
 

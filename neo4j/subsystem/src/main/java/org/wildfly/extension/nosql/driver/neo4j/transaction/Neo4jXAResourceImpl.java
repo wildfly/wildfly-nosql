@@ -76,16 +76,13 @@ public class Neo4jXAResourceImpl implements LastResource, XAResourceWrapper {
             ROOT_LOGGER.tracef("start(%s, %s)", xid, flags);
 
         if (currentXid != null && flags == XAResource.TMNOFLAGS) {
-            XAException xaException = new XAException("Trying to start a new transaction when old is not complete: Old: "
-                    + currentXid + ", New " + xid + ", Flags " + flags);
-            xaException.errorCode = XAException.XAER_PROTO;
-            throw xaException;
+            throw new LocalXAException("Trying to start a new transaction when old is not complete: Old: "
+                    + currentXid + ", New " + xid + ", Flags " + flags, XAException.XAER_PROTO);
         }
 
         if (currentXid == null && flags != XAResource.TMNOFLAGS) {
-            XAException xaException = new XAException("Trying to start a new transaction with wrong flags: New " + xid + ", Flags " + flags);
-            xaException.errorCode = XAException.XAER_PROTO;
-            throw xaException;
+            throw new LocalXAException("Trying to start a new transaction with wrong flags: New " + xid + ", Flags " + flags,
+                    XAException.XAER_PROTO);
         }
 
         if (currentXid == null) {
@@ -93,9 +90,8 @@ public class Neo4jXAResourceImpl implements LastResource, XAResourceWrapper {
                 this.underlyingTransaction = transactionControl.beginTransaction();
                 // cl.getManagedConnection().getLocalTransaction().begin();
             } catch (Throwable t) {
-                throw new XAException(XAException.XAER_RMERR);
+                throw new LocalXAException("Throwable trying to start local transaction", XAException.XAER_RMERR, t);
             }
-
             currentXid = xid;
         }
     }
