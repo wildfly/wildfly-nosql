@@ -116,16 +116,25 @@ public class OrientClientConnectionsService implements Service<OrientClientConne
     }
 
     private String getDatabaseUrl(OutboundSocketBinding target, Configuration configuration) {
+
         if (target == null || target.getUnresolvedDestinationAddress() == null) {
             return configuration.getDatabase();
         }
-
-        String databaseUrl = "remote:" + target.getUnresolvedDestinationAddress();
-
-        if (target.getDestinationPort() > 0) {
-            databaseUrl += ":" + target.getDestinationPort();
+        String databaseUrl;
+        if (configuration.isRemote()) { // REMOTE
+            databaseUrl = "remote:" + target.getUnresolvedDestinationAddress();
+            if (target.getDestinationPort() > 0) {
+                databaseUrl += ":" + target.getDestinationPort();
+            }
         }
-        return databaseUrl + "/" + configuration.getDatabase();
+        else {  // plocal:C:/Development/orientdb/databases/testdb
+            databaseUrl = "plocal:";
+        }
+        final String result = databaseUrl + "/" + configuration.getDatabase();
+        ROOT_LOGGER.tracef("Database URL '%s'", result);
+        return result;
+
+
     }
 
 }

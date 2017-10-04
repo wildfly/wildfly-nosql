@@ -27,6 +27,8 @@ public class Configuration {
 
     private String database = "";
 
+    private boolean remote = true;
+
     private String securityDomain;
 
     private int maxPartitionSize = -1;  // let OrientDB driver determine defaults
@@ -52,6 +54,7 @@ public class Configuration {
         this.jndiName = configuration.getJndiName();
         this.moduleName = configuration.getModuleName();
         this.profileName = configuration.getProfileName();
+        this.remote = configuration.isRemote();
     }
 
     public String getDatabaseUrl() {
@@ -60,6 +63,10 @@ public class Configuration {
 
     public String getDatabase() {
         return database;
+    }
+
+    public boolean isRemote() {
+        return remote;
     }
 
     public String getSecurityDomain() {
@@ -109,6 +116,11 @@ public class Configuration {
 
         public Builder database(String database) {
             configuration.database = database;
+            return this;
+        }
+
+        public Builder remote(boolean remote) {
+            configuration.remote = remote;
             return this;
         }
 
