@@ -31,5 +31,5 @@ interface CommonAttributes {
     String SECURITY_DOMAIN = "security-domain";
     String MAX_PARTITION_SIZE = "max-partition-size";
     String MAX_POOL_SIZE = "max-pool-size";
-
+    String REMOTE = "remote";
 }

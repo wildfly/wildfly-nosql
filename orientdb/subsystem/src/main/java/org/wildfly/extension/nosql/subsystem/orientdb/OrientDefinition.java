@@ -72,6 +72,12 @@ final class OrientDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .build();
 
+    private static final SimpleAttributeDefinition REMOTE =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.REMOTE, ModelType.BOOLEAN, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setAllowExpression(true)
+                    .build();
+
     private static final SimpleAttributeDefinition JNDI_NAME =
             new SimpleAttributeDefinitionBuilder(CommonAttributes.JNDI_NAME, ModelType.STRING, false)
                     .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
@@ -102,7 +108,7 @@ final class OrientDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .build();
 
-    static final AttributeDefinition[] ATTRIBUTES = { ID, DATABASE, JNDI_NAME, MODULE , SECURITY_DOMAIN,
+    static final AttributeDefinition[] ATTRIBUTES = { ID, DATABASE, REMOTE, JNDI_NAME, MODULE , SECURITY_DOMAIN,
             MAX_PARTITION_SIZE, MAX_POOL_SIZE };
 
     static final OrientDefinition INSTANCE = new OrientDefinition();
@@ -197,6 +203,9 @@ final class OrientDefinition extends PersistentResourceDefinition {
             }
             if (profileEntry.hasDefined(CommonAttributes.DATABASE)) {
                 builder.database(profileEntry.get(CommonAttributes.DATABASE).asString());
+            }
+            if (profileEntry.hasDefined(CommonAttributes.REMOTE)) {
+                builder.remote(profileEntry.get(CommonAttributes.REMOTE).asBoolean());
             }
             if (profileEntry.hasDefined(CommonAttributes.JNDI_NAME)) {
                 builder.jndiName(profileEntry.get(CommonAttributes.JNDI_NAME).asString());

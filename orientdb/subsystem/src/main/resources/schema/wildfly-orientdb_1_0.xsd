@@ -71,6 +71,16 @@
             </xs:annotation>
         </xs:attribute>
 
+        <xs:attribute name="remote" type="xs:boolean" use="optional">
+            <xs:annotation>
+              <xs:documentation>
+                <![CDATA[[
+                  if true, Database is remote, if false, database is local (PLOCAL).
+                ]]>
+              </xs:documentation>
+            </xs:annotation>
+        </xs:attribute>
+
         <xs:attribute name="jndi-name" type="xs:string" use="required">
             <xs:annotation>
               <xs:documentation>
