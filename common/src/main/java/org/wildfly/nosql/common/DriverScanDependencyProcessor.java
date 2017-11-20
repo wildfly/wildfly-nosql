@@ -133,7 +133,8 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
 
     private void processClassNamedQualifier(DeploymentUnit deploymentUnit, String profile) {
         if (isEmpty(profile)) {
-            throw ROOT_LOGGER.annotationAttributeMissing("@Named", "value");
+            ROOT_LOGGER.annotationAttributeMissing("@Named", "value");
+            return;
         }
         SubsystemService service = getService();
         String moduleName = service.moduleNameFromProfile(profile);
@@ -196,8 +197,10 @@ public class DriverScanDependencyProcessor implements DeploymentUnitProcessor {
 
     protected void processClassResource(final DeploymentUnit deploymentUnit, final String lookup) throws DeploymentUnitProcessingException {
         if (isEmpty(lookup)) {
-            throw ROOT_LOGGER.annotationAttributeMissing("@Resource", "lookup");
+            ROOT_LOGGER.annotationAttributeMissing("@Resource", "lookup");
+            return;
         }
+
         SubsystemService service = getService();
         String moduleName = getService().moduleNameFromJndi(lookup);
         if (moduleName != null) {

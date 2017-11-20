@@ -17,6 +17,7 @@
 package org.wildfly.nosql.common;
 
 import static org.jboss.logging.Logger.Level.ERROR;
+import static org.jboss.logging.Logger.Level.DEBUG;
 import static org.jboss.logging.Logger.Level.INFO;
 
 import java.util.ArrayList;
@@ -65,14 +66,15 @@ public interface NoSQLLogger extends BasicLogger {
     IllegalStateException cannotAddReferenceToModule(String module, Object currentValue, String deploymentName);
 
     /**
-     * Creates an exception indicating the annotation must provide the attribute.
+     * indicate that the annotation did not provide the attribute.
      *
      * @param annotation the annotation.
      * @param attribute  the attribute.
      * @return an {@link IllegalArgumentException} for the exception.
      */
-    @Message(id = 3, value = "%s annotations must provide a %s.")
-    IllegalArgumentException annotationAttributeMissing(String annotation, String attribute);
+    @LogMessage(level = DEBUG)
+    @Message(id = 3, value = "Ignored %s annotation, does not have %s.")
+    void annotationAttributeMissing(String annotation, String attribute);
 
     @Message(id = 4, value = "Cannot unwrap class '%s'.")
     IllegalArgumentException unassignable(Class clazz);
