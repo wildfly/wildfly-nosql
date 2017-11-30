@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-feature-pack</artifactId>
-            <version>10.1.0.Final</version>
+            <version>11.0.0.Final</version>
             <type>zip</type>
             <exclusions>
                 <exclusion>

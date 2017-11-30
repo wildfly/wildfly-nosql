@@ -172,10 +172,10 @@
 
         <dependency>
             <groupId>org.wildfly</groupId>
-            <artifactId>wildfly-weld</artifactId>        
+            <artifactId>wildfly-weld-common</artifactId>
             <version>${version.wildfly}</version>
         </dependency>
-        
+ 
         <dependency>
             <groupId>org.jboss.jdeparser</groupId>
             <artifactId>jdeparser</artifactId>

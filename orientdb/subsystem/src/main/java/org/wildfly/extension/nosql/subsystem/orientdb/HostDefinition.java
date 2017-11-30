@@ -29,6 +29,7 @@ import org.jboss.as.controller.SimpleAttributeDefinition;
 import org.jboss.as.controller.SimpleAttributeDefinitionBuilder;
 import org.jboss.as.controller.access.management.SensitiveTargetAccessConstraintDefinition;
 import org.jboss.as.controller.operations.validation.StringLengthValidator;
+import org.jboss.as.controller.registry.AttributeAccess;
 import org.jboss.dmr.ModelNode;
 import org.jboss.dmr.ModelType;
 
@@ -39,6 +40,7 @@ class HostDefinition extends PersistentResourceDefinition {
 
     private static final SimpleAttributeDefinition OUTBOUND_SOCKET_BINDING_REF =
             new SimpleAttributeDefinitionBuilder(CommonAttributes.OUTBOUND_SOCKET_BINDING_REF, ModelType.STRING, false)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
                     .setAllowExpression(true)
                     .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, false, true))
                     .addAccessConstraint(SensitiveTargetAccessConstraintDefinition.SOCKET_BINDING_REF)
