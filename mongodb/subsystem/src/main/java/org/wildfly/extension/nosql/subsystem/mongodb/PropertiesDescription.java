@@ -23,6 +23,7 @@ import org.jboss.as.controller.AttributeParser;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.PropertiesAttributeDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
+import org.jboss.as.controller.registry.AttributeAccess;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,6 +35,7 @@ class PropertiesDescription extends PersistentResourceDefinition {
 
     static final PropertiesAttributeDefinition PROPERTIES =
             new PropertiesAttributeDefinition.Builder(CommonAttributes.PROPERTY, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
                     .setAllowExpression(true)
                     .setAttributeMarshaller(AttributeMarshaller.PROPERTIES_MARSHALLER_UNWRAPPED)
                     .setAttributeParser(AttributeParser.PROPERTIES_PARSER_UNWRAPPED)

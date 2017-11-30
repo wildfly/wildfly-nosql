@@ -21,14 +21,14 @@
      <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.1.Alpha5-SNAPSHOT</version>
+        <version>1.0.0.Alpha6-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-neo4j-feature-pack</artifactId>
-    <version>1.0.1.Alpha5-SNAPSHOT</version>
+    <version>1.0.0.Alpha6-SNAPSHOT</version>
     <name>WildFly: Neo4j Feature Pack</name>
     <packaging>pom</packaging>
 
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-feature-pack</artifactId>
-            <version>10.1.0.Final</version>
+            <version>11.0.0.Final</version>
             <type>zip</type>
             <exclusions>
                 <exclusion>
@@ -48,7 +48,7 @@
         <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-servlet-feature-pack</artifactId>
-            <version>10.1.0.Final</version>
+            <version>11.0.0.Final</version>
             <type>zip</type>
             <exclusions>
                 <exclusion>
@@ -61,7 +61,7 @@
         <dependency>
             <groupId>org.wildfly.nosql</groupId>
             <artifactId>wildfly-neo4jsubsystem</artifactId>
-            <version>1.0.1.Alpha5-SNAPSHOT</version>
+            <version>1.0.0.Alpha6-SNAPSHOT</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
