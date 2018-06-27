@@ -44,7 +44,7 @@ WildFly application server.  The underlying (native) NoSQL class instance(s) tha
 
 Currently, WildFly 11 integration is available.
 
-=== WildFly MongoDB feature pack
+==== WildFly MongoDB feature pack
  
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-mongodb-feature-pack</artifactId>
@@ -56,7 +56,7 @@ Currently, WildFly 11 integration is available.
     <version>1.0.0.Beta1</version>
     <name>WildFly: MongoDB driver Feature Pack</name>
 
-=== WildFly Cassandra feature pack
+==== WildFly Cassandra feature pack
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-cassandra-feature-pack</artifactId>
@@ -68,7 +68,7 @@ Currently, WildFly 11 integration is available.
     <version>1.0.0.Beta1</version>
     <name>WildFly: Cassandra driver Feature Pack</name>
 
-=== WildFly OrientDB feature pack
+==== WildFly OrientDB feature pack
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-orientdb-feature-pack</artifactId>
@@ -80,7 +80,7 @@ Currently, WildFly 11 integration is available.
     <version>1.0.0.Beta1</version>
     <name>WildFly: OrientDB driver Feature Pack</name>
  
-=== WildFly Neo4j feature pack
+==== WildFly Neo4j feature pack
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-neo4j-feature-pack</artifactId>
