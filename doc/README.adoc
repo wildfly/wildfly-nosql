@@ -38,11 +38,11 @@ application code.
 ----
 
 === WildFly
+Currently, WildFly 11 integration is available, as a feature pack distribution (see below feature pack artifacts).
+
 Each defined connection profile, is shared by all applications deployed to the
 WildFly application server.  The underlying (native) NoSQL class instance(s) that represent the 
 *connection profile*, are associated with the connection profile *id* and *jndi-name*.
-
-Currently, WildFly 11 integration is available.
 
 ==== WildFly MongoDB feature pack
  
