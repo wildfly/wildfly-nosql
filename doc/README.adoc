@@ -42,6 +42,57 @@ Each defined connection profile, is shared by all applications deployed to the
 WildFly application server.  The underlying (native) NoSQL class instance(s) that represent the 
 *connection profile*, are associated with the connection profile *id* and *jndi-name*.
 
+Currently, WildFly 11 integration is available.
+
+==== WildFly MongoDB feature pack
+ 
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-mongodb-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: MongoDB Feature Pack</name>
+    <packaging>pom</packaging>
+
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-mongodb-driver-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: MongoDB driver Feature Pack</name>
+
+==== WildFly Cassandra feature pack
+
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-cassandra-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: Cassandra Feature Pack</name>
+
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-cassandra-driver-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: Cassandra driver Feature Pack</name>
+
+==== WildFly OrientDB feature pack
+
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-orientdb-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: OrientDB Feature Pack</name>
+ 
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-orientdb-driver-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: OrientDB driver Feature Pack</name>
+ 
+==== WildFly Neo4j feature pack
+
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-neo4j-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: Neo4j Feature Pack</name>
+
+    <groupId>org.wildfly.nosql</groupId>
+    <artifactId>wildfly-neo4j-driver-feature-pack</artifactId>
+    <version>1.0.0.Beta1</version>
+    <name>WildFly: Neo4j driver Feature Pack</name>
+
 === WildFly Swarm
 WildFly Swarm has one deployment per app server instance, therefore, the defined
 connection profiles are only used by application deployment.
