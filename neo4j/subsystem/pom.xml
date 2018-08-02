@@ -21,13 +21,13 @@
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Final</version>
+        <version>2.0.0.Alpha1-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-neo4jsubsystem</artifactId>
-    <version>1.0.0.Final</version>
+    <version>2.0.0.Alpha1-SNAPSHOT</version>
 
     <name>WildFly: Neo4j subsystem</name>
 
@@ -153,7 +153,7 @@
        <dependency>
             <groupId>org.jboss.spec.javax.transaction</groupId>
             <artifactId>jboss-transaction-api_1.2_spec</artifactId>
-            <version>1.0.0.Final</version>
+            <version>2.0.0.Alpha1-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.wildfly</groupId>

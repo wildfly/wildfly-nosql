@@ -21,14 +21,14 @@
      <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.0.Final</version>
+        <version>2.0.0.Alpha1-SNAPSHOT</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-mongodb-driver-feature-pack</artifactId>
-    <version>1.0.0.Final</version>
+    <version>2.0.0.Alpha1-SNAPSHOT</version>
     <name>WildFly: MongoDB driver Feature Pack</name>
     <packaging>pom</packaging>
 
@@ -36,7 +36,7 @@
         <dependency>
             <groupId>org.wildfly</groupId>
             <artifactId>wildfly-feature-pack</artifactId>
-            <version>11.0.0.Final</version>
+            <version>12.0.0.Alpha1-SNAPSHOT</version>
             <type>zip</type>
             <exclusions>
                 <exclusion>
