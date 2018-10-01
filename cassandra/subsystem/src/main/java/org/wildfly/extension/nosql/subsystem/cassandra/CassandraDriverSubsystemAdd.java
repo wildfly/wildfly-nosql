@@ -41,7 +41,6 @@ public class CassandraDriverSubsystemAdd extends AbstractBoottimeAddStepHandler 
     private final ParametersValidator runtimeValidator = new ParametersValidator();
 
     private CassandraDriverSubsystemAdd() {
-        super(CassandraDriverDefinition.DRIVER_SERVICE_CAPABILITY);
     }
 
     protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {

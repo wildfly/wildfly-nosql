@@ -44,7 +44,6 @@
         <connection>scm:git:${jboss.as.scm.connection}</connection>
         <developerConnection>scm:git:${jboss.as.scm.connection}</developerConnection>
         <url>${jboss.as.scm.url}</url>
-      <tag>1.0.0.Alpha2-SNAPSHOT:</tag>
   </scm>
 
         <properties>
@@ -61,8 +60,6 @@
         <maven.min.version>3.2.5</maven.min.version>
 
         <version.surefire.plugin>2.18</version.surefire.plugin>
-        <!-- use older version of checkstyle as otherwise lots of checks fail -->
-        <version.checkstyle>6.8</version.checkstyle>
     </properties>
 
     
@@ -73,7 +70,7 @@
             <version>${version.org.jboss.logging.jboss-logging-tools}</version>
             <!-- This is a compile-time dependency of this project, but is not needed at compile or runtime by other
                                    projects that depend on this project.-->
-            <scope>provided</scope>
+            <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
@@ -88,7 +85,7 @@
             <version>${version.org.jboss.logging.jboss-logging-tools}</version>
             <!-- This is a compile-time dependency of this project, but is not needed at compile or runtime by other
                                    projects that depend on this project.-->
-            <scope>provided</scope>
+            <scope>compile</scope>
             <optional>true</optional>
             <exclusions>
                 <exclusion>
@@ -101,7 +98,7 @@
             <groupId>org.jboss.logging</groupId>
             <artifactId>jboss-logging</artifactId>
             <version>${version.org.jboss.logging.jboss-logging}</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -175,12 +172,11 @@
             <artifactId>wildfly-weld-common</artifactId>
             <version>${version.wildfly}</version>
         </dependency>
- 
+
         <dependency>
             <groupId>org.jboss.jdeparser</groupId>
             <artifactId>jdeparser</artifactId>
             <version>${version.org.jboss.jdeparser}</version>
         </dependency>
-        
     </dependencies>
 </project>

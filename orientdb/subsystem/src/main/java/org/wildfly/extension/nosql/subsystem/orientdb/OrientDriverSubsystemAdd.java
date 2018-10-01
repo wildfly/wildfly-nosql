@@ -38,7 +38,6 @@ final class OrientDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
     private final ParametersValidator runtimeValidator = new ParametersValidator();
 
     private OrientDriverSubsystemAdd() {
-        super(OrientDriverDefinition.DRIVER_SERVICE_CAPABILITY);
     }
 
     protected void performBoottime(final OperationContext context, final ModelNode operation, final ModelNode model)

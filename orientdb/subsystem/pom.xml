@@ -35,19 +35,6 @@
         </dependency>
 
         <dependency>
-            <groupId>javax.resource</groupId>
-            <artifactId>javax.resource-api</artifactId>
-            <version>${version.javax.resource-api}</version>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
             <groupId>org.picketbox</groupId>
             <artifactId>picketbox</artifactId>
             <version>${version.org.picketbox}</version>
@@ -88,6 +75,17 @@
             <artifactId>wildfly-naming</artifactId>
             <version>${version.wildfly}</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.resource</groupId>
+            <artifactId>jboss-connector-api_1.7_spec</artifactId>
+            <version>${version.org.jboss.spec.javax.resource.jboss-connector-api_1.7_spec}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>*</groupId>
+                    <artifactId>*</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

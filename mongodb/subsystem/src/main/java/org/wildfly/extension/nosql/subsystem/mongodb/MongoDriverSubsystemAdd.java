@@ -40,7 +40,6 @@ public class MongoDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
     private final ParametersValidator runtimeValidator = new ParametersValidator();
 
     private MongoDriverSubsystemAdd() {
-        super(MongoDriverDefinition.DRIVER_SERVICE_CAPABILITY);
     }
 
     protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {

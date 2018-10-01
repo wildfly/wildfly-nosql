@@ -16,6 +16,8 @@
 
 package org.wildfly.extension.nosql.subsystem.orientdb;
 
+import static org.wildfly.extension.nosql.subsystem.orientdb.OrientDriverDefinition.DRIVER_SERVICE_CAPABILITY_NAME;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -45,7 +47,7 @@ class HostDefinition extends PersistentResourceDefinition {
                     .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, false, true))
                     .addAccessConstraint(SensitiveTargetAccessConstraintDefinition.SOCKET_BINDING_REF)
                     .setCapabilityReference(OrientDriverDefinition.OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME,
-                            OrientDriverDefinition.DRIVER_SERVICE_CAPABILITY)
+                            DRIVER_SERVICE_CAPABILITY_NAME, false)
                     .build();
 
     static final AttributeDefinition[] ATTRIBUTES = { OUTBOUND_SOCKET_BINDING_REF };

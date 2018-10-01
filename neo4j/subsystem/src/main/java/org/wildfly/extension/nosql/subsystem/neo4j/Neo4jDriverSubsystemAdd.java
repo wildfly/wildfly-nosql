@@ -45,7 +45,7 @@ public class Neo4jDriverSubsystemAdd extends AbstractBoottimeAddStepHandler {
     private final ParametersValidator runtimeValidator = new ParametersValidator();
 
     private Neo4jDriverSubsystemAdd() {
-        super(Neo4jDriverDefinition.DRIVER_SERVICE_CAPABILITY);
+
     }
 
     protected void populateModel(ModelNode operation, ModelNode model) throws OperationFailedException {
