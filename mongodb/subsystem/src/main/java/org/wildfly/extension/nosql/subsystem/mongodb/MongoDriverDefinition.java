@@ -25,6 +25,7 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
+import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 
@@ -46,10 +47,12 @@ public class MongoDriverDefinition extends PersistentResourceDefinition {
     };
 
     private MongoDriverDefinition() {
-        super(PathElement.pathElement(ModelDescriptionConstants.SUBSYSTEM, MongoDriverExtension.SUBSYSTEM_NAME),
-                MongoDriverExtension.getResourceDescriptionResolver(),
-                MongoDriverSubsystemAdd.INSTANCE,
-                ReloadRequiredRemoveStepHandler.INSTANCE);
+        super(new SimpleResourceDefinition.Parameters(
+                PathElement.pathElement(ModelDescriptionConstants.SUBSYSTEM, MongoDriverExtension.SUBSYSTEM_NAME),
+                MongoDriverExtension.getResourceDescriptionResolver()).
+                setCapabilities(DRIVER_SERVICE_CAPABILITY).
+                setAddHandler(MongoDriverSubsystemAdd.INSTANCE).
+                setRemoveHandler(ReloadRequiredRemoveStepHandler.INSTANCE));
     }
 
     public Collection<AttributeDefinition> getAttributes() {

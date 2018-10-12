@@ -20,6 +20,7 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
+import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 
@@ -33,7 +34,7 @@ import java.util.List;
  */
 final class OrientDriverDefinition extends PersistentResourceDefinition {
 
-    private static final String DRIVER_SERVICE_CAPABILITY_NAME = "org.wildfly.nosql.orient.driver-service";
+    protected static final String DRIVER_SERVICE_CAPABILITY_NAME = "org.wildfly.nosql.orient.driver-service";
 
     static final String OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME = "org.wildfly.network.outbound-socket-binding";
 
@@ -50,9 +51,12 @@ final class OrientDriverDefinition extends PersistentResourceDefinition {
     }
 
     private OrientDriverDefinition() {
-        super(PathElement.pathElement(ModelDescriptionConstants.SUBSYSTEM, OrientDriverExtension.SUBSYSTEM_NAME),
-                OrientDriverExtension.getResourceDescriptionResolver(), OrientDriverSubsystemAdd.INSTANCE,
-                ReloadRequiredRemoveStepHandler.INSTANCE);
+        super(new SimpleResourceDefinition.Parameters(
+                PathElement.pathElement(ModelDescriptionConstants.SUBSYSTEM, OrientDriverExtension.SUBSYSTEM_NAME),
+                OrientDriverExtension.getResourceDescriptionResolver()).
+                setCapabilities(DRIVER_SERVICE_CAPABILITY).
+                setAddHandler(OrientDriverSubsystemAdd.INSTANCE).
+                setRemoveHandler(ReloadRequiredRemoveStepHandler.INSTANCE));
     }
 
     @Override

@@ -16,7 +16,8 @@
 
 package org.wildfly.extension.nosql.subsystem.neo4j;
 
-import static org.wildfly.extension.nosql.subsystem.neo4j.Neo4jDriverDefinition.DRIVER_SERVICE_CAPABILITY;
+
+import static org.wildfly.extension.nosql.subsystem.neo4j.Neo4jDriverDefinition.DRIVER_SERVICE_CAPABILITY_NAME;
 import static org.wildfly.extension.nosql.subsystem.neo4j.Neo4jDriverDefinition.OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME;
 
 import java.util.Arrays;
@@ -51,7 +52,7 @@ public class HostDefinition extends PersistentResourceDefinition {
             .setAllowExpression(true)
             .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, false, true))
             .addAccessConstraint(SensitiveTargetAccessConstraintDefinition.SOCKET_BINDING_REF)
-            .setCapabilityReference(OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, DRIVER_SERVICE_CAPABILITY)
+            .setCapabilityReference(OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, DRIVER_SERVICE_CAPABILITY_NAME, false)
             .build();
 
 

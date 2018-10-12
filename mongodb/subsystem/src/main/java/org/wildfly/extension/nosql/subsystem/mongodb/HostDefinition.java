@@ -16,6 +16,8 @@
 
 package org.wildfly.extension.nosql.subsystem.mongodb;
 
+import static org.wildfly.extension.nosql.subsystem.mongodb.MongoDriverDefinition.DRIVER_SERVICE_CAPABILITY_NAME;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -49,7 +51,7 @@ public class HostDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .setValidator(new StringLengthValidator(1, Integer.MAX_VALUE, false, true))
                     .addAccessConstraint(SensitiveTargetAccessConstraintDefinition.SOCKET_BINDING_REF)
-                    .setCapabilityReference(MongoDriverDefinition.OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, MongoDriverDefinition.DRIVER_SERVICE_CAPABILITY)
+                    .setCapabilityReference(MongoDriverDefinition.OUTBOUND_SOCKET_BINDING_CAPABILITY_NAME, DRIVER_SERVICE_CAPABILITY_NAME, false)
                     .build();
 
 

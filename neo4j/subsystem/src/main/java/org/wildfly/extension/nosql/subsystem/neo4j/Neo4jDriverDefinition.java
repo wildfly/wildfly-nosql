@@ -25,6 +25,7 @@ import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.PathElement;
 import org.jboss.as.controller.PersistentResourceDefinition;
 import org.jboss.as.controller.ReloadRequiredRemoveStepHandler;
+import org.jboss.as.controller.SimpleResourceDefinition;
 import org.jboss.as.controller.capability.RuntimeCapability;
 import org.jboss.as.controller.descriptions.ModelDescriptionConstants;
 
@@ -46,10 +47,12 @@ public class Neo4jDriverDefinition extends PersistentResourceDefinition {
     };
 
     private Neo4jDriverDefinition() {
-        super(PathElement.pathElement(ModelDescriptionConstants.SUBSYSTEM, Neo4jDriverExtension.SUBSYSTEM_NAME),
-                Neo4jDriverExtension.getResourceDescriptionResolver(),
-                Neo4jDriverSubsystemAdd.INSTANCE,
-                ReloadRequiredRemoveStepHandler.INSTANCE);
+        super(new SimpleResourceDefinition.Parameters(
+                PathElement.pathElement(ModelDescriptionConstants.SUBSYSTEM, Neo4jDriverExtension.SUBSYSTEM_NAME),
+                Neo4jDriverExtension.getResourceDescriptionResolver()).
+                addCapabilities(DRIVER_SERVICE_CAPABILITY).
+                setAddHandler(Neo4jDriverSubsystemAdd.INSTANCE).
+                setRemoveHandler(ReloadRequiredRemoveStepHandler.INSTANCE));
     }
 
     public Collection<AttributeDefinition> getAttributes() {
