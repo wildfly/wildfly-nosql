@@ -24,7 +24,7 @@
     <dependencies>
         <module name="javax.api"/>
         <module name="org.picketbox"/>
-        <module name="com.google.guava"/>
+        <module name="com.google.guava" slot="20"/>
         <module name="com.codahale.metrics.metrics-core"/>
         <module name="io.netty"/>
         <module name="javax.transaction.api"/>
