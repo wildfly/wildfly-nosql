@@ -102,7 +102,8 @@
         <version.com.github.relaxng>2011.1</version.com.github.relaxng>
         <version.com.github.spullara.mustache>0.9.4</version.com.github.spullara.mustache>
         <version.com.google.code.gson>2.8.2</version.com.google.code.gson>
-        <version.com.google.guava>25.0-jre</version.com.google.guava>
+<!-- WF14  <version.com.google.guava>25.0-jre</version.com.google.guava> -->
+        <version.com.google.guava>20.0</version.com.google.guava> 
         <version.com.h2database>1.4.193</version.com.h2database>
         <version.com.microsoft.azure>6.1.0</version.com.microsoft.azure>
         <version.com.squareup.okhttp3>3.9.0</version.com.squareup.okhttp3>
@@ -858,6 +859,35 @@
                     <exclusion>
                         <groupId>*</groupId>
                         <artifactId>*</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${version.com.google.guava}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.code.findbugs</groupId>
+                        <artifactId>jsr305</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.checkerframework</groupId>
+                        <artifactId>checker-compat-qual</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.errorprone</groupId>
+                        <artifactId>error_prone_annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.google.j2objc</groupId>
+                        <artifactId>j2objc-annotations</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>animal-sniffer-annotations</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
