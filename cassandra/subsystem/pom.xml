@@ -21,13 +21,13 @@
     <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>1.0.1.Final</version>
+        <version>1.1.0.Alpha1-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-cassandrasubsystem</artifactId>
-    <version>1.0.1.Final</version>
+    <version>1.1.0.Alpha1-SNAPSHOT</version>
 
     <name>WildFly: Cassandra subsystem</name>
 
