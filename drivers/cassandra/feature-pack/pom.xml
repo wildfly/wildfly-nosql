@@ -21,14 +21,14 @@
      <parent>
         <groupId>org.wildfly.nosql</groupId>
         <artifactId>wildfly-nosql-parent</artifactId>
-        <version>2.0.0.Alpha1-SNAPSHOT</version>
+        <version>1.0.1.Final</version>
         <relativePath>../../../pom.xml</relativePath>
     </parent>
 
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-cassandra-driver-feature-pack</artifactId>
-    <version>2.0.0.Alpha1-SNAPSHOT</version>
+    <version>1.0.1.Final</version>
     <name>WildFly: Cassandra driver Feature Pack</name>
     <packaging>pom</packaging>
 
