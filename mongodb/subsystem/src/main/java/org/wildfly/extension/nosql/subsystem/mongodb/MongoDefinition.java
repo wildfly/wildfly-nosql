@@ -98,6 +98,12 @@ public class MongoDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .build();
 
+    protected static final SimpleAttributeDefinition ADMIN_DATABASE =
+            new SimpleAttributeDefinitionBuilder(CommonAttributes.ADMIN_DATABASE, ModelType.STRING, true)
+                    .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                    .setAllowExpression(true)
+                    .build();
+
     protected static final SimpleAttributeDefinition MODULE =
             new SimpleAttributeDefinitionBuilder(CommonAttributes.MODULE_NAME, ModelType.STRING, true)
                     .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
@@ -124,14 +130,24 @@ public class MongoDefinition extends PersistentResourceDefinition {
                     .setAllowExpression(true)
                     .build();
 
+    protected static final SimpleAttributeDefinition REPLICA_SET =
+                new SimpleAttributeDefinitionBuilder(CommonAttributes.REPLICA_SET, ModelType.STRING, true)
+                        .setFlags(AttributeAccess.Flag.RESTART_ALL_SERVICES)
+                        .setAllowExpression(false)
+                        .build();
+
+
+
     protected static List<SimpleAttributeDefinition> ATTRIBUTES = Arrays.asList(
             ID_NAME,
             JNDI_NAME,
             DATABASE,
+            ADMIN_DATABASE,
             MODULE,
             SECURITY_DOMAIN,
             AUTH_TYPE,
-            SSL);
+            SSL,
+            REPLICA_SET);
 
     static final Map<String, AttributeDefinition> ATTRIBUTES_MAP = new HashMap<>();
 
@@ -186,6 +202,9 @@ public class MongoDefinition extends PersistentResourceDefinition {
             if (profileEntry.hasDefined(CommonAttributes.DATABASE)) {
                 builder.setDatabase(profileEntry.get(CommonAttributes.DATABASE).asString());
             }
+            if (profileEntry.hasDefined(CommonAttributes.ADMIN_DATABASE)) {
+                builder.setAdminDatabase(profileEntry.get(CommonAttributes.ADMIN_DATABASE).asString());
+            }
             if (profileEntry.hasDefined(CommonAttributes.SECURITY_DOMAIN)) {
                 builder.setSecurityDomain(profileEntry.get(CommonAttributes.SECURITY_DOMAIN).asString());
             }
@@ -197,6 +216,9 @@ public class MongoDefinition extends PersistentResourceDefinition {
                 builder.setSSL(profileEntry.get(CommonAttributes.SSL).asBoolean());
             }
 
+            if (profileEntry.hasDefined(CommonAttributes.REPLICA_SET)) {
+                builder.setReplicaSet(profileEntry.get(CommonAttributes.REPLICA_SET).asString());
+            }
             if (profileEntry.hasDefined(CommonAttributes.HOST_DEF)) {
                 ModelNode hostModels = profileEntry.get(CommonAttributes.HOST_DEF);
                 for (ModelNode host : hostModels.asList()) {
