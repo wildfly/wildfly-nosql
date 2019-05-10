@@ -25,6 +25,7 @@ public class ConfigurationBuilder {
 
     private String JNDIName;
     private String database;
+    private String adminDatabase;
     private String description;
     private static final String defaultModuleName = "org.mongodb.driver";
     private String moduleName = // name of MongoDB module
@@ -34,6 +35,7 @@ public class ConfigurationBuilder {
     private String securityDomain;
     private AuthType authType;
     private boolean SSL;
+    private String replicaSet;
 
     public AuthType getAuthType() {
         return authType;
@@ -80,6 +82,14 @@ public class ConfigurationBuilder {
         return this;
     }
 
+    public String getAdminDatabase() {
+        return adminDatabase;
+    }
+
+    public void setAdminDatabase(String adminDatabase) {
+        this.adminDatabase = adminDatabase;
+    }
+
     public ConfigurationBuilder setModuleName(String moduleName) {
         this.moduleName = moduleName;
         return this;
@@ -114,6 +124,14 @@ public class ConfigurationBuilder {
 
     public boolean isSSL() {
         return SSL;
+    }
+
+    public String getReplicaSet() {
+        return replicaSet;
+    }
+
+    public void setReplicaSet(String replicaSet) {
+        this.replicaSet = replicaSet;
     }
 
 }

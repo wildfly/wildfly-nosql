@@ -23,6 +23,7 @@ package org.wildfly.extension.nosql.subsystem.mongodb;
  */
 public interface CommonAttributes {
     String DATABASE = "database";
+    String ADMIN_DATABASE = "adminDatabase";
     String OUTBOUND_SOCKET_BINDING_REF = "outbound-socket-binding-ref";
     String HOST_DEF = "host";
     String ID_NAME = "id";
@@ -36,4 +37,5 @@ public interface CommonAttributes {
     String SECURITY_DOMAIN = "security-domain";
     String AUTH_TYPE = "auth-type";
     String SSL = "ssl";
+    String REPLICA_SET = "replicaSet";
 }

@@ -55,6 +55,7 @@ public class MongoInteraction {
     private final MethodHandle writeConcernMethod;
     private final MethodHandle readConcernMethod;
     private final MethodHandle sslEnabledMethod;
+    private final MethodHandle replicaSetMethod;
     private final MethodHandle buildMethod;
 
     private final MethodHandle writeConcernValueOfMethod;
@@ -104,6 +105,7 @@ public class MongoInteraction {
         writeConcernMethod = methodHandleBuilder.method("writeConcern", mongoWriteConcernClass);
         readConcernMethod = methodHandleBuilder.method("readConcern", mongoReadConcernClass);
         sslEnabledMethod = methodHandleBuilder.method("sslEnabled", boolean.class);
+        replicaSetMethod = methodHandleBuilder.method("requiredReplicaSetName", String.class);
         buildMethod = methodHandleBuilder.method("build");
 
         methodHandleBuilder.className(NoSQLConstants.MONGOSERVERADDRESSCLASS);
@@ -172,6 +174,10 @@ public class MongoInteraction {
         if (configurationBuilder.isSSL()) {
             sslEnabledMethod.invoke(builder,true);
         }
+        if (configurationBuilder.getReplicaSet() != null) {
+            // public Builder requiredReplicaSetName(final String requiredReplicaSetName)
+            replicaSetMethod.invoke(builder, configurationBuilder.getReplicaSet());
+        }
         // MongoClientOptions mongoClientOptions = builder.build();
         // Object mongoClientOptions = buildMethod.invokeExact(builder);
         Object mongoClientOptions = buildMethod.invoke(builder);
@@ -182,6 +188,8 @@ public class MongoInteraction {
     public List /* MongoCredential */ mongoCredential() throws Throwable {
 
         if (configurationBuilder.getSecurityDomain() != null && subjectFactory != null) {
+            // use the admin database if specified for authentication, otherwise use the application database.
+            final String database = configurationBuilder.getAdminDatabase() != null ? configurationBuilder.getAdminDatabase() : configurationBuilder.getDatabase();
             try {
                 Subject subject = subjectFactory.createSubject(configurationBuilder.getSecurityDomain());
                 Set<PasswordCredential> passwordCredentials = subject.getPrivateCredentials(PasswordCredential.class);
@@ -189,7 +197,7 @@ public class MongoInteraction {
                 // public static MongoCredential createCredential(final String userName, final String database, final char[] password) {
                 List resultList = new ArrayList();
                 if(configurationBuilder.getAuthType() == null || AuthType.DEFAULT.equals(configurationBuilder.getAuthType())) {
-                    resultList.add(mongoCredentialCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    resultList.add(mongoCredentialCreateCredential.invoke(passwordCredential.getUserName(), database, passwordCredential.getPassword()));
                     return resultList;
                 }
                 else if(AuthType.GSSAPI.equals(configurationBuilder.getAuthType())) {
@@ -198,7 +206,7 @@ public class MongoInteraction {
                     return resultList;
                 }
                 else if(AuthType.MONGODB_CR.equals(configurationBuilder.getAuthType())) {
-                    resultList.add(mongoCredentialMongoCRCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    resultList.add(mongoCredentialMongoCRCreateCredential.invoke(passwordCredential.getUserName(), database, passwordCredential.getPassword()));
                     return resultList;
                 }
                 else if(AuthType.MONGODB_X509.equals(configurationBuilder.getAuthType())) {
@@ -206,11 +214,11 @@ public class MongoInteraction {
                     return resultList;
                 }
                 else if(AuthType.PLAIN_SASL.equals(configurationBuilder.getAuthType())) {
-                    resultList.add(mongoCredentialPlainCreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    resultList.add(mongoCredentialPlainCreateCredential.invoke(passwordCredential.getUserName(), database, passwordCredential.getPassword()));
                     return resultList;
                 }
                 else if(AuthType.SCRAM_SHA_1.equals(configurationBuilder.getAuthType())) {
-                    resultList.add(mongoCredentialScramSha1CreateCredential.invoke(passwordCredential.getUserName(), configurationBuilder.getDatabase(), passwordCredential.getPassword()));
+                    resultList.add(mongoCredentialScramSha1CreateCredential.invoke(passwordCredential.getUserName(), database, passwordCredential.getPassword()));
                     return resultList;
                 }
                 else {
@@ -219,7 +227,7 @@ public class MongoInteraction {
             } catch(Throwable problem) {
                 if (ROOT_LOGGER.isTraceEnabled()) {
                     ROOT_LOGGER.tracef(problem,"could not create subject for security domain '%s' with database '%s'",
-                            configurationBuilder.getSecurityDomain(), configurationBuilder.getDatabase());
+                            configurationBuilder.getSecurityDomain(), database);
                 }
                 throw problem;
             }
