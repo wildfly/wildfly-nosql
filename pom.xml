@@ -25,7 +25,7 @@
 
     <groupId>org.wildfly.nosql</groupId>
     <artifactId>wildfly-nosql-parent</artifactId>
-    <version>1.0.2.Final-SNAPSHOT</version>
+    <version>1.0.2.Final</version>
 
     <name>WildFly: Parent Aggregator</name>
     <description>WildFly: Parent Aggregator</description>
